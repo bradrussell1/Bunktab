@@ -12,7 +12,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "mobile": "npm run start --workspace=mobile",
     "db:diff": "supabase db diff",
-    "db:push": "supabase db push"
+    "db:push": "supabase db push",
+    "smoke": "node scripts/smoke.mjs"
   },
   "engines": {
     "node": ">=20"
