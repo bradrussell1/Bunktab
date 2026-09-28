@@ -28,7 +28,7 @@ are stored in the repo or in `public`.
 | Function | Trigger | Auth | Secrets |
 | --- | --- | --- | --- |
 | `push` | `public.notify` (pg_net) | shared secret | `EXPO_ACCESS_TOKEN` (optional, only if Expo push security is enabled) |
-| `send-invite` | `invites` insert trigger (pg_net), or the app with a user JWT | shared secret, or JWT (only the inviter) | `TWILIO_ACCOUNT_SID` (set), `TWILIO_AUTH_TOKEN` (**needed**), `TWILIO_FROM` (**needed**: a Messaging Service SID `MG…` or an E.164 number), `INVITE_BASE_URL` (set, `https://checkm8.app/i/`) |
+| `send-invite` | `invites` insert trigger (pg_net), or the app with a user JWT | shared secret, or JWT (only the inviter) | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (all set; `TWILIO_FROM` is Messaging Service `MG017e294d00a0daa9ae26697f5bbb8e26` holding toll-free +1 833 612 7553, which US carriers block until toll-free verification is approved), `INVITE_BASE_URL` (set to the Vercel URL until checkm8.app exists) |
 | `read-receipt` | the app, after uploading to `receipts/<trip_id>/<name>.jpg` | user JWT; membership enforced through RLS | `ANTHROPIC_API_KEY` (**needed**; model `claude-sonnet-5`) |
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are
@@ -89,10 +89,18 @@ un-archive, nudge cap, invite expiry, read-receipt auth. Cleans up after.
 
 ## Still needed from you
 
-- Twilio **Auth Token** and a **from** (toll-free number with verification
-  submitted, or a Messaging Service SID). Then:
-  `npx supabase secrets set TWILIO_AUTH_TOKEN=… TWILIO_FROM=…`
-- **Anthropic API key** for receipt reading:
-  `npx supabase secrets set ANTHROPIC_API_KEY=…`
+- **Toll-free verification** for +1 833 612 7553 (Twilio Console → Messaging →
+  Regulatory compliance → Toll-free verification): needs a mailing address and
+  the app website. Until approved, US carriers drop invite texts.
+- **`ANTHROPIC_WORKSPACE_ID`**, or replace `ANTHROPIC_API_KEY` with a key
+  created inside a workspace.
 - Optional: an Expo access token if you turn on push security for the Expo
   project (`EXPO_ACCESS_TOKEN`).
+
+## Phone login (Supabase Auth)
+
+Login codes go through **Twilio Verify** (service `VAf406e76f8503f527b61d0f38f81e8256`, Supabase `sms_provider = twilio_verify`), which needs no registered number. Test numbers +1 555 555 0100/0101/0102 still take code 123456. Invite texts are separate and use the Messaging Service above.
+
+## Receipt reading key
+
+`ANTHROPIC_API_KEY` is set. If the key is not scoped to a workspace, also set `ANTHROPIC_WORKSPACE_ID` (Console → Workspaces), or the API answers 400.

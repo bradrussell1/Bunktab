@@ -37,10 +37,15 @@ Deno.serve(async (req) => {
 
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+    // a key that isn't scoped to a workspace must name one (ANTHROPIC_WORKSPACE_ID)
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "Content-Type": "application/json", ...(Deno.env.get("ANTHROPIC_WORKSPACE_ID") ? { "anthropic-workspace-id": Deno.env.get("ANTHROPIC_WORKSPACE_ID")! } : {}) },
     body: JSON.stringify({ model: MODEL, max_tokens: 100, messages: [{ role: "user", content: [{ type: "image", source: { type: "base64", media_type: media, data: b64 } }, { type: "text", text: PROMPT }] }] }),
   });
-  if (!r.ok) return json({ total_cents: null, currency: null, confidence: null, error: `anthropic ${r.status}` });
+  if (!r.ok) {
+    const detail = (await r.text()).slice(0, 200);
+    console.error("anthropic", r.status, detail);
+    return json({ total_cents: null, currency: null, confidence: null, error: `anthropic ${r.status}` });
+  }
   const j = await r.json();
   const text: string = j?.content?.find((c: { type: string }) => c.type === "text")?.text ?? "";
   let parsed: { total?: number | null; currency?: string | null; confidence?: string } = {};
