@@ -1,7 +1,7 @@
 import { COMMON_CURRENCIES } from "@checkm8/core";
 import { theme } from "@checkm8/theme";
 import * as Contacts from "expo-contacts";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 import { Button, Card, Input, ListItem, Screen, Text } from "@/components/ui";
@@ -24,7 +24,9 @@ const isDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Dat
 export default function NewTripScreen() {
   const router = useRouter();
   const { session, profile } = useAuth();
-  const [step, setStep] = useState<1 | 2>(1);
+  const params = useLocalSearchParams<{ step?: string }>();
+  // DEV only: `?step=2` opens the invite step directly (screenshots, tests)
+  const [step, setStep] = useState<1 | 2>(__DEV__ && params.step === "2" ? 2 : 1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [start, setStart] = useState("");
@@ -151,7 +153,7 @@ export default function NewTripScreen() {
           {step === 1
             ? <Button title="Next: invite people" onPress={next} />
             : <Button title={picks.length ? `Create trip and invite ${picks.length}` : "Create trip"} onPress={finish} loading={busy} />}
-          {step === 2 && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Invitees get a text with a link. You can add people later too.</Text>}
+          {step === 2 && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Each person gets one text from Checkm8 with a link to this trip and can reply STOP. Only add people who expect it. You can add more later.</Text>}
         </View>
       </KeyboardAvoidingView>
     </Screen>

@@ -35,7 +35,8 @@ Deno.serve(async (req) => {
   const inviter = (inv as unknown as { users: { display_name: string | null } | null }).users;
   const who = inviter?.display_name?.split(" ")[0] || "A friend";
   const base = Deno.env.get("INVITE_BASE_URL") ?? "https://checkm8.app/i/";
-  const text = `${who} added you to '${trip?.title ?? "a trip"}' on Checkm8. Open it: ${base}${inv.token}`;
+  // one-time invitation; the Messaging Service handles STOP/HELP automatically
+  const text = `Checkm8: ${who} added you to '${trip?.title ?? "a trip"}' to split trip expenses. Open it: ${base}${inv.token}\nReply STOP to opt out.`;
   const to = inv.phone.startsWith("+") ? inv.phone : `+${inv.phone}`;
 
   const sid = Deno.env.get("TWILIO_ACCOUNT_SID"), tok = Deno.env.get("TWILIO_AUTH_TOKEN"), from = Deno.env.get("TWILIO_FROM");
