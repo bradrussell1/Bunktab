@@ -1,0 +1,19 @@
+"use client";
+import { useEffect, useState } from "react";
+
+const KEY = "checkm8.banner.dismissed";
+
+/** Persistent recommendation to install the app (spec: Web guest view). Dismissal is per browser. */
+export function InstallBanner() {
+  const [hidden, setHidden] = useState(true);
+  useEffect(() => { try { setHidden(localStorage.getItem(KEY) === "1"); } catch { setHidden(false); } }, []);
+  if (hidden) return null;
+  return (
+    <div className="banner" role="region" aria-label="Get the app">
+      <div className="inner">
+        <span>Get the app for notifications and Venmo close-out. <a href="/#get">Learn more</a></span>
+        <button type="button" aria-label="Dismiss" onClick={() => { try { localStorage.setItem(KEY, "1"); } catch { /* ignore */ } setHidden(true); }}>×</button>
+      </div>
+    </div>
+  );
+}

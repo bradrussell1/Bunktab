@@ -1,0 +1,27 @@
+{
+  "name": "@checkm8/web",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Checkm8 web: landing page and the no-install guest view that invite links open.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@checkm8/core": "*",
+    "@checkm8/theme": "*",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.58.0",
+    "next": "^15.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "typescript": "~5.9.2"
+  }
+}

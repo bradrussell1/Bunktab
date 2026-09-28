@@ -1,5 +1,5 @@
 // End-to-end smoke test against the linked Supabase project, as the two test
-// phone numbers (auth.sms.test_otp): trip creation, membership isolation,
+// phone numbers (auth.sms.test_otp; A = …0100, B = …0102 so they share no other trip): trip creation, membership isolation,
 // save_expense validation, the Done gate, settlement generation, marking
 // paid, and cleanup. Run with `npm run smoke` after `apps/mobile/.env` exists.
 // Leaves nothing behind.
@@ -20,17 +20,17 @@ async function login(phone) {
   return [b.access_token, b.user.id];
 }
 const ok = (label, cond, extra = "") => console.log((cond ? "PASS " : "FAIL ") + label, cond ? "" : JSON.stringify(extra).slice(0, 200));
-const [ja, ua] = await login("+15555550100"); const [jb, ub] = await login("+15555550101");
+const [ja, ua] = await login("+15555550100"); const [jb, ub] = await login("+15555550102"); // a user who shares no trips with A
 
 let [st, t] = await call("POST", "/rest/v1/trips", { title: "RLS smoke test", start_date: "2026-10-02", end_date: "2026-10-05", created_by: ua }, ja, "return=representation");
 ok("A creates a trip", st === 201, [st, t]); const tid = t[0].id;
 let m; [st, m] = await call("GET", `/rest/v1/trip_members?select=user_id,role&trip_id=eq.${tid}`, undefined, ja);
 ok("owner membership row added by trigger", st === 200 && JSON.stringify(m) === JSON.stringify([{ user_id: ua, role: "owner" }]), m);
-ok("B cannot see A's trip", (await call("GET", "/rest/v1/trips?select=id", undefined, jb))[1].length === 0);
+ok("B cannot see A's trip", (await call("GET", `/rest/v1/trips?select=id&id=eq.${tid}`, undefined, jb))[1].length === 0);
 ok("B cannot see A's profile", (await call("GET", `/rest/v1/users?select=id&id=eq.${ua}`, undefined, jb))[1].length === 0);
 [st] = await call("POST", "/rest/v1/trip_members", { trip_id: tid, user_id: ub, role: "member" }, ja);
 ok("owner adds a member", st === 201, st);
-ok("B now sees the trip", (await call("GET", "/rest/v1/trips?select=id", undefined, jb))[1].length === 1);
+ok("B now sees the trip", (await call("GET", `/rest/v1/trips?select=id&id=eq.${tid}`, undefined, jb))[1].length === 1);
 ok("B now sees A's profile", (await call("GET", `/rest/v1/users?select=id&id=eq.${ua}`, undefined, jb))[1].length === 1);
 let eid; [st, eid] = await call("POST", "/rest/v1/rpc/save_expense", { p: { trip_id: tid, description: "Dinner", category: "dining", subcategory: "restaurants", amount_cents: 12000, tip_cents: 0, currency: "USD", fx_rate: 1, split_type: "equal", payers: [{ user_id: ua, amount_cents: 12000 }], shares: [{ user_id: ua, share_cents: 6000 }, { user_id: ub, share_cents: 6000 }] } }, ja);
 ok("save_expense (one transaction)", st === 200, [st, eid]);
@@ -56,4 +56,4 @@ const sid = plan[0]?.id;
 let tr; [st, tr] = await call("GET", `/rest/v1/trips?select=status&id=eq.${tid}`, undefined, ja); ok("trip becomes settled once every payment is marked", tr[0]?.status === "settled", tr);
 [st] = await call("POST", "/rest/v1/rpc/mark_settlement", { p_settlement: sid, p_action: "confirm" }, ja); ok("recipient's optional Got it", st === 204, st);
 [st] = await call("DELETE", `/rest/v1/trips?id=eq.${tid}`, undefined, ja); ok("owner deletes the trip", st === 204, st);
-ok("nothing left behind", (await call("GET", "/rest/v1/trips?select=id", undefined, ja))[1].length === 0);
+ok("nothing left behind", (await call("GET", `/rest/v1/trips?select=id&id=eq.${tid}`, undefined, ja))[1].length === 0);
