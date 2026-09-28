@@ -13,7 +13,9 @@
     "mobile": "npm run start --workspace=mobile",
     "db:diff": "supabase db diff",
     "db:push": "supabase db push",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "smoke:server": "node scripts/smoke-server.mjs",
+    "web": "npm run dev --workspace=@checkm8/web"
   },
   "engines": {
     "node": ">=20"

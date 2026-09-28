@@ -15,9 +15,11 @@ import {
 import { theme } from "@checkm8/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, View } from "react-native";
-import { Avatar, Button, Card, Divider, Input, Screen, Segmented, Text } from "@/components/ui";
+import { ActionSheetIOS, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, View } from "react-native";
+import { Avatar, Button, Card, Divider, Input, ListItem, Screen, Segmented, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
+import { fetchRate, formatFetchedAt } from "@/lib/fx";
+import { pickReceipt, readReceipt, signReceipt, uploadReceipt } from "@/lib/receipts";
 import { supabase } from "@/lib/supabase";
 import { activeMembers, useTrip, type Expense } from "@/lib/trips";
 
@@ -28,8 +30,9 @@ import { activeMembers, useTrip, type Expense } from "@/lib/trips";
  * subcategory from the fixed list; tip as its own field; the lodging toggle
  * that switches to nights. Shares are computed by @checkm8/core and saved
  * through save_expense in one transaction; the server re-checks the sums.
- * Receipt photo and the exchange-rate lookup arrive with the server phase;
- * a non-base currency takes a typed rate until then.
+ * A receipt photo uploads to the private receipts bucket and the total is
+ * read server-side to pre-fill the amount (tip stays separate); a non-base
+ * currency fetches its rate on selection, editable, locked on save.
  */
 const SPLITS: { key: SplitType; label: string }[] = [
   { key: "equal", label: "Equal" }, { key: "exact", label: "Exact" }, { key: "percent", label: "%" }, { key: "shares", label: "Shares" },
@@ -62,6 +65,12 @@ export default function ExpenseScreen() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [seeded, setSeeded] = useState(false);
+  const [receiptPath, setReceiptPath] = useState<string | null>(null);
+  const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
+  const [receiptBusy, setReceiptBusy] = useState(false);
+  const [receiptNote, setReceiptNote] = useState<string | null>(null);
+  const [fxNote, setFxNote] = useState<string | null>(null);
+  const [commentCount, setCommentCount] = useState<number | null>(null);
 
   const members = useMemo(() => (data ? activeMembers(data) : []), [data]);
   const cat = CATEGORIES.find((c) => c.key === category)!;
@@ -79,6 +88,7 @@ export default function ExpenseScreen() {
       setSplit(existing.split_type === "nights" ? "equal" : existing.split_type);
       setLodging(existing.split_type === "nights");
       if (existing.split_type === "exact") setExact(Object.fromEntries(existing.expense_shares.map((s) => [s.user_id, String(s.share_cents / 100)])));
+      if (existing.receipt_url) setReceiptPath(existing.receipt_url);
       if (existing.nights) { setNights(String(existing.nights)); setPresence(Object.fromEntries(existing.expense_shares.map((s) => [s.user_id, s.night_presence ?? fullPresence([s.user_id], existing.nights!)[s.user_id]!]))); }
     } else {
       setCurrency(data.trip.base_currency);
@@ -89,6 +99,37 @@ export default function ExpenseScreen() {
     }
     setSeeded(true);
   }, [data, existing, members, me, seeded]);
+
+  // signed link for the receipt thumbnail (private bucket)
+  useEffect(() => {
+    let live = true;
+    if (!receiptPath) { setReceiptUrl(null); return; }
+    signReceipt(receiptPath).then((u) => { if (live) setReceiptUrl(u); });
+    return () => { live = false; };
+  }, [receiptPath]);
+
+  // fetch the rate when a non-base currency is picked; typed rate stays the fallback
+  useEffect(() => {
+    if (!data || !seeded) return;
+    const base = data.trip.base_currency;
+    if (currency === base) { setFx("1"); setFxNote(null); return; }
+    if (existing && currency === existing.currency && !fxNote) return; // keep the locked rate on an edit until the user changes currency
+    let live = true;
+    setFxNote("Fetching rate…");
+    fetchRate(currency, base).then((q) => {
+      if (!live) return;
+      if (q) { setFx(String(Number(q.rate.toFixed(6)))); setFxNote(`Rate fetched ${formatFetchedAt(q.fetchedAt)}, locked on save`); }
+      else setFxNote("Couldn't fetch a rate, enter one by hand");
+    });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currency, data?.trip.base_currency, seeded]);
+
+  // comment count for the saved expense
+  useEffect(() => {
+    if (!existing) return;
+    supabase.from("comments").select("id", { count: "exact", head: true }).eq("expense_id", existing.id).then(({ count }) => setCommentCount(count ?? 0));
+  }, [existing]);
 
   const amountCents = parseToCents(amount) ?? 0;
   const tipCents = parseToCents(tip) ?? 0;
@@ -105,12 +146,53 @@ export default function ExpenseScreen() {
   }
   function pickSub(key: string) { setSubcategory(key); if (isLodgingCategory(category, key)) setLodging(true); }
   function toggleInvolved(uid: string) { setInvolved((v) => (v.includes(uid) ? v.filter((x) => x !== uid) : [...v, uid])); }
-  function togglePayer(uid: string) { setPayers((p) => { const n = { ...p }; if (uid in n) delete n[uid]; else n[uid] = ""; return n; }); }
+  function togglePayer(uid: string) {
+    setPayers((p) => {
+      const n = { ...p };
+      if (uid in n) delete n[uid];
+      else {
+        n[uid] = "";
+        // going from one payer to several: the first payer starts with the whole total so the sum begins right
+        const ids = Object.keys(n);
+        if (ids.length === 2 && total > 0) { const first = ids.find((k) => k !== uid)!; if (!n[first]) n[first] = (total / 100).toFixed(2); }
+      }
+      return n;
+    });
+  }
   function setNightsCount(v: string) {
     setNights(v);
     const n = Math.max(1, parseInt(v, 10) || 1);
     setPresence((p) => Object.fromEntries(involved.map((uid) => [uid, Array.from({ length: n }, (_, i) => p[uid]?.[i] ?? true)])));
   }
+
+  async function attachReceipt(source: "camera" | "library") {
+    if (!data) return;
+    setError(null);
+    const uri = await pickReceipt(source);
+    if (!uri) return;
+    setReceiptBusy(true); setReceiptNote(null);
+    try {
+      const path = await uploadReceipt(data.trip.id, uri);
+      setReceiptPath(path);
+      const read = await readReceipt(path);
+      if (read?.total_cents && read.total_cents > 0 && read.confidence !== "low" && !amount.trim()) {
+        setAmount((read.total_cents / 100).toFixed(2));
+        if (read.currency && (COMMON_CURRENCIES as readonly string[]).includes(read.currency)) setCurrency(read.currency);
+        setReceiptNote("Read from the receipt, check it");
+      } else {
+        setReceiptNote(amount.trim() ? "Receipt attached" : "Couldn't read a total, enter it by hand");
+      }
+    } catch (e) { setError(e instanceof Error ? e.message : "Couldn't upload the receipt."); }
+    setReceiptBusy(false);
+  }
+  function chooseReceipt() {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions({ options: ["Cancel", "Take photo", "Choose photo"], cancelButtonIndex: 0 }, (i) => { if (i === 1) attachReceipt("camera"); if (i === 2) attachReceipt("library"); });
+    } else {
+      Alert.alert("Receipt", undefined, [{ text: "Take photo", onPress: () => attachReceipt("camera") }, { text: "Choose photo", onPress: () => attachReceipt("library") }, { text: "Cancel", style: "cancel" }]);
+    }
+  }
+  function removeReceipt() { setReceiptPath(null); setReceiptNote(null); }
 
   const preview = useMemo(() => {
     try {
@@ -149,6 +231,7 @@ export default function ExpenseScreen() {
       id: existing?.id, trip_id: data.trip.id, description: description.trim(), category, subcategory,
       amount_cents: amountCents, tip_cents: tipCents, currency, fx_rate: fxRate, base_amount_cents: base,
       split_type: lodging ? "nights" : split, nights: lodging ? nightsN : null,
+      receipt_url: receiptPath,
       payers: Object.entries(payerCents).map(([user_id, c]) => ({ user_id, amount_cents: c, base_amount_cents: toBaseCents(c, fxRate) })),
       shares: Object.entries(preview.shares).map(([user_id, c]) => ({ user_id, share_cents: c, base_share_cents: toBaseCents(c, fxRate), nights: lodging ? (presence[user_id] ?? []).filter(Boolean).length : null, night_presence: lodging ? presence[user_id] ?? null : null })),
     };
@@ -176,6 +259,19 @@ export default function ExpenseScreen() {
           {existing ? <Button title="Delete" kind="text" size="small" onPress={remove} /> : <View style={{ width: 60 }} />}
         </View>
         <ScrollView contentContainerStyle={{ paddingHorizontal: theme.screenPadding, gap: theme.spacing.lg, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
+          <Card style={{ padding: 12, flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
+            <Pressable onPress={chooseReceipt} disabled={receiptBusy} accessibilityRole="button" accessibilityLabel={receiptPath ? "Change receipt photo" : "Add receipt photo"}
+              style={{ width: 56, height: 56, borderRadius: theme.radius.control, borderWidth: 1, borderColor: theme.colors.border.neutral, backgroundColor: theme.colors.fill.secondary, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+              {receiptUrl ? <Image source={{ uri: receiptUrl }} style={{ width: 56, height: 56 }} resizeMode="cover" accessibilityIgnoresInvertColors /> : <Text variant="caption3" color={theme.colors.text.onBackground.secondary}>{receiptBusy ? "…" : "Receipt"}</Text>}
+            </Pressable>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text variant="headline">{receiptPath ? "Receipt attached" : "Receipt"}</Text>
+              <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{receiptBusy ? "Uploading and reading the total…" : receiptNote ?? (receiptPath ? "Saved with the expense as proof." : "Snap it and the total fills in. Add tip separately.")}</Text>
+            </View>
+            {receiptPath
+              ? <Button title="Remove" kind="text" size="small" onPress={removeReceipt} disabled={receiptBusy} />
+              : <Button title="Add" kind="secondary" size="small" onPress={chooseReceipt} loading={receiptBusy} />}
+          </Card>
           <View style={{ flexDirection: "row", gap: theme.spacing.md }}>
             <View style={{ flex: 2 }}><Input label="Amount" placeholder="0.00" keyboardType="decimal-pad" value={amount} onChangeText={setAmount} autoFocus={!existing} /></View>
             <View style={{ flex: 1 }}><Input label="Tip" placeholder="0.00" keyboardType="decimal-pad" value={tip} onChangeText={setTip} /></View>
@@ -189,7 +285,7 @@ export default function ExpenseScreen() {
                 </Pressable>
               ))}
             </ScrollView>
-            {currency !== data.trip.base_currency && <Input label={`Rate: 1 ${currency} in ${data.trip.base_currency}`} keyboardType="decimal-pad" value={fx} onChangeText={setFx} helper={`${formatCents(total, currency)} = ${formatCents(toBaseCents(total, fxRate), data.trip.base_currency)} · locked on save`} />}
+            {currency !== data.trip.base_currency && <Input label={`Rate: 1 ${currency} in ${data.trip.base_currency}`} keyboardType="decimal-pad" value={fx} helper={`${formatCents(total, currency)} = ${formatCents(toBaseCents(total, fxRate), data.trip.base_currency)}${fxNote ? ` · ${fxNote}` : " · locked on save"}`} onChangeText={(v) => { setFx(v); setFxNote("Typed rate, locked on save"); }} />}
           </View>
           <Input label="Description" placeholder="Dinner at Rosa's" value={description} onChangeText={setDescription} maxLength={140} />
 
@@ -257,9 +353,14 @@ export default function ExpenseScreen() {
             {preview?.error && <Text variant="caption1" color={theme.colors.text.destructive}>{preview.error}</Text>}
             {!lodging && split === "equal" && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>Leftover cents go to the payer so the total always matches.</Text>}
           </View>
+          {existing && (
+            <Card style={{ padding: 0, overflow: "hidden" }}>
+              <ListItem title={`Comments${commentCount === null ? "" : ` (${commentCount})`}`} subtitle="Questions and notes about this expense" onPress={() => router.push(`/(app)/trip/${data.trip.id}/comments?expense=${existing.id}`)} right={<Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>Open ›</Text>} />
+            </Card>
+          )}
           <Divider />
           {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
-          <Button title={existing ? "Save changes" : `Add ${total ? formatCents(total, currency) : "expense"}`} onPress={save} loading={busy} />
+          <Button title={existing ? "Save changes" : `Add ${total ? formatCents(total, currency) : "expense"}`} onPress={save} loading={busy} disabled={total <= 0 || receiptBusy} />
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>

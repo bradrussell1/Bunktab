@@ -72,7 +72,8 @@
           "cameraPermission": "Checkm8 uses the camera to photograph receipts."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

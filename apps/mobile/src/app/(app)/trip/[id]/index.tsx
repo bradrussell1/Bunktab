@@ -2,18 +2,22 @@ import { CATEGORIES, categoryLabel, closeoutUnlocked, formatCents, formatDateRan
 import { theme } from "@checkm8/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, View } from "react-native";
+import { ActionSheetIOS, ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, Switch, View } from "react-native";
 import { Avatar, Button, Card, DoneBadge, Divider, ListItem, Screen, Segmented, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
+import { uploadPrivateImage, useSignedUrl } from "@/lib/media";
+import { pickImage } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
-import { activeMembers, memberName, membersWithNoExpenses, nets, paidBy, previewPayments, shareOf, tripTotal, useTrip } from "@/lib/trips";
+import { CATEGORY_GLYPH } from "@/lib/tripExtras";
+import { activeMembers, memberName, membersWithNoExpenses, nets, paidBy, previewPayments, shareOf, tripTotal, useTrip, type Expense, type TripData } from "@/lib/trips";
 
 /**
- * The trip page (spec: Screens → Trip page): header with member avatars and
- * Done badges; the balance card with the live settlement preview beneath;
- * who hasn't logged yet; Expenses · Per person · Summary; the sticky footer
- * with Add expense, the Done toggle and Close out (locked until everyone
- * has the badge; the owner gets Close out anyway).
+ * The trip page (spec: Screens → Trip page): header with cover photo (tap to
+ * add or change), member avatars (tap for details) and Done badges; the
+ * balance card with the live settlement preview beneath; who hasn't logged
+ * yet; Expenses · Per person · Summary; the sticky footer with Add expense,
+ * the Done toggle and Close out (locked until everyone has the badge). The
+ * ⋯ menu holds Trip history and, for the owner, Close out anyway / Delete.
  */
 type Tab = "expenses" | "people" | "summary";
 
@@ -26,6 +30,8 @@ export default function TripScreen() {
   const [tab, setTab] = useState<Tab>("expenses");
   const [showPlan, setShowPlan] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [coverBusy, setCoverBusy] = useState(false);
+  const coverUrl = useSignedUrl("covers", data?.trip.cover_photo_url);
 
   const figures = useMemo(() => {
     if (!data) return null;
@@ -40,6 +46,7 @@ export default function TripScreen() {
   const isOwner = meMember?.role === "owner";
   const unlocked = closeoutUnlocked(figures.members.map((m) => ({ doneAt: m.done_at, removedAt: m.removed_at }))) || !!trip.closeout_override_at;
   const perPerson = figures.members.length ? Math.round(figures.total / figures.members.length) : 0;
+  const closed = trip.status !== "open";
 
   async function toggleDone(v: boolean) {
     setBusy(true);
@@ -52,6 +59,38 @@ export default function TripScreen() {
       { text: "Close out", style: "destructive", onPress: async () => { await supabase.rpc("owner_closeout", { p_trip: trip.id }); reload(); router.push(`/(app)/trip/${trip.id}/closeout`); } },
     ]);
   }
+  function deleteTrip() {
+    Alert.alert("Delete this trip?", "It has no expenses. Members lose access and this can't be undone.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: async () => { const { error: e } = await supabase.from("trips").delete().eq("id", trip.id); if (e) Alert.alert("Couldn't delete", e.message); else router.replace("/(app)/home"); } },
+    ]);
+  }
+  async function changeCover() {
+    const uri = await pickImage([16, 9]);
+    if (!uri) return;
+    setCoverBusy(true);
+    try {
+      const path = await uploadPrivateImage("covers", `${trip.id}/cover.jpg`, uri);
+      const { error: e } = await supabase.from("trips").update({ cover_photo_url: path }).eq("id", trip.id);
+      if (e) throw e;
+      await reload();
+    } catch (e) { Alert.alert("Couldn't save the cover photo", e instanceof Error ? e.message : String(e)); }
+    setCoverBusy(false);
+  }
+  function openMenu() {
+    const items: { label: string; destructive?: boolean; run: () => void }[] = [{ label: "Trip history", run: () => router.push(`/(app)/trip/${trip.id}/history`) }];
+    if (closed) items.push({ label: "View recap", run: () => router.push(`/(app)/trip/${trip.id}/recap`) });
+    if (isOwner && !unlocked && !closed) items.push({ label: "Close out anyway", destructive: true, run: closeOutAnyway });
+    if (isOwner && !closed && data!.expenses.length === 0) items.push({ label: "Delete trip", destructive: true, run: deleteTrip });
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: [...items.map((i) => i.label), "Cancel"], cancelButtonIndex: items.length, destructiveButtonIndex: items.map((i, k) => (i.destructive ? k : -1)).filter((k) => k >= 0) },
+        (k) => { items[k]?.run(); },
+      );
+    } else {
+      Alert.alert(trip.title, undefined, [...items.map((i) => ({ text: i.label, style: i.destructive ? ("destructive" as const) : ("default" as const), onPress: i.run })), { text: "Cancel", style: "cancel" as const }]);
+    }
+  }
 
   return (
     <Screen padded={false}>
@@ -60,17 +99,25 @@ export default function TripScreen() {
         <View style={{ paddingTop: theme.spacing.sm, gap: theme.spacing.sm }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Button title="‹ Trips" kind="text" size="small" onPress={() => router.replace("/(app)/home")} />
-            {isOwner && !unlocked && trip.status === "open" && <Button title="Close out anyway" kind="text" size="small" onPress={closeOutAnyway} />}
+            <Button title="⋯" kind="text" size="small" onPress={openMenu} accessibilityLabel="Trip menu" />
           </View>
+          <Pressable onPress={changeCover} disabled={coverBusy} accessibilityRole="button" accessibilityLabel={coverUrl ? "Change cover photo" : "Add cover photo"}
+            style={{ height: coverUrl ? 160 : 44, borderRadius: theme.radius.card, overflow: "hidden", backgroundColor: theme.colors.fill.secondary, alignItems: "center", justifyContent: "center" }}>
+            {coverUrl
+              ? <Image source={{ uri: coverUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
+              : <Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>{coverBusy ? "Uploading…" : "+ Add a cover photo"}</Text>}
+            {coverUrl && coverBusy && <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: theme.colors.system.dimming40, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={theme.palette.white} /></View>}
+          </Pressable>
           <Text variant="largeTitle">{trip.title}</Text>
-          <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{formatDateRange(trip.start_date, trip.end_date)} · {trip.base_currency}{trip.status !== "open" ? ` · ${trip.status}` : ""}</Text>
+          <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{formatDateRange(trip.start_date, trip.end_date)} · {trip.base_currency}{closed ? ` · ${trip.status}` : ""}</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm }}>
             {figures.members.map((m) => (
-              <View key={m.user_id} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: theme.colors.background.surface, borderWidth: 1, borderColor: theme.colors.border.neutral, borderRadius: theme.radius.pill, paddingRight: 10, paddingLeft: 3, paddingVertical: 3 }}>
+              <Pressable key={m.user_id} onPress={() => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} accessibilityRole="button" accessibilityLabel={`${m.display_name ?? "Member"} details`}
+                style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: theme.colors.background.surface, borderWidth: 1, borderColor: theme.colors.border.neutral, borderRadius: theme.radius.pill, paddingRight: 10, paddingLeft: 3, paddingVertical: 3 }}>
                 <Avatar name={m.display_name ?? "?"} uri={m.photo_url} size={26} />
                 <Text variant="caption1Semibold">{m.user_id === me ? "You" : (m.display_name ?? m.phone ?? "Invited")}</Text>
                 {m.done_at && <DoneBadge />}
-              </View>
+              </Pressable>
             ))}
           </View>
         </View>
@@ -108,12 +155,7 @@ export default function TripScreen() {
             {data.expenses.map((e, i) => (
               <View key={e.id}>
                 {i > 0 && <Divider />}
-                <ListItem
-                  title={e.description}
-                  subtitle={`${memberName(data, e.expense_payers[0]?.user_id ?? e.created_by, me)} paid${e.expense_payers.length > 1 ? ` +${e.expense_payers.length - 1}` : ""} · ${e.expense_shares.length} ${e.expense_shares.length === 1 ? "person" : "people"} · ${categoryLabel(e.category, e.subcategory)}${e.updated_at !== e.created_at ? " · Edited" : ""}`}
-                  right={<View style={{ alignItems: "flex-end" }}><Text variant="text">{formatCents(e.base_amount_cents, trip.base_currency)}</Text>{e.currency !== trip.base_currency && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>{formatCents(e.amount_cents + e.tip_cents, e.currency)}</Text>}</View>}
-                  onPress={() => router.push(`/(app)/trip/${trip.id}/expense?expense=${e.id}`)}
-                />
+                <ExpenseRow e={e} me={me} data={data} onOpen={() => router.push(`/(app)/trip/${trip.id}/expense?expense=${e.id}`)} onHistory={() => router.push(`/(app)/trip/${trip.id}/history?expense=${e.id}`)} />
               </View>
             ))}
           </Card>
@@ -126,7 +168,8 @@ export default function TripScreen() {
               return (
                 <View key={m.user_id}>
                   {i > 0 && <Divider />}
-                  <ListItem title={m.user_id === me ? "You" : (m.display_name ?? "Member")} subtitle={`Paid ${formatCents(paid, trip.base_currency)} · share ${formatCents(share, trip.base_currency)}`} left={<Avatar name={m.display_name ?? "?"} />}
+                  <ListItem title={m.user_id === me ? "You" : (m.display_name ?? "Member")} subtitle={`Paid ${formatCents(paid, trip.base_currency)} · share ${formatCents(share, trip.base_currency)}`} left={<Avatar name={m.display_name ?? "?"} uri={m.photo_url} />}
+                    onPress={() => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)}
                     right={<Text variant="text" color={net < 0 ? theme.colors.text.destructive : net > 0 ? theme.colors.text.success : theme.colors.text.onBackground.secondary}>{net === 0 ? "even" : net > 0 ? `+${formatCents(net, trip.base_currency)}` : `−${formatCents(-net, trip.base_currency)}`}</Text>} />
                 </View>
               );
@@ -152,6 +195,7 @@ export default function TripScreen() {
                 </View>
               );
             })}
+            {closed && <Button title="View recap" kind="secondary" size="medium" onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} />}
           </Card>
         )}
       </ScrollView>
@@ -170,11 +214,41 @@ export default function TripScreen() {
           {!unlocked && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Close out unlocks when everyone has tapped Done.</Text>}
         </View>
       )}
-      {trip.status === "settled" && (
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: theme.screenPadding, paddingBottom: 28, backgroundColor: theme.colors.background.surface, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
-          <Button title="View payments" kind="secondary" size="medium" onPress={() => router.push(`/(app)/trip/${trip.id}/closeout`)} />
+      {closed && (
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: theme.screenPadding, paddingBottom: 28, flexDirection: "row", gap: theme.spacing.sm, backgroundColor: theme.colors.background.surface, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
+          <Button title="View recap" size="medium" style={{ flex: 1 }} onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} />
+          <Button title="Payments" kind="secondary" size="medium" style={{ flex: 1 }} onPress={() => router.push(`/(app)/trip/${trip.id}/closeout`)} />
         </View>
       )}
     </Screen>
+  );
+}
+
+/** Feed row: receipt thumbnail or category glyph, description, payer/people/category, amount, Edited tag → history. */
+function ExpenseRow({ e, me, data, onOpen, onHistory }: { e: Expense; me: string; data: TripData; onOpen: () => void; onHistory: () => void }) {
+  const thumb = useSignedUrl("receipts", e.receipt_url);
+  const edited = e.updated_at !== e.created_at;
+  const cur = data.trip.base_currency;
+  return (
+    <Pressable onPress={onOpen} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, opacity: pressed ? 0.7 : 1 })}>
+      {thumb
+        ? <Image source={{ uri: thumb }} style={{ width: 40, height: 40, borderRadius: theme.radius.control, backgroundColor: theme.colors.fill.secondary }} accessibilityLabel="Receipt" accessibilityIgnoresInvertColors />
+        : <View style={{ width: 40, height: 40, borderRadius: theme.radius.control, backgroundColor: theme.colors.fill.secondary, alignItems: "center", justifyContent: "center" }}><Text variant="caption3" color={theme.colors.text.onBackground.secondary}>{CATEGORY_GLYPH[e.category] ?? "OT"}</Text></View>}
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text variant="headline" numberOfLines={1}>{e.description}</Text>
+        <Text variant="caption1" color={theme.colors.text.onBackground.secondary} numberOfLines={2}>
+          {memberName(data, e.expense_payers[0]?.user_id ?? e.created_by, me)} paid{e.expense_payers.length > 1 ? ` +${e.expense_payers.length - 1}` : ""} · {e.expense_shares.length} {e.expense_shares.length === 1 ? "person" : "people"} · {categoryLabel(e.category, e.subcategory)}
+        </Text>
+      </View>
+      <View style={{ alignItems: "flex-end", gap: 4 }}>
+        <Text variant="text">{formatCents(e.base_amount_cents, cur)}</Text>
+        {e.currency !== cur && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>{formatCents(e.amount_cents + e.tip_cents, e.currency)}</Text>}
+        {edited && (
+          <Pressable onPress={onHistory} hitSlop={8} accessibilityRole="button" accessibilityLabel="Edited, view history" style={{ paddingHorizontal: 6, paddingVertical: 1, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: theme.colors.border.neutral }}>
+            <Text variant="caption3" color={theme.colors.text.onBackground.secondary}>Edited</Text>
+          </Pressable>
+        )}
+      </View>
+    </Pressable>
   );
 }

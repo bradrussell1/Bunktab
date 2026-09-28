@@ -1,5 +1,6 @@
 import type { Session } from "@supabase/supabase-js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { registerForPush, unregisterPush } from "./push";
 import { supabase } from "./supabase";
 
 /**
@@ -41,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!alive) return;
       setSession(data.session);
-      if (data.session) await loadProfile(data.session.user.id);
+      if (data.session) { await loadProfile(data.session.user.id); registerForPush(data.session.user.id); }
       setLoading(false);
     });
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, s) => {
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (s) {
         if (event === "SIGNED_IN") await supabase.rpc("accept_invites_for_me", { p_via: "app" }).then(() => undefined, () => undefined);
         await loadProfile(s.user.id);
+        if (event === "SIGNED_IN") registerForPush(s.user.id);
       } else {
         setProfile(null);
       }
@@ -62,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     loading,
     refreshProfile: async () => { if (session) await loadProfile(session.user.id); },
-    signOut: async () => { await supabase.auth.signOut(); },
+    signOut: async () => { if (session) await unregisterPush(session.user.id); await supabase.auth.signOut(); },
   }), [session, profile, loading, loadProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,7 +3,7 @@ import { theme } from "@checkm8/theme";
 import { useRouter } from "expo-router";
 import { openBrowserAsync } from "expo-web-browser";
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, ScrollView, View } from "react-native";
 import { Avatar, Button, Card, Input, Screen, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { pickImage, uploadImage } from "@/lib/storage";
@@ -45,6 +45,18 @@ export default function SettingsScreen() {
     await refreshProfile(); setSaved(true);
   }
 
+  function deleteAccount() {
+    Alert.alert("Delete your account?", "Your name comes off every trip as \"Former member\" so the group's totals still add up. Your phone, photo and Venmo username are removed and you're signed out. This can't be undone.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete account", style: "destructive", onPress: async () => {
+        await supabase.storage.from("avatars").remove([`${uid}/avatar.jpg`]).catch(() => null);
+        const { error: e } = await supabase.rpc("delete_my_account");
+        if (e) { setError(e.message); return; }
+        await signOut();
+      } },
+    ]);
+  }
+
   return (
     <Screen>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: theme.spacing.sm }}>
@@ -71,6 +83,8 @@ export default function SettingsScreen() {
           <Button title="Save" size="medium" onPress={save} loading={busy} />
         </Card>
         <Button title="Sign out" kind="secondary" size="medium" onPress={signOut} />
+        <Button title="Delete account" kind="text" size="small" onPress={deleteAccount} />
+        <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Deleting removes your personal data and anonymises you on shared trips.</Text>
       </ScrollView>
     </Screen>
   );
