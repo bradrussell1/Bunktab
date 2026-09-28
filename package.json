@@ -1,0 +1,20 @@
+{
+  "name": "checkm8",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Checkm8 — split trip expenses, settle up in Venmo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspace=@checkm8/core",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "mobile": "npm run start --workspace=mobile",
+    "db:diff": "supabase db diff",
+    "db:push": "supabase db push"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,48 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# env — keys never enter the repo (spec: Tech stack → Project links)
+.env
+.env.*
+!.env.example
+apps/**/.env
+apps/**/.env.*
+!apps/**/.env.example
+
+# expo / react native
+.expo/
+.expo-shared/
+dist/
+web-build/
+apps/mobile/ios/
+apps/mobile/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# next.js
+.next/
+out/
+.vercel
+
+# supabase local
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# build / test output
+coverage/
+*.tsbuildinfo
+
+# os / editor
+.DS_Store
+*.log
+npm-debug.log*
+.idea/
+.vscode/*
+!.vscode/extensions.json
