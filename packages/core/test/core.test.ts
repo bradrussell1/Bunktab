@@ -176,3 +176,14 @@ describe("categories and currency", () => {
     expect(() => toBaseCents(1, 0)).toThrow(RangeError);
   });
 });
+
+import { formatDateRange, formatDate } from "../src/dates";
+describe("dates", () => {
+  it("formats ranges", () => {
+    expect(formatDateRange("2026-10-02", "2026-10-05")).toBe("Oct 2 – 5, 2026");
+    expect(formatDateRange("2026-10-30", "2026-11-02")).toBe("Oct 30 – Nov 2, 2026");
+    expect(formatDateRange("2026-12-30", "2027-01-02")).toBe("Dec 30, 2026 – Jan 2, 2027");
+    expect(formatDateRange("2026-10-02", "2026-10-02")).toBe("Oct 2, 2026");
+    expect(formatDate("2026-03-09", false)).toBe("Mar 9");
+  });
+});

@@ -30,6 +30,7 @@ function Routes() {
       <Stack.Protected guard={signedIn && !needsProfile}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>
+      {__DEV__ && <Stack.Screen name="dev-login" />}
     </Stack>
   );
 }

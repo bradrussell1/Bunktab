@@ -2,6 +2,7 @@ import { theme } from "@checkm8/theme";
 import type { ReactNode } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   StyleSheet,
   Text as RNText,
@@ -118,7 +119,7 @@ export function Avatar({ name, uri, size = 32 }: { name: string; uri?: string | 
   const initials = name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
   return (
     <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]} accessibilityLabel={name}>
-      {uri ? null : <RNText style={{ ...type.caption3, color: colors.text.onFill.onDark, fontSize: Math.max(10, size / 2.8) }}>{initials}</RNText>}
+      {uri ? <Image source={{ uri }} style={{ width: size, height: size }} accessibilityIgnoresInvertColors /> : <RNText style={{ ...type.caption3, color: colors.text.onFill.onDark, fontSize: Math.max(10, size / 2.8), lineHeight: Math.max(12, size / 2.2) }}>{initials}</RNText>}
     </View>
   );
 }
