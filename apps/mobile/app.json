@@ -22,7 +22,8 @@
       "buildNumber": "1",
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "appleTeamId": "8LR5F2TH8L"
     },
     "android": {
       "package": "com.checkm8.app",

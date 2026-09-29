@@ -1,10 +1,15 @@
 {
-  "cli": { "version": ">= 16.0.0", "appVersionSource": "remote" },
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "ios": { "simulator": false },
+      "ios": {
+        "simulator": false
+      },
       "channel": "development"
     },
     "preview": {
@@ -18,7 +23,10 @@
   },
   "submit": {
     "production": {
-      "ios": { "ascAppId": "" }
+      "ios": {
+        "appleTeamId": "8LR5F2TH8L",
+        "ascAppId": ""
+      }
     }
   }
 }
