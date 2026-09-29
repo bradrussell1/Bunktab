@@ -48,12 +48,9 @@ const fields = {
   ProductionMessageSample: SAMPLE,
   TollfreePhoneNumberSid: pn.sid,
   UseCaseSummary:
-    "Checkm8 is a trip expense-splitting app. When a signed-in user creates a trip and adds friends by phone number, each friend receives exactly one transactional invitation text with a link to that trip. " +
-    "The text is sent only after the inviter ticks a required consent checkbox on the 'Invite the group' screen (wording in the opt-in image and at " + SMS_PAGE + "); the Create button is disabled until it is ticked. " +
-    "One message per invitation, no recurring or marketing messages, capped server-side at 50 invitations per user per day. STOP and HELP are handled automatically by the Messaging Service and every message ends with 'Reply STOP to opt out.' " +
-    "Login verification codes are sent separately through Twilio Verify and never from this number.",
+    "Checkm8 is a trip expense-splitting app. When a user adds friends to a trip by phone number, each friend gets one transactional invitation text with a link to the trip, sent only after the inviter ticks a required consent checkbox (see opt-in image and " + SMS_PAGE + "). No recurring or marketing messages; max 50 invites per user per day. STOP/HELP handled by the Messaging Service; every text ends with Reply STOP to opt out. Login codes go through Twilio Verify, not this number.",
   AdditionalInformation:
-    "Consent flow: (1) a signed-in Checkm8 user opens 'Grab the Check' → step 2 'Invite the group' and picks friends from contacts or types numbers; " +
+    "Consent flow: (1) a signed-in Checkm8 user opens 'Grab the Check' -> step 2 'Invite the group' and picks friends from contacts or types numbers; " +
     "(2) a required checkbox appears: \"" + CONSENT + "\" with a link 'How Checkm8 texts work' to " + SMS_PAGE + "; " +
     "(3) the Create button is disabled until the box is checked; (4) one invitation text per person is sent from the Messaging Service with STOP instructions. " +
     "Program disclosure (sender, frequency, opt-out, rates, sample message): " + SMS_PAGE + ". Privacy policy with the SMS section: https://www.check-m8.io/privacy. " +
@@ -68,4 +65,4 @@ if (st >= 400) {
   how = "created a new verification";
 }
 if (st >= 400) { console.error(`failed (${st})`, body.message ?? body, body.rejection_reason ?? ""); process.exit(1); }
-console.log(`${how}: ${body.sid} → ${body.status}`);
+console.log(`${how}: ${body.sid} -> ${body.status}`);

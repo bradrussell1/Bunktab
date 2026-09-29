@@ -31,13 +31,13 @@ export default function Sms() {
       <p className="card t-body" style={{ margin: "12px 0", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 14 }}>{SAMPLE}</p>
 
       <h2 className="h-title2">How to opt out</h2>
-      <p className="t-body">Reply <strong>STOP</strong> to any message to stop receiving texts from Checkm8. Reply <strong>HELP</strong> for help. You can also email <a href="mailto:brad@check-m8.io">brad@check-m8.io</a> and we will remove your number.</p>
+      <p className="t-body">Reply <strong>STOP</strong> to any message to stop receiving texts from Checkm8. Reply <strong>HELP</strong> for help. You can also email <a href="mailto:brad.russell@check-m8.io">brad.russell@check-m8.io</a> and we will remove your number.</p>
 
       <h2 className="h-title2">Rates and delivery</h2>
       <p className="t-body">Message and data rates may apply. Carriers are not liable for delayed or undelivered messages.</p>
 
       <h2 className="h-title2">Contact</h2>
-      <p className="t-body">Checkm8 · Bradley Russell, sole proprietor · <a href="mailto:brad@check-m8.io">brad@check-m8.io</a> · <a href="https://www.check-m8.io">www.check-m8.io</a></p>
+      <p className="t-body">Checkm8 · Bradley Russell, sole proprietor · <a href="mailto:brad.russell@check-m8.io">brad.russell@check-m8.io</a> · <a href="https://www.check-m8.io">www.check-m8.io</a></p>
       <p className="t-cap" style={{ paddingTop: 16 }}><Link href="/privacy">Privacy policy</Link> · <Link href="/terms">Terms of service</Link></p>
     </main>
   );
