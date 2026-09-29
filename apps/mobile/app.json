@@ -19,7 +19,6 @@
           "venmo"
         ]
       },
-      "buildNumber": "1",
       "config": {
         "usesNonExemptEncryption": false
       },
@@ -49,8 +48,7 @@
             }
           ]
         }
-      ],
-      "versionCode": 1
+      ]
     },
     "web": {
       "output": "static",
@@ -97,6 +95,10 @@
       "eas": {
         "projectId": "6aae70aa-4f50-401e-a864-c96a954c6a93"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6aae70aa-4f50-401e-a864-c96a954c6a93",
+      "fallbackToCacheTimeout": 0
     }
   }
 }
