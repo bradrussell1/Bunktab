@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActionSheetIOS, ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, Switch, View } from "react-native";
 import { RotaryCarousel } from "@/components/RotaryCarousel";
+import { NotchedHero, notchInset } from "@/components/NotchedHero";
 import { Avatar, Button, DoneBadge, Divider, Hero, HeroLink, HeroText, Screen, Segmented, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { uploadPrivateImage, useSignedUrl } from "@/lib/media";
@@ -132,21 +133,31 @@ export default function TripScreen() {
 
         <View style={{ paddingHorizontal: theme.screenPadding, gap: theme.spacing.lg }}>
           {/* Your Check + settlement preview */}
-          <Hero style={{ gap: theme.spacing.md }}>
-            <View style={{ gap: 4 }}>
-              <HeroText variant="captionCaps2" tone="mid">Your Check</HeroText>
-              <HeroText variant="largeTitle" tone={checkTone} numberOfLines={1} adjustsFontSizeToFit>{checkLine}</HeroText>
-            </View>
-            {data.expenses.length > 0 && !settledUp && <HeroLink title="Settlement preview" expanded={showPlan} onPress={() => setShowPlan((v) => !v)} />}
-            {showPlan && !settledUp && (
-              <View style={{ gap: 6, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.hero.divider }}>
-                {figures.plan.length === 0 && <HeroText variant="caption1" tone="mid">Nothing to settle yet.</HeroText>}
-                {figures.plan.map((p, i) => (
-                  <HeroText key={i} variant="body">{memberName(data, p.from, me)} {p.from === me ? "pay" : "pays"} {memberName(data, p.to, me).toLowerCase() === "you" ? "you" : memberName(data, p.to, me)} <HeroText variant="text" tone={p.to === me ? "mint" : p.from === me ? "dusk" : "ink"}>{formatCents(p.cents, cur)}</HeroText></HeroText>
-                ))}
+          {data.expenses.length > 0 && !settledUp ? (
+            // the Settlement preview pill sits in a bottom-left notch; the plan expands above it
+            <NotchedHero corner="bl" slotWidth={156} slotHeight={34} contentStyle={{ paddingBottom: notchInset(156, 34).height - 8 }}
+              renderSlot={() => <HeroLink title="Settlement preview" expanded={showPlan} onPress={() => setShowPlan((v) => !v)} />}>
+              <View style={{ gap: 4 }}>
+                <HeroText variant="captionCaps2" tone="mid">Your Check</HeroText>
+                <HeroText variant="largeTitle" tone={checkTone} numberOfLines={1} adjustsFontSizeToFit>{checkLine}</HeroText>
               </View>
-            )}
-          </Hero>
+              {showPlan && (
+                <View style={{ gap: 6, marginTop: theme.spacing.md, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.hero.divider }}>
+                  {figures.plan.length === 0 && <HeroText variant="caption1" tone="mid">Nothing to settle yet.</HeroText>}
+                  {figures.plan.map((p, i) => (
+                    <HeroText key={i} variant="body">{memberName(data, p.from, me)} {p.from === me ? "pay" : "pays"} {memberName(data, p.to, me).toLowerCase() === "you" ? "you" : memberName(data, p.to, me)} <HeroText variant="text" tone={p.to === me ? "mint" : p.from === me ? "dusk" : "ink"}>{formatCents(p.cents, cur)}</HeroText></HeroText>
+                  ))}
+                </View>
+              )}
+            </NotchedHero>
+          ) : (
+            <Hero>
+              <View style={{ gap: 4 }}>
+                <HeroText variant="captionCaps2" tone="mid">Your Check</HeroText>
+                <HeroText variant="largeTitle" tone={checkTone} numberOfLines={1} adjustsFontSizeToFit>{checkLine}</HeroText>
+              </View>
+            </Hero>
+          )}
           {figures.quiet.length > 0 && (
             <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>
               {figures.quiet.map((m) => (m.user_id === me ? "You haven't" : `${m.display_name ?? "A member"} hasn't`)).join(", ")} added anything yet.

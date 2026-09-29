@@ -3,6 +3,7 @@ import { theme } from "@checkm8/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, Switch, View } from "react-native";
+import { NotchedHero, notchInset } from "@/components/NotchedHero";
 import { Avatar, Button, Card, Divider, Hero, HeroAction, HeroText, ListItem, Screen, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -112,18 +113,17 @@ export default function CloseoutScreen() {
           </Hero>
         )}
 
-        {owed.length > 0 && mine.length === 0 && (
-          <Hero style={{ gap: theme.spacing.md }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: theme.spacing.md }}>
-              <View style={{ flex: 1, gap: 2 }}>
-                <HeroText variant="captionCaps2" tone="mid">Owed to you</HeroText>
-                <HeroText variant="largeTitle" tone="mint" numberOfLines={1} adjustsFontSizeToFit>{formatCents(owed.reduce((a, s) => a + s.amount_cents, 0), trip.base_currency)}</HeroText>
-                <HeroText variant="caption1Semibold" tone="mid">{owed.filter((s) => s.status !== "pending").length} of {owed.length} marked paid</HeroText>
-              </View>
-              {owed.some((s) => s.status === "pending") && owed.every((s) => venmoOf(s.from_user)) && (
-                <HeroAction label="Request from everyone in Venmo" onPress={() => open(venmoChargeLink(owed.filter((s) => s.status === "pending").map((s) => venmoOf(s.from_user)!), owed[0]!.amount_cents, trip.title))} />
-              )}
+        {owed.length > 0 && mine.length === 0 && (() => {
+          const canRequest = owed.some((s) => s.status === "pending") && owed.every((s) => venmoOf(s.from_user));
+          const header = (
+            <View style={{ gap: 2, paddingRight: canRequest ? notchInset(52, 52).width - theme.spacing.xl : 0 }}>
+              <HeroText variant="captionCaps2" tone="mid">Owed to you</HeroText>
+              <HeroText variant="largeTitle" tone="mint" numberOfLines={1} adjustsFontSizeToFit>{formatCents(owed.reduce((a, s) => a + s.amount_cents, 0), trip.base_currency)}</HeroText>
+              <HeroText variant="caption1Semibold" tone="mid">{owed.filter((s) => s.status !== "pending").length} of {owed.length} marked paid</HeroText>
             </View>
+          );
+          const rows = (
+            <>
             {owed.map((s) => {
               const from = memberName(data, s.from_user, me);
               return (
@@ -137,9 +137,19 @@ export default function CloseoutScreen() {
                 </View>
               );
             })}
-            {owed.some((s) => s.status === "pending") && owed.every((s) => venmoOf(s.from_user)) && <HeroText variant="caption1" tone="mid">The arrow opens one Venmo request to everyone who still owes you.</HeroText>}
-          </Hero>
-        )}
+            {canRequest && <HeroText variant="caption1" tone="mid">The arrow opens one Venmo request to everyone who still owes you.</HeroText>}
+            </>
+          );
+          // the Request arrow sits in a top-right notch when there is something to request
+          return canRequest ? (
+            <NotchedHero corner="tr" slotWidth={52} slotHeight={52} contentStyle={{ gap: theme.spacing.md }}
+              renderSlot={() => <HeroAction label="Request from everyone in Venmo" onPress={() => open(venmoChargeLink(owed.filter((s) => s.status === "pending").map((s) => venmoOf(s.from_user)!), owed[0]!.amount_cents, trip.title))} />}>
+              {header}{rows}
+            </NotchedHero>
+          ) : (
+            <Hero style={{ gap: theme.spacing.md }}>{header}{rows}</Hero>
+          );
+        })()}
 
         {owed.length > 0 && mine.length > 0 && (
           <View style={{ gap: theme.spacing.sm }}>

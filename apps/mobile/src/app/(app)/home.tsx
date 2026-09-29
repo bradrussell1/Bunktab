@@ -3,7 +3,8 @@ import { theme } from "@checkm8/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { FlatList, Image, Pressable, RefreshControl, View } from "react-native";
-import { Avatar, Button, Card, EmptyState, Hero, HeroAction, HeroText, Input, Screen, Segmented, Text } from "@/components/ui";
+import { NotchedHero, notchInset } from "@/components/NotchedHero";
+import { Avatar, Button, Card, EmptyState, HeroAction, HeroText, Input, Screen, Segmented, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/media";
 import { supabase } from "@/lib/supabase";
@@ -73,18 +74,16 @@ export default function HomeScreen() {
           </Pressable>
         </View>
         {!loading && (
-          <Hero>
-            <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: theme.spacing.md }}>
-              <View style={{ flex: 1, gap: 4 }}>
-                <HeroText variant="captionCaps2" tone="mid">Your position</HeroText>
-                <HeroText variant="largeTitle" tone={overall > 0 ? "mint" : overall < 0 ? "dusk" : "ink"} numberOfLines={1} adjustsFontSizeToFit>
-                  {overall > 0 ? `You're owed ${formatCents(overall)}` : overall < 0 ? `You owe ${formatCents(-overall)}` : "All square"}
-                </HeroText>
-                <HeroText variant="caption1Semibold" tone="mid">{open.length === 0 ? "No open trips yet" : `across ${open.length} open ${open.length === 1 ? "trip" : "trips"}`}</HeroText>
-              </View>
-              <HeroAction label={biggest ? `Open ${biggest.title}` : "Start a trip"} glyph={biggest ? "↗" : "+"} onPress={() => (biggest ? router.push(`/(app)/trip/${biggest.id}`) : router.push("/(app)/trip/new"))} />
+          <NotchedHero corner="br" slotWidth={52} slotHeight={52}
+            renderSlot={() => <HeroAction label={biggest ? `Open ${biggest.title}` : "Start a trip"} glyph={biggest ? "↗" : "+"} onPress={() => (biggest ? router.push(`/(app)/trip/${biggest.id}`) : router.push("/(app)/trip/new"))} />}>
+            <View style={{ gap: 4, paddingRight: notchInset(52, 52).width }}>
+              <HeroText variant="captionCaps2" tone="mid">Your position</HeroText>
+              <HeroText variant="largeTitle" tone={overall > 0 ? "mint" : overall < 0 ? "dusk" : "ink"} numberOfLines={1} adjustsFontSizeToFit>
+                {overall > 0 ? `You're owed ${formatCents(overall)}` : overall < 0 ? `You owe ${formatCents(-overall)}` : "All square"}
+              </HeroText>
+              <HeroText variant="caption1Semibold" tone="mid">{open.length === 0 ? "No open trips yet" : `across ${open.length} open ${open.length === 1 ? "trip" : "trips"}`}</HeroText>
             </View>
-          </Hero>
+          </NotchedHero>
         )}
         <Segmented options={[{ key: "current", label: "Current" }, { key: "past", label: "Past" }]} value={tab} onChange={setTab} />
         {trips.length > 0 && <Input placeholder="Search trips or people" value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} clearButtonMode="while-editing" />}
