@@ -11,7 +11,7 @@ export function InstallBanner() {
   return (
     <div className="banner" role="region" aria-label="Get the app">
       <div className="inner">
-        <span>Get the app for notifications and Venmo close-out. <a href="/#get">Learn more</a></span>
+        <span>Notifications and Venmo close-out live in the app. <a href="/#get">Get the app</a></span>
         <button type="button" aria-label="Dismiss" onClick={() => { try { localStorage.setItem(KEY, "1"); } catch { /* ignore */ } setHidden(true); }}>×</button>
       </div>
     </div>

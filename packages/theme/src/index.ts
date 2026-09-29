@@ -1,71 +1,100 @@
 /**
- * Checkm8 design tokens (V1 spec → Design system).
+ * Checkm8 design tokens - "Dusk & Pastel" (palette 01, Mist & Dusk Apricot).
  *
- * The Pretty Good Cross-Platform Mobile Design System's roles, re-coloured
- * with the Basalt & Spore palette as a light theme on a warm cream
- * background. Components, type and spacing are the kit's; only colour
- * values change. This is the one theme file every component reads - a
- * colour change later is a one-line edit here. V1 ships light mode only.
+ * A deep near-black canvas; ONE pastel mesh-gradient hero card per screen
+ * (the number that matters: your position, the trip balance, your
+ * payments); everything else sits on matte carbon tiles. Peach is the only
+ * call-to-action colour; dusk orange is key text and links; soft mint means
+ * money coming to you and "Done". Dark only.
  *
- * Rules carried from the spec:
- * - Spore Chartreuse is used ONLY for actions (primary buttons, the active
- *   tab indicator, selected states). Balances, charts and badges never use
- *   it, so chartreuse always means "tap this".
- * - Primary button: chartreuse fill, Cold Basalt label, 1px Cold Basalt
- *   border (chartreuse on cream is 1.3:1, so the edge needs the border).
- * - Never white text on chartreuse (1.4:1). Spore Deep is the only
- *   chartreuse-family colour used as text on light surfaces.
- * - Dawn Lilac is for borders, dividers and disabled fills, never text.
+ * Rules:
+ * - Peach (`fill.primary`) is used ONLY for actions: primary buttons, the
+ *   selected chip/segment, switches that are on. Never for balances.
+ * - Text on peach is always ink (`text.onFill.onPrimary`), never white.
+ * - On the pastel hero use the `hero.*` colours (dark ink, hero mint, hero
+ *   dusk); the on-dark text colours are unreadable there.
+ * - Dusk orange on the pastel card is for short bold key lines (the
+ *   reference uses it at 12px bold); body copy on the hero stays ink.
+ * - Mint = owed to you / Done. Dusk = you owe / attention. Red = destructive only.
  */
 
 export const palette = {
-  cream: "#FAF7F2",
+  // canvas and tiles
+  base: "#0C0E12",
+  baseDeep: "#08090D",
+  tile: "#14171E",
+  tileRaised: "#1A1E27",
+  field: "#12141C",
+  line: "#252A36",
+  lineSoft: "#1D222C",
+  // text on dark
+  textHi: "#F0F3F8",
+  textMid: "#8F96A3",
+  textLo: "#656C76",
+  // accents
+  peach: "#F6AD7B",
+  peachSoft: "#FBB285",
+  dusk: "#D97E4A",
+  duskDeep: "#E06D44",
+  mint: "#8FD9BF",
+  mintDeep: "#136548",
+  red: "#E0605A",
+  redDeep: "#B8423D",
+  // pastel mesh + ink on it
+  meshA: "#F4ECC2",
+  meshB: "#DCE6EE",
+  meshC: "#E2E5F5",
+  heroInk: "#111419",
+  heroInkMid: "#656C76",
   white: "#FFFFFF",
-  basalt: "#1B1E22",
-  quarry: "#3A414A",
-  lilac: "#B8BAC8",
-  chartreuse: "#C5EB38",
-  sporeDeep: "#587000",
-  amber: "#A15C00",
-  crimson: "#C62839",
-  success: "#00806C",
 } as const;
 
-/** rgba() from a hex and an alpha - the kit's "at 40%" style values. */
+/** rgba() from a hex and an alpha. */
 export function alpha(hex: string, a: number): string {
   const h = hex.replace("#", "");
   const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
-/** Kit roles → our values (spec: Token mapping). */
+/** Kit roles → values. Role names are stable; only values changed in the re-skin. */
 export const colors = {
-  background: { main: palette.cream, surface: palette.white },
+  background: { main: palette.base, surface: palette.tile, elevated: palette.tileRaised },
   fill: {
-    primary: palette.chartreuse,
-    primaryDisabled: alpha(palette.chartreuse, 0.4),
-    secondary: alpha(palette.lilac, 0.35),
-    field: palette.white,
-    warning: palette.amber,
-    destructive: palette.crimson,
-    success: palette.success,
+    primary: palette.peach,
+    primaryDisabled: alpha(palette.peach, 0.35),
+    secondary: palette.tileRaised,
+    field: palette.field,
+    warning: palette.dusk,
+    destructive: palette.red,
+    success: palette.mint,
   },
   text: {
     onBackground: {
-      primary: palette.basalt,
-      secondary: palette.quarry,
-      tertiary: alpha(palette.quarry, 0.75),
-      accent: palette.sporeDeep,
+      primary: palette.textHi,
+      secondary: palette.textMid,
+      tertiary: palette.textLo,
+      accent: palette.dusk,
     },
-    onFill: { onPrimary: palette.basalt, onSecondary: palette.basalt, onDark: palette.white },
-    warning: palette.amber,
-    destructive: palette.crimson,
-    success: palette.success,
+    onFill: { onPrimary: palette.heroInk, onSecondary: palette.textHi, onDark: palette.textHi, onSuccess: palette.heroInk },
+    warning: palette.dusk,
+    destructive: palette.red,
+    success: palette.mint,
   },
-  border: { primary: palette.basalt, neutral: palette.lilac },
-  divider: { default: palette.lilac },
-  icons: { accentOnLight: palette.sporeDeep, accentOnDark: palette.chartreuse, outline: alpha(palette.quarry, 0.75) },
-  system: { cursor: palette.basalt, dimming40: alpha(palette.basalt, 0.4) },
+  border: { primary: palette.peach, neutral: palette.line, soft: palette.lineSoft },
+  divider: { default: palette.lineSoft },
+  icons: { accentOnLight: palette.dusk, accentOnDark: palette.peach, outline: palette.textMid },
+  system: { cursor: palette.peach, dimming40: alpha("#000000", 0.6) },
+  /** The one pastel card per screen. Gradient runs top-left → bottom-right. */
+  hero: {
+    gradient: [palette.meshA, palette.meshB, palette.meshC] as readonly [string, string, string],
+    ink: palette.heroInk,
+    inkMid: palette.heroInkMid,
+    dusk: palette.dusk,
+    mint: palette.mintDeep,
+    cta: palette.peach,
+    onCta: palette.heroInk,
+    divider: alpha(palette.heroInk, 0.12),
+  },
 } as const;
 
 /** Typography (Inter). size / lineHeight / weight. */
@@ -87,25 +116,30 @@ export const spacing = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24 }
 /** Screen side padding. */
 export const screenPadding = 16;
 
-export const radius = { tag: 4, control: 8, sheet: 12, card: 16, pill: 24 } as const;
+export const radius = { tag: 4, control: 8, sheet: 12, card: 16, hero: 22, pill: 24 } as const;
 
-/** Elevation XS for cards that need to read as separate from cream. */
+/** Shadows are black on black: only the hero card and sheets get one. */
 export const elevation = {
-  xs: { shadowColor: palette.basalt, shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  sm: { shadowColor: palette.basalt, shadowOpacity: 0.1, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  xs: { shadowColor: "#000000", shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
+  sm: { shadowColor: "#000000", shadowOpacity: 0.55, shadowRadius: 16, shadowOffset: { width: 0, height: 12 }, elevation: 6 },
 } as const;
 
 export const theme = { palette, colors, type, spacing, screenPadding, radius, elevation } as const;
 export type Theme = typeof theme;
+
+/** CSS for the hero background (web). */
+export const heroGradientCss = `linear-gradient(135deg, ${palette.meshA} 0%, ${palette.meshB} 50%, ${palette.meshC} 100%)`;
 
 /** The same tokens as CSS custom properties, for the Next.js web guest view. */
 export function cssVariables(): string {
   return [
     `--bg-main: ${colors.background.main}`,
     `--bg-surface: ${colors.background.surface}`,
+    `--bg-elevated: ${colors.background.elevated}`,
     `--fill-primary: ${colors.fill.primary}`,
     `--fill-primary-disabled: ${colors.fill.primaryDisabled}`,
     `--fill-secondary: ${colors.fill.secondary}`,
+    `--fill-field: ${colors.fill.field}`,
     `--fill-warning: ${colors.fill.warning}`,
     `--fill-destructive: ${colors.fill.destructive}`,
     `--fill-success: ${colors.fill.success}`,
@@ -113,15 +147,26 @@ export function cssVariables(): string {
     `--text-secondary: ${colors.text.onBackground.secondary}`,
     `--text-tertiary: ${colors.text.onBackground.tertiary}`,
     `--text-accent: ${colors.text.onBackground.accent}`,
+    `--text-success: ${colors.text.success}`,
+    `--text-destructive: ${colors.text.destructive}`,
     `--text-on-primary: ${colors.text.onFill.onPrimary}`,
+    `--text-on-success: ${colors.text.onFill.onSuccess}`,
     `--border-primary: ${colors.border.primary}`,
     `--border-neutral: ${colors.border.neutral}`,
+    `--border-soft: ${colors.border.soft}`,
     `--divider: ${colors.divider.default}`,
     `--dimming-40: ${colors.system.dimming40}`,
+    `--hero-gradient: ${heroGradientCss}`,
+    `--hero-ink: ${colors.hero.ink}`,
+    `--hero-ink-mid: ${colors.hero.inkMid}`,
+    `--hero-dusk: ${colors.hero.dusk}`,
+    `--hero-mint: ${colors.hero.mint}`,
+    `--hero-divider: ${colors.hero.divider}`,
     `--radius-tag: ${radius.tag}px`,
     `--radius-control: ${radius.control}px`,
     `--radius-sheet: ${radius.sheet}px`,
     `--radius-card: ${radius.card}px`,
+    `--radius-hero: ${radius.hero}px`,
     `--radius-pill: ${radius.pill}px`,
   ].join(";\n");
 }

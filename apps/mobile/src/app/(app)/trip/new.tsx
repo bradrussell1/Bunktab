@@ -4,6 +4,7 @@ import * as Contacts from "expo-contacts";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
+import { DateField } from "@/components/DatePicker";
 import { Button, Card, Input, ListItem, Screen, Text } from "@/components/ui";
 import { toE164, useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -19,12 +20,10 @@ import { supabase } from "@/lib/supabase";
  */
 type Pick = { phone: string; name: string };
 
-const isDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s));
-
 export default function NewTripScreen() {
   const router = useRouter();
   const { session, profile } = useAuth();
-  const params = useLocalSearchParams<{ step?: string }>();
+  const params = useLocalSearchParams<{ step?: string; openDate?: string; jump?: string }>();
   // DEV only: `?step=2` opens the invite step directly (screenshots, tests)
   const [step, setStep] = useState<1 | 2>(__DEV__ && params.step === "2" ? 2 : 1);
   const [title, setTitle] = useState("");
@@ -41,7 +40,7 @@ export default function NewTripScreen() {
 
   function next() {
     if (title.trim().length === 0) return setError("Give the trip a title.");
-    if (!isDate(start) || !isDate(end)) return setError("Enter dates as YYYY-MM-DD.");
+    if (!start || !end) return setError("Pick a start and an end date.");
     if (end < start) return setError("The end date can't be before the start.");
     setError(null); setStep(2);
   }
@@ -96,8 +95,8 @@ export default function NewTripScreen() {
             <Input label="Title" placeholder="Tahoe long weekend" value={title} onChangeText={setTitle} maxLength={80} autoFocus />
             <Input label="Description (optional)" placeholder="Who, where, what to remember" value={description} onChangeText={(v) => setDescription(v.slice(0, 250))} multiline numberOfLines={3} style={{ height: 88, paddingTop: 12 }} helper={`${description.length}/250`} />
             <View style={{ flexDirection: "row", gap: theme.spacing.md }}>
-              <View style={{ flex: 1 }}><Input label="Start date" placeholder="2026-10-02" value={start} onChangeText={setStart} keyboardType="numbers-and-punctuation" autoCapitalize="none" /></View>
-              <View style={{ flex: 1 }}><Input label="End date" placeholder="2026-10-05" value={end} onChangeText={setEnd} keyboardType="numbers-and-punctuation" autoCapitalize="none" /></View>
+              <View style={{ flex: 1 }}><DateField label="Start date" value={start} onChange={(d) => { setStart(d); if (end && end < d) setEnd(""); }} devOpen={__DEV__ && params.openDate === "start"} devJump={__DEV__ && params.jump === "1"} /></View>
+              <View style={{ flex: 1 }}><DateField label="End date" value={end} onChange={setEnd} min={start || undefined} devOpen={__DEV__ && params.openDate === "end"} /></View>
             </View>
             <View style={{ gap: theme.spacing.xs }}>
               <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Base currency</Text>
@@ -105,7 +104,7 @@ export default function NewTripScreen() {
                 {COMMON_CURRENCIES.slice(0, 8).map((c) => (
                   <Pressable key={c} onPress={() => setCurrency(c)} accessibilityRole="radio" accessibilityState={{ selected: currency === c }}
                     style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: currency === c ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: currency === c ? theme.colors.fill.primary : theme.colors.background.surface }}>
-                    <Text variant="caption1Semibold">{c}</Text>
+                    <Text variant="caption1Semibold" color={currency === c ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{c}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -138,7 +137,7 @@ export default function NewTripScreen() {
                   <FlatList data={shownContacts} keyExtractor={(c) => c.phone} keyboardShouldPersistTaps="handled"
                     renderItem={({ item }) => {
                       const on = picks.some((x) => x.phone === item.phone);
-                      return <ListItem title={item.name} subtitle={item.phone} onPress={() => toggle(item)} right={<View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: on ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{on && <Text variant="caption3">✓</Text>}</View>} />;
+                      return <ListItem title={item.name} subtitle={item.phone} onPress={() => toggle(item)} right={<View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: on ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{on && <Text variant="caption3" color={theme.colors.text.onFill.onPrimary}>✓</Text>}</View>} />;
                     }}
                     ItemSeparatorComponent={() => <View style={{ height: 1, backgroundColor: theme.colors.divider.default }} />}
                     ListEmptyComponent={<Text variant="caption1" color={theme.colors.text.onBackground.secondary} style={{ padding: 16 }}>No contacts with phone numbers match.</Text>} />

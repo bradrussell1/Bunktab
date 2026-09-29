@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "checkm8",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "bundleIdentifier": "com.checkm8.app",
       "supportsTablet": false,
@@ -23,7 +23,7 @@
     "android": {
       "package": "com.checkm8.app",
       "adaptiveIcon": {
-        "backgroundColor": "#FAF7F2",
+        "backgroundColor": "#0C0E12",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -53,7 +53,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FAF7F2",
+          "backgroundColor": "#0C0E12",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
@@ -79,6 +79,6 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "backgroundColor": "#FAF7F2"
+    "backgroundColor": "#0C0E12"
   }
 }

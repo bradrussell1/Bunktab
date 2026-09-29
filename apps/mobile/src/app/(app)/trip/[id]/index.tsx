@@ -3,7 +3,7 @@ import { theme } from "@checkm8/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { ActionSheetIOS, ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, Switch, View } from "react-native";
-import { Avatar, Button, Card, DoneBadge, Divider, ListItem, Screen, Segmented, Text } from "@/components/ui";
+import { Avatar, Button, Card, DoneBadge, Divider, Hero, HeroText, ListItem, Screen, Segmented, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { uploadPrivateImage, useSignedUrl } from "@/lib/media";
 import { pickImage } from "@/lib/storage";
@@ -102,11 +102,11 @@ export default function TripScreen() {
             <Button title="⋯" kind="text" size="small" onPress={openMenu} accessibilityLabel="Trip menu" />
           </View>
           <Pressable onPress={changeCover} disabled={coverBusy} accessibilityRole="button" accessibilityLabel={coverUrl ? "Change cover photo" : "Add cover photo"}
-            style={{ height: coverUrl ? 160 : 44, borderRadius: theme.radius.card, overflow: "hidden", backgroundColor: theme.colors.fill.secondary, alignItems: "center", justifyContent: "center" }}>
+            style={{ height: coverUrl ? 160 : 44, borderRadius: theme.radius.card, overflow: "hidden", backgroundColor: theme.colors.background.elevated, borderWidth: 1, borderColor: theme.colors.border.soft, alignItems: "center", justifyContent: "center" }}>
             {coverUrl
               ? <Image source={{ uri: coverUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
               : <Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>{coverBusy ? "Uploading…" : "+ Add a cover photo"}</Text>}
-            {coverUrl && coverBusy && <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: theme.colors.system.dimming40, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={theme.palette.white} /></View>}
+            {coverUrl && coverBusy && <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: theme.colors.system.dimming40, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={theme.colors.text.onBackground.primary} /></View>}
           </Pressable>
           <Text variant="largeTitle">{trip.title}</Text>
           <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{formatDateRange(trip.start_date, trip.end_date)} · {trip.base_currency}{closed ? ` · ${trip.status}` : ""}</Text>
@@ -123,24 +123,24 @@ export default function TripScreen() {
         </View>
 
         {/* balance card + settlement preview */}
-        <Card style={{ gap: theme.spacing.sm }}>
-          <Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary}>Your balance</Text>
-          <Text variant="largeTitle" color={figures.mine < 0 ? theme.colors.text.destructive : figures.mine > 0 ? theme.colors.text.success : theme.colors.text.onBackground.primary}>
+        <Hero style={{ gap: theme.spacing.sm }}>
+          <HeroText variant="captionCaps2" tone="mid">Your balance</HeroText>
+          <HeroText variant="largeTitle" tone={figures.mine < 0 ? "dusk" : figures.mine > 0 ? "mint" : "ink"} numberOfLines={1} adjustsFontSizeToFit>
             {figures.mine === 0 ? "Settled up" : figures.mine > 0 ? `You're owed ${formatCents(figures.mine, trip.base_currency)}` : `You owe ${formatCents(-figures.mine, trip.base_currency)}`}
-          </Text>
+          </HeroText>
           <Pressable onPress={() => setShowPlan((v) => !v)} accessibilityRole="button" accessibilityState={{ expanded: showPlan }} style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 4 }}>
-            <Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>Settlement preview</Text>
-            <Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>{showPlan ? "Hide" : `${figures.plan.length} ${figures.plan.length === 1 ? "payment" : "payments"}`}</Text>
+            <HeroText variant="caption1Semibold" tone="dusk">Settlement preview</HeroText>
+            <HeroText variant="caption1Semibold" tone="mid">{showPlan ? "Hide ▴" : `${figures.plan.length} ${figures.plan.length === 1 ? "payment" : "payments"} ▾`}</HeroText>
           </Pressable>
           {showPlan && (
-            <View style={{ gap: 6, paddingTop: 4 }}>
-              {figures.plan.length === 0 && <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>Nothing to settle yet.</Text>}
+            <View style={{ gap: 6, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.hero.divider }}>
+              {figures.plan.length === 0 && <HeroText variant="caption1" tone="mid">Nothing to settle yet.</HeroText>}
               {figures.plan.map((p, i) => (
-                <Text key={i} variant="body">{memberName(data, p.from, me)} {p.from === me ? "pay" : "pays"} {memberName(data, p.to, me).toLowerCase() === "you" ? "you" : memberName(data, p.to, me)} <Text variant="text">{formatCents(p.cents, trip.base_currency)}</Text></Text>
+                <HeroText key={i} variant="body">{memberName(data, p.from, me)} {p.from === me ? "pay" : "pays"} {memberName(data, p.to, me).toLowerCase() === "you" ? "you" : memberName(data, p.to, me)} <HeroText variant="text">{formatCents(p.cents, trip.base_currency)}</HeroText></HeroText>
               ))}
             </View>
           )}
-        </Card>
+        </Hero>
         {figures.quiet.length > 0 && (
           <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>
             {figures.quiet.map((m) => (m.user_id === me ? "You haven't" : `${m.display_name ?? "A member"} hasn't`)).join(", ")} added anything yet.
@@ -170,7 +170,7 @@ export default function TripScreen() {
                   {i > 0 && <Divider />}
                   <ListItem title={m.user_id === me ? "You" : (m.display_name ?? "Member")} subtitle={`Paid ${formatCents(paid, trip.base_currency)} · share ${formatCents(share, trip.base_currency)}`} left={<Avatar name={m.display_name ?? "?"} uri={m.photo_url} />}
                     onPress={() => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)}
-                    right={<Text variant="text" color={net < 0 ? theme.colors.text.destructive : net > 0 ? theme.colors.text.success : theme.colors.text.onBackground.secondary}>{net === 0 ? "even" : net > 0 ? `+${formatCents(net, trip.base_currency)}` : `−${formatCents(-net, trip.base_currency)}`}</Text>} />
+                    right={<Text variant="text" color={net < 0 ? theme.colors.text.onBackground.accent : net > 0 ? theme.colors.text.success : theme.colors.text.onBackground.secondary}>{net === 0 ? "even" : net > 0 ? `+${formatCents(net, trip.base_currency)}` : `−${formatCents(-net, trip.base_currency)}`}</Text>} />
                 </View>
               );
             })}
@@ -191,7 +191,7 @@ export default function TripScreen() {
               return (
                 <View key={c.key} style={{ gap: 4 }}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text variant="caption1Semibold">{c.label}</Text><Text variant="caption1Semibold">{formatCents(cents, trip.base_currency)}</Text></View>
-                  <View style={{ height: 8, borderRadius: 4, backgroundColor: theme.colors.fill.secondary }}><View style={{ width: `${Math.round(pct * 100)}%`, height: 8, borderRadius: 4, backgroundColor: theme.palette.quarry }} /></View>
+                  <View style={{ height: 8, borderRadius: 4, backgroundColor: theme.colors.fill.secondary }}><View style={{ width: `${Math.round(pct * 100)}%`, height: 8, borderRadius: 4, backgroundColor: theme.colors.text.onBackground.accent }} /></View>
                 </View>
               );
             })}
@@ -205,7 +205,7 @@ export default function TripScreen() {
         <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: theme.screenPadding, paddingBottom: 28, gap: theme.spacing.sm, backgroundColor: theme.colors.background.surface, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <Text variant="text">Done adding expenses</Text>
-            <Switch value={!!meMember?.done_at} onValueChange={toggleDone} disabled={busy} trackColor={{ true: theme.colors.fill.success, false: theme.colors.divider.default }} />
+            <Switch value={!!meMember?.done_at} onValueChange={toggleDone} disabled={busy} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.line }} />
           </View>
           <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
             <Button title="Add expense" kind="secondary" size="medium" style={{ flex: 1 }} onPress={() => router.push(`/(app)/trip/${trip.id}/expense`)} />
@@ -233,7 +233,7 @@ function ExpenseRow({ e, me, data, onOpen, onHistory }: { e: Expense; me: string
     <Pressable onPress={onOpen} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, opacity: pressed ? 0.7 : 1 })}>
       {thumb
         ? <Image source={{ uri: thumb }} style={{ width: 40, height: 40, borderRadius: theme.radius.control, backgroundColor: theme.colors.fill.secondary }} accessibilityLabel="Receipt" accessibilityIgnoresInvertColors />
-        : <View style={{ width: 40, height: 40, borderRadius: theme.radius.control, backgroundColor: theme.colors.fill.secondary, alignItems: "center", justifyContent: "center" }}><Text variant="caption3" color={theme.colors.text.onBackground.secondary}>{CATEGORY_GLYPH[e.category] ?? "OT"}</Text></View>}
+        : <View style={{ width: 40, height: 40, borderRadius: theme.radius.control, backgroundColor: theme.colors.background.elevated, alignItems: "center", justifyContent: "center" }}><Text variant="caption3" color={theme.colors.text.onBackground.secondary}>{CATEGORY_GLYPH[e.category] ?? "OT"}</Text></View>}
       <View style={{ flex: 1, gap: 2 }}>
         <Text variant="headline" numberOfLines={1}>{e.description}</Text>
         <Text variant="caption1" color={theme.colors.text.onBackground.secondary} numberOfLines={2}>

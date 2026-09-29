@@ -1,6 +1,9 @@
 import {
   CATEGORIES,
   COMMON_CURRENCIES,
+  addDays,
+  formatDayShort,
+  weekdayShort,
   SplitError,
   computeNightsShares,
   computeShares,
@@ -16,6 +19,7 @@ import { theme } from "@checkm8/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActionSheetIOS, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, View } from "react-native";
+import { CategoryPicker } from "@/components/CategoryPicker";
 import { Avatar, Button, Card, Divider, Input, ListItem, Screen, Segmented, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { fetchRate, formatFetchedAt } from "@/lib/fx";
@@ -39,7 +43,7 @@ const SPLITS: { key: SplitType; label: string }[] = [
 ];
 
 export default function ExpenseScreen() {
-  const { id, expense: expenseId } = useLocalSearchParams<{ id: string; expense?: string }>();
+  const { id, expense: expenseId, ...devParams } = useLocalSearchParams<{ id: string; expense?: string; category?: string; sub?: string }>();
   const router = useRouter();
   const { session } = useAuth();
   const me = session!.user.id;
@@ -51,8 +55,8 @@ export default function ExpenseScreen() {
   const [currency, setCurrency] = useState("USD");
   const [fx, setFx] = useState("1");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("dining");
-  const [subcategory, setSubcategory] = useState<string | null>("restaurants");
+  const [category, setCategory] = useState<string | null>(null); // nothing picked until the user chooses
+  const [subcategory, setSubcategory] = useState<string | null>(null);
   const [payers, setPayers] = useState<Record<string, string>>({});
   const [involved, setInvolved] = useState<string[]>([]);
   const [split, setSplit] = useState<SplitType>("equal");
@@ -73,7 +77,7 @@ export default function ExpenseScreen() {
   const [commentCount, setCommentCount] = useState<number | null>(null);
 
   const members = useMemo(() => (data ? activeMembers(data) : []), [data]);
-  const cat = CATEGORIES.find((c) => c.key === category)!;
+  const cat = CATEGORIES.find((c) => c.key === category) ?? null;
 
   // seed from the trip (defaults) or the expense being edited
   useEffect(() => {
@@ -131,20 +135,21 @@ export default function ExpenseScreen() {
     supabase.from("comments").select("id", { count: "exact", head: true }).eq("expense_id", existing.id).then(({ count }) => setCommentCount(count ?? 0));
   }, [existing]);
 
+  // DEV only: ?category=&sub= preselects a pair (screenshots, tests)
+  useEffect(() => { if (__DEV__ && seeded && !existing && devParams.category) changeCategory(devParams.category, devParams.sub ?? null); }, [seeded, existing, devParams.category, devParams.sub]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const amountCents = parseToCents(amount) ?? 0;
   const tipCents = parseToCents(tip) ?? 0;
   const total = amountCents + tipCents;
   const fxRate = Number(fx) || 1;
   const nightsN = Math.max(1, parseInt(nights, 10) || 1);
 
-  function pickCategory(key: string) {
-    setCategory(key);
-    const c = CATEGORIES.find((x) => x.key === key)!;
-    const first = c.subcategories[0]?.key ?? null;
-    setSubcategory(first);
-    if (isLodgingCategory(key, first)) setLodging(true);
+  // lodging (by nights) exists only under Travel & Lodging; hotels/rentals turn it on
+  function changeCategory(key: string | null, sub: string | null) {
+    setCategory(key); setSubcategory(sub);
+    if (key !== "travel") setLodging(false);
+    else if (isLodgingCategory(key, sub)) setLodging(true);
   }
-  function pickSub(key: string) { setSubcategory(key); if (isLodgingCategory(category, key)) setLodging(true); }
   function toggleInvolved(uid: string) { setInvolved((v) => (v.includes(uid) ? v.filter((x) => x !== uid) : [...v, uid])); }
   function togglePayer(uid: string) {
     setPayers((p) => {
@@ -217,6 +222,7 @@ export default function ExpenseScreen() {
   async function save() {
     if (!data) return;
     if (!description.trim()) return setError("Describe the expense.");
+    if (!category || (cat && cat.subcategories.length > 0 && !subcategory)) return setError("Pick a category.");
     if (total <= 0) return setError("Enter an amount.");
     const payerIds = Object.keys(payers);
     if (payerIds.length === 0) return setError("Who paid?");
@@ -281,7 +287,7 @@ export default function ExpenseScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm }}>
               {[data.trip.base_currency, ...COMMON_CURRENCIES.filter((c) => c !== data.trip.base_currency)].map((c) => (
                 <Pressable key={c} onPress={() => setCurrency(c)} accessibilityRole="radio" accessibilityState={{ selected: currency === c }} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: currency === c ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: currency === c ? theme.colors.fill.primary : theme.colors.background.surface }}>
-                  <Text variant="caption1Semibold">{c}</Text>
+                  <Text variant="caption1Semibold" color={currency === c ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{c}</Text>
                 </Pressable>
               ))}
             </ScrollView>
@@ -289,17 +295,7 @@ export default function ExpenseScreen() {
           </View>
           <Input label="Description" placeholder="Dinner at Rosa's" value={description} onChangeText={setDescription} maxLength={140} />
 
-          <View style={{ gap: theme.spacing.xs }}>
-            <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Category</Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm }}>
-              {CATEGORIES.map((c) => <Chip key={c.key} label={c.label} on={category === c.key} onPress={() => pickCategory(c.key)} />)}
-            </View>
-            {cat.subcategories.length > 0 && (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm, marginTop: 4 }}>
-                {cat.subcategories.map((s) => <Chip key={s.key} label={s.label} on={subcategory === s.key} onPress={() => pickSub(s.key)} />)}
-              </View>
-            )}
-          </View>
+          <CategoryPicker category={category} subcategory={subcategory} onChange={changeCategory} />
 
           <Card style={{ padding: 0, overflow: "hidden" }}>
             <Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary} style={{ padding: 12, paddingBottom: 4 }}>Who paid</Text>
@@ -331,7 +327,7 @@ export default function ExpenseScreen() {
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 12, paddingBottom: 10, paddingLeft: 64 }}>
                       {Array.from({ length: nightsN }, (_, i) => {
                         const stayed = presence[m.user_id]?.[i] ?? true;
-                        return <Pressable key={i} onPress={() => setPresence((p) => ({ ...p, [m.user_id]: Array.from({ length: nightsN }, (_, k) => (k === i ? !stayed : p[m.user_id]?.[k] ?? true)) }))} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: stayed ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: stayed ? theme.colors.fill.primary : "transparent" }}><Text variant="caption3">N{i + 1}</Text></Pressable>;
+                        return <Pressable key={i} onPress={() => setPresence((p) => ({ ...p, [m.user_id]: Array.from({ length: nightsN }, (_, k) => (k === i ? !stayed : p[m.user_id]?.[k] ?? true)) }))} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: stayed ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: stayed ? theme.colors.fill.primary : "transparent" }}><Text variant="caption3" color={stayed ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.secondary}>{weekdayShort(addDays(data.trip.start_date, i))}</Text></Pressable>;
                       })}
                     </View>
                   )}
@@ -343,10 +339,10 @@ export default function ExpenseScreen() {
           <View style={{ gap: theme.spacing.sm }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Split</Text>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Text variant="caption1">Lodging (by nights)</Text><Switch value={lodging} onValueChange={setLodging} trackColor={{ true: theme.colors.fill.success }} /></View>
+              {category === "travel" && <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Text variant="caption1">Lodging (by nights)</Text><Switch value={lodging} onValueChange={setLodging} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.line }} /></View>}
             </View>
             {lodging ? (
-              <Input label="Nights" keyboardType="number-pad" value={nights} onChangeText={setNightsCount} helper={`${formatCents(Math.round(total / nightsN), currency)} a night, split among the people ticked for each night.`} />
+              <Input label="Nights" keyboardType="number-pad" value={nights} onChangeText={setNightsCount} helper={`${formatDayShort(data.trip.start_date)} → ${formatDayShort(addDays(data.trip.start_date, nightsN))} · ${nightsN} ${nightsN === 1 ? "night" : "nights"} · ${formatCents(Math.round(total / nightsN), currency)} a night, split among the people ticked for each night.`} />
             ) : (
               <Segmented options={SPLITS} value={split} onChange={setSplit} />
             )}
@@ -367,13 +363,6 @@ export default function ExpenseScreen() {
   );
 }
 
-function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ selected: on }} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: on ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : theme.colors.background.surface }}>
-      <Text variant="caption1Semibold">{label}</Text>
-    </Pressable>
-  );
-}
 function Check({ on }: { on: boolean }) {
-  return <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: on ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{on && <Text variant="caption3">✓</Text>}</View>;
+  return <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: on ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{on && <Text variant="caption3" color={theme.colors.text.onFill.onPrimary}>✓</Text>}</View>;
 }

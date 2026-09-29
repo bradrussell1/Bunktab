@@ -77,7 +77,7 @@ export default function MemberScreen() {
           <Divider />
           <ListItem title="Share" right={<Text variant="text">{formatCents(share, trip.base_currency)}</Text>} />
           <Divider />
-          <ListItem title="Net" right={<Text variant="text" color={net < 0 ? theme.colors.text.destructive : net > 0 ? theme.colors.text.success : theme.colors.text.onBackground.secondary}>{net === 0 ? "Even" : net > 0 ? `Owed ${formatCents(net, trip.base_currency)}` : `Owes ${formatCents(-net, trip.base_currency)}`}</Text>} />
+          <ListItem title="Net" right={<Text variant="text" color={net < 0 ? theme.colors.text.onBackground.accent : net > 0 ? theme.colors.text.success : theme.colors.text.onBackground.secondary}>{net === 0 ? "Even" : net > 0 ? `Owed ${formatCents(net, trip.base_currency)}` : `Owes ${formatCents(-net, trip.base_currency)}`}</Text>} />
           <Divider />
           <ListItem title="Done adding expenses" right={<Text variant="caption1Semibold" color={m.done_at ? theme.colors.text.success : theme.colors.text.onBackground.secondary}>{m.done_at ? "Yes" : "Not yet"}</Text>} />
         </Card>

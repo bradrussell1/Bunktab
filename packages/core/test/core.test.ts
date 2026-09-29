@@ -187,3 +187,43 @@ describe("dates", () => {
     expect(formatDate("2026-03-09", false)).toBe("Mar 9");
   });
 });
+
+import { addDays, clampMonth, daysInMonth, formatDateLong, formatDayShort, monthGrid, monthRange, shiftMonth, weekdayShort } from "../src/dates";
+describe("calendar math", () => {
+  it("weekdays and long formats are timezone-free", () => {
+    expect(weekdayShort("2026-10-02")).toBe("Fr");
+    expect(weekdayShort("1970-01-01")).toBe("Th");
+    expect(weekdayShort("2000-02-29")).toBe("Tu");
+    expect(formatDateLong("2026-10-02")).toBe("Fri, Oct 2, 2026");
+    expect(formatDayShort("2026-10-05")).toBe("Mon Oct 5");
+  });
+  it("adds days across month and year ends", () => {
+    expect(addDays("2026-10-31", 1)).toBe("2026-11-01");
+    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDays("2027-03-01", -1)).toBe("2027-02-28");
+    expect(addDays("2028-03-01", -1)).toBe("2028-02-29");
+    expect(daysInMonth(2026, 1)).toBe(28);
+    expect(daysInMonth(2028, 1)).toBe(29);
+  });
+  it("builds a 42-cell grid starting on Sunday", () => {
+    const g = monthGrid(2026, 9, "2026-10-02"); // October 2026 starts on a Thursday
+    expect(g).toHaveLength(42);
+    expect(g[0]!.iso).toBe("2026-09-27");
+    expect(g[4]!).toMatchObject({ iso: "2026-10-01", day: 1, inMonth: true });
+    expect(g[5]!.isToday).toBe(true);
+    expect(g.filter((c) => c.inMonth)).toHaveLength(31);
+    expect(g[41]!.iso).toBe("2026-11-07");
+  });
+  it("shifts, clamps and lists months", () => {
+    expect(shiftMonth({ year: 2026, month: 11 }, 1)).toEqual({ year: 2027, month: 0 });
+    expect(shiftMonth({ year: 2026, month: 0 }, -1)).toEqual({ year: 2025, month: 11 });
+    const anchor = { year: 2026, month: 8 };
+    expect(clampMonth({ year: 2027, month: 6 }, anchor)).toEqual({ year: 2027, month: 2 });
+    expect(clampMonth({ year: 2025, month: 0 }, anchor)).toEqual({ year: 2026, month: 2 });
+    expect(clampMonth({ year: 2026, month: 10 }, anchor)).toEqual({ year: 2026, month: 10 });
+    const r = monthRange(anchor);
+    expect(r).toHaveLength(13);
+    expect(r[0]).toEqual({ year: 2026, month: 2 });
+    expect(r[12]).toEqual({ year: 2027, month: 2 });
+  });
+});

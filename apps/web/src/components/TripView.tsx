@@ -60,14 +60,15 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
           </div>
         </div>
 
-        <div className="card stack" style={{ gap: 8 }}>
+        {/* the one pastel hero on this page */}
+        <div className="hero stack" style={{ gap: 8 }}>
           <p className="t-caps">Your balance</p>
-          <p className={`h-large ${fig.mine < 0 ? "t-danger" : fig.mine > 0 ? "t-success" : ""}`}>
+          <p className={`h-large ${fig.mine < 0 ? "t-owe" : fig.mine > 0 ? "t-success" : ""}`}>
             {fig.mine === 0 ? "Settled up" : fig.mine > 0 ? `You're owed ${formatCents(fig.mine, cur)}` : `You owe ${formatCents(-fig.mine, cur)}`}
           </p>
-          <button type="button" className="row between" style={{ background: "none", border: 0, padding: "4px 0", cursor: "pointer", width: "100%" }} aria-expanded={showPlan} onClick={() => setShowPlan((v) => !v)}>
-            <span className="t-cap-strong" style={{ color: "var(--text-accent)" }}>Settlement preview</span>
-            <span className="t-cap-strong" style={{ color: "var(--text-accent)" }}>{showPlan ? "Hide" : `${fig.plan.length} ${fig.plan.length === 1 ? "payment" : "payments"}`}</span>
+          <button type="button" className="row between" style={{ background: "none", border: 0, padding: "4px 0", cursor: "pointer", width: "100%", color: "inherit" }} aria-expanded={showPlan} onClick={() => setShowPlan((v) => !v)}>
+            <span className="t-cap-strong t-key">Settlement preview</span>
+            <span className="t-cap-strong t-key">{showPlan ? "Hide" : `${fig.plan.length} ${fig.plan.length === 1 ? "payment" : "payments"}`}</span>
           </button>
           {showPlan && (
             <div className="stack" style={{ gap: 6 }}>
@@ -108,7 +109,7 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
                 <div key={m.user_id} className="item" style={{ cursor: "default" }}>
                   <Avatar name={m.display_name ?? "?"} uri={m.photo_url} />
                   <span className="grow"><span className="h-headline" style={{ display: "block" }}>{m.user_id === me ? "You" : (m.display_name ?? "Member")}</span><span className="t-cap">Paid {formatCents(paid, cur)} · share {formatCents(share, cur)}</span></span>
-                  <b className={net < 0 ? "t-danger" : net > 0 ? "t-success" : "t-muted"}>{net === 0 ? "even" : net > 0 ? `+${formatCents(net, cur)}` : `−${formatCents(-net, cur)}`}</b>
+                  <b className={net < 0 ? "t-owe" : net > 0 ? "t-success" : "t-muted"}>{net === 0 ? "even" : net > 0 ? `+${formatCents(net, cur)}` : `−${formatCents(-net, cur)}`}</b>
                 </div>
               );
             })}

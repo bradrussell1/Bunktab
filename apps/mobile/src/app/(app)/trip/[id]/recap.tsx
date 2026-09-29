@@ -5,7 +5,7 @@ import * as Sharing from "expo-sharing";
 import React, { useRef, useState } from "react";
 import { ActivityIndicator, Image, Share, View } from "react-native";
 import ViewShot from "react-native-view-shot";
-import { Button, Divider, Screen, Text } from "@/components/ui";
+import { Button, Divider, Hero, HeroText, Screen, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/media";
 import { biggestExpense, frontedMost, topCategory } from "@/lib/tripExtras";
@@ -54,25 +54,27 @@ export default function RecapScreen() {
         <View style={{ width: 60 }} />
       </View>
       <View style={{ gap: theme.spacing.lg }}>
-        <ViewShot ref={shot} options={{ format: "png", quality: 1 }} style={{ backgroundColor: theme.colors.background.surface, borderRadius: theme.radius.card, borderWidth: 1, borderColor: theme.colors.border.neutral, overflow: "hidden" }}>
-          {coverUrl
-            ? <Image source={{ uri: coverUrl }} style={{ width: "100%", height: 180 }} resizeMode="cover" accessibilityIgnoresInvertColors />
-            : <View style={{ height: 96, backgroundColor: theme.palette.basalt, justifyContent: "flex-end", padding: theme.spacing.lg }}><Text variant="captionCaps2" color={theme.colors.icons.accentOnDark}>Checkm8</Text></View>}
-          <View style={{ padding: theme.spacing.lg, gap: theme.spacing.md }}>
-            <View style={{ gap: 2 }}>
-              <Text variant="largeTitle">{trip.title}</Text>
-              <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{formatDateRange(trip.start_date, trip.end_date)} · {members.length} {members.length === 1 ? "person" : "people"}</Text>
+        <ViewShot ref={shot} options={{ format: "png", quality: 1 }} style={{ backgroundColor: theme.colors.background.main, borderRadius: theme.radius.hero }}>
+          <Hero style={{ padding: 0 }}>
+            {coverUrl
+              ? <Image source={{ uri: coverUrl }} style={{ width: "100%", height: 180 }} resizeMode="cover" accessibilityIgnoresInvertColors />
+              : <View style={{ paddingHorizontal: theme.spacing.xl, paddingTop: theme.spacing.xl }}><HeroText variant="captionCaps2" tone="dusk">Checkm8</HeroText></View>}
+            <View style={{ padding: theme.spacing.xl, gap: theme.spacing.md }}>
+              <View style={{ gap: 2 }}>
+                <HeroText variant="largeTitle">{trip.title}</HeroText>
+                <HeroText variant="caption1" tone="mid">{formatDateRange(trip.start_date, trip.end_date)} · {members.length} {members.length === 1 ? "person" : "people"}</HeroText>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                <View><HeroText variant="captionCaps2" tone="mid">Trip total</HeroText><HeroText variant="largeTitle">{formatCents(total, cur)}</HeroText></View>
+                <View style={{ alignItems: "flex-end" }}><HeroText variant="captionCaps2" tone="mid">Per person</HeroText><HeroText variant="largeTitle">{formatCents(perPerson, cur)}</HeroText></View>
+              </View>
+              <Divider onHero />
+              <Stat label="Biggest expense" value={big ? `${big.description} · ${formatCents(big.base_amount_cents, cur)}` : "—"} />
+              <Stat label="Top category" value={top ? `${top.label} · ${formatCents(top.cents, cur)}` : "—"} />
+              <Stat label="Fronted the most" value={fronted ? `${nameOf(fronted.user_id)} · ${formatCents(fronted.cents, cur)}` : "—"} dusk />
+              <HeroText variant="caption3" tone="mid">{trip.status === "settled" ? "Settled · " : trip.status === "archived" ? "Archived · " : ""}split with Checkm8</HeroText>
             </View>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <View><Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary}>Trip total</Text><Text variant="largeTitle">{formatCents(total, cur)}</Text></View>
-              <View style={{ alignItems: "flex-end" }}><Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary}>Per person</Text><Text variant="largeTitle">{formatCents(perPerson, cur)}</Text></View>
-            </View>
-            <Divider />
-            <Stat label="Biggest expense" value={big ? `${big.description} · ${formatCents(big.base_amount_cents, cur)}` : "—"} />
-            <Stat label="Top category" value={top ? `${top.label} · ${formatCents(top.cents, cur)}` : "—"} />
-            <Stat label="Fronted the most" value={fronted ? `${nameOf(fronted.user_id)} · ${formatCents(fronted.cents, cur)}` : "—"} />
-            <Text variant="caption3" color={theme.colors.text.onBackground.tertiary}>{trip.status === "settled" ? "Settled · " : trip.status === "archived" ? "Archived · " : ""}split with Checkm8</Text>
-          </View>
+          </Hero>
         </ViewShot>
         <Button title="Share recap" onPress={share} loading={sharing} />
       </View>
@@ -80,11 +82,11 @@ export default function RecapScreen() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, dusk }: { label: string; value: string; dusk?: boolean }) {
   return (
     <View style={{ gap: 2 }}>
-      <Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary}>{label}</Text>
-      <Text variant="headline">{value}</Text>
+      <HeroText variant="captionCaps2" tone="mid">{label}</HeroText>
+      <HeroText variant={dusk ? "text" : "headline"} tone={dusk ? "dusk" : "ink"}>{value}</HeroText>
     </View>
   );
 }

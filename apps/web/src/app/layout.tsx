@@ -9,13 +9,13 @@ export const metadata: Metadata = {
   title: { default: "Checkm8", template: "%s · Checkm8" },
   description: "Split the trip. Settle in Venmo.",
 };
-export const viewport: Viewport = { themeColor: "#FAF7F2", width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#0C0E12", colorScheme: "dark", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={inter.variable}>
       <head>
-        {/* Basalt & Spore tokens, the same file the mobile app reads */}
+        {/* Dusk & Pastel tokens, the same file the mobile app reads */}
         <style dangerouslySetInnerHTML={{ __html: `:root{${cssVariables()}}` }} />
       </head>
       <body>{children}</body>

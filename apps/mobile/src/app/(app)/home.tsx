@@ -3,7 +3,7 @@ import { theme } from "@checkm8/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { FlatList, Image, Pressable, RefreshControl, View } from "react-native";
-import { Avatar, Button, Card, EmptyState, Input, Screen, Segmented, Text } from "@/components/ui";
+import { Avatar, Button, Card, EmptyState, Hero, HeroAction, HeroText, Input, Screen, Segmented, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/media";
 import { supabase } from "@/lib/supabase";
@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase";
  * from the same rows the trip page uses (base cents, paid minus share),
  * so the two screens can never disagree. Reloads whenever the screen
  * regains focus, so a trip created or edited elsewhere shows at once.
+ * The pastel hero is your position across every open trip; trips are tiles.
  */
 type MemberRow = { user_id: string; display_name: string | null; photo_url: string | null };
 type TripRow = { id: string; title: string; status: "open" | "settled" | "archived"; start_date: string; end_date: string; cover_photo_url: string | null; last_activity_at: string; members: MemberRow[]; net_cents: number };
@@ -50,6 +51,10 @@ export default function HomeScreen() {
   }, [me]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
+  const open = useMemo(() => trips.filter((t) => t.status === "open"), [trips]);
+  const overall = useMemo(() => open.reduce((s, t) => s + t.net_cents, 0), [open]);
+  const biggest = useMemo(() => [...open].sort((a, b) => Math.abs(b.net_cents) - Math.abs(a.net_cents))[0], [open]);
+
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return trips
@@ -64,6 +69,20 @@ export default function HomeScreen() {
           <Text variant="largeTitle">Trips</Text>
           <Pressable onPress={() => router.push("/(app)/settings")} accessibilityRole="button" accessibilityLabel="Your profile"><Avatar name={profile?.display_name ?? "?"} uri={profile?.photo_url} size={36} /></Pressable>
         </View>
+        {!loading && (
+          <Hero>
+            <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: theme.spacing.md }}>
+              <View style={{ flex: 1, gap: 4 }}>
+                <HeroText variant="captionCaps2" tone="mid">Your position</HeroText>
+                <HeroText variant="largeTitle" tone={overall > 0 ? "mint" : overall < 0 ? "dusk" : "ink"} numberOfLines={1} adjustsFontSizeToFit>
+                  {overall > 0 ? `You're owed ${formatCents(overall)}` : overall < 0 ? `You owe ${formatCents(-overall)}` : "All square"}
+                </HeroText>
+                <HeroText variant="caption1Semibold" tone="mid">{open.length === 0 ? "No open trips yet" : `across ${open.length} open ${open.length === 1 ? "trip" : "trips"}`}</HeroText>
+              </View>
+              <HeroAction label={biggest ? `Open ${biggest.title}` : "Start a trip"} glyph={biggest ? "↗" : "+"} onPress={() => (biggest ? router.push(`/(app)/trip/${biggest.id}`) : router.push("/(app)/trip/new"))} />
+            </View>
+          </Hero>
+        )}
         <Segmented options={[{ key: "current", label: "Current" }, { key: "past", label: "Past" }]} value={tab} onChange={setTab} />
         {trips.length > 0 && <Input placeholder="Search trips or people" value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} clearButtonMode="while-editing" />}
         <FlatList
@@ -90,7 +109,7 @@ function TripCard({ trip, me, onPress }: { trip: TripRow; me: string; onPress: (
   const cover = useSignedUrl("covers", trip.cover_photo_url); // object path in the private bucket
   const balance = trip.status !== "open" ? { label: trip.status === "settled" ? "Settled" : "Archived", color: theme.colors.text.onBackground.secondary }
     : trip.net_cents > 0 ? { label: `You're owed ${formatCents(trip.net_cents)}`, color: theme.colors.text.success }
-    : trip.net_cents < 0 ? { label: `You owe ${formatCents(-trip.net_cents)}`, color: theme.colors.text.destructive }
+    : trip.net_cents < 0 ? { label: `You owe ${formatCents(-trip.net_cents)}`, color: theme.colors.text.onBackground.accent }
     : { label: "You're even", color: theme.colors.text.onBackground.secondary };
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${trip.title}, ${balance.label}`}>

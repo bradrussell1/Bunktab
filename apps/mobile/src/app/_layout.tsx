@@ -10,7 +10,7 @@ SplashScreen.preventAutoHideAsync();
 /**
  * Root: session provider + protected route groups. Signed out → (auth);
  * signed in without a display name → the profile step; otherwise → (app).
- * Light mode only (spec: Theme).
+ * Dark only (Dusk & Pastel theme).
  */
 function Routes() {
   const { session, profile, loading } = useAuth();
@@ -38,7 +38,7 @@ function Routes() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <Routes />
     </AuthProvider>
   );
