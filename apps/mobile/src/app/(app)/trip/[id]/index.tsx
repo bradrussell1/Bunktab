@@ -135,7 +135,7 @@ export default function TripScreen() {
           {/* Your Check + settlement preview */}
           {data.expenses.length > 0 && !settledUp ? (
             // the Settlement preview pill sits in a bottom-left notch; the plan expands above it
-            <NotchedHero corner="bl" slotWidth={156} slotHeight={34} contentStyle={{ paddingBottom: notchInset(156, 34).height - 8 }}
+            <NotchedHero corner="bl" slotWidth={156} slotHeight={34} contentStyle={{ paddingBottom: notchInset(156, 34).height + 4 }}
               renderSlot={() => <HeroLink title="Settlement preview" expanded={showPlan} onPress={() => setShowPlan((v) => !v)} />}>
               <View style={{ gap: 4 }}>
                 <HeroText variant="captionCaps2" tone="mid">Your Check</HeroText>
