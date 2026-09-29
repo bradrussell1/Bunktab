@@ -1,4 +1,5 @@
 import * as ImagePicker from "expo-image-picker";
+import { readFileBytes } from "./files";
 import { supabase } from "./supabase";
 
 /**
@@ -16,7 +17,7 @@ export async function pickImage(aspect: [number, number] = [1, 1]): Promise<stri
 }
 
 export async function uploadImage(bucket: "avatars" | "covers", path: string, localUri: string): Promise<string> {
-  const bytes = await (await fetch(localUri)).arrayBuffer();
+  const bytes = await readFileBytes(localUri);
   const { error } = await supabase.storage.from(bucket).upload(path, bytes, { contentType: "image/jpeg", upsert: true });
   if (error) throw error;
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);

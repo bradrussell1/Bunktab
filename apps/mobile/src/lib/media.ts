@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { readFileBytes } from "./files";
 import { supabase } from "./supabase";
 
 /**
@@ -42,7 +43,7 @@ export function useSignedUrl(bucket: PrivateBucket, path: string | null | undefi
 
 /** Upload a local image to a private bucket; returns the stored path with a cache-bust suffix. */
 export async function uploadPrivateImage(bucket: PrivateBucket, object: string, localUri: string): Promise<string> {
-  const bytes = await (await fetch(localUri)).arrayBuffer();
+  const bytes = await readFileBytes(localUri);
   const { error } = await supabase.storage.from(bucket).upload(object, bytes, { contentType: "image/jpeg", upsert: true });
   if (error) throw error;
   const path = `${object}?v=${Date.now()}`;

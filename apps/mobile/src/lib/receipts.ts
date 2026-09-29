@@ -1,4 +1,5 @@
 import * as Crypto from "expo-crypto";
+import { readFileBytes } from "./files";
 import * as ImagePicker from "expo-image-picker";
 import { supabase } from "./supabase";
 
@@ -24,7 +25,7 @@ export async function pickReceipt(source: "camera" | "library"): Promise<string 
 /** Uploads and returns the object path to store in expenses.receipt_url. */
 export async function uploadReceipt(tripId: string, localUri: string): Promise<string> {
   const path = `${tripId}/${Crypto.randomUUID()}.jpg`;
-  const bytes = await (await fetch(localUri)).arrayBuffer();
+  const bytes = await readFileBytes(localUri);
   const { error } = await supabase.storage.from("receipts").upload(path, bytes, { contentType: "image/jpeg", upsert: false });
   if (error) throw error;
   return path;
