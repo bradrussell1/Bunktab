@@ -8,7 +8,7 @@
     "scheme": "checkm8",
     "userInterfaceStyle": "dark",
     "ios": {
-      "bundleIdentifier": "com.checkm8.app",
+      "bundleIdentifier": "com.check-m8.app",
       "supportsTablet": false,
       "icon": "./assets/expo.icon",
       "infoPlist": {
