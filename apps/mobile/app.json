@@ -18,6 +18,10 @@
         "LSApplicationQueriesSchemes": [
           "venmo"
         ]
+      },
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
       }
     },
     "android": {
@@ -42,7 +46,8 @@
             }
           ]
         }
-      ]
+      ],
+      "versionCode": 1
     },
     "web": {
       "output": "static",
@@ -79,6 +84,10 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "backgroundColor": "#0C0E12"
+    "backgroundColor": "#0C0E12",
+    "owner": "brad.russell1",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

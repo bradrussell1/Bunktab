@@ -40,7 +40,7 @@ export default function Landing() {
       </section>
 
       <footer className="t-cap" style={{ paddingTop: 40, display: "flex", gap: 16 }}>
-        <span>© {new Date().getFullYear()} Checkm8</span><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link>
+        <span>© {new Date().getFullYear()} Checkm8</span><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/sms">Texting</Link>
       </footer>
     </main>
   );

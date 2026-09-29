@@ -2,6 +2,7 @@ import { COMMON_CURRENCIES } from "@checkm8/core";
 import { theme } from "@checkm8/theme";
 import * as Contacts from "expo-contacts";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { openBrowserAsync } from "expo-web-browser";
 import { useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from "react-native";
 import { DateField } from "@/components/DatePicker";
@@ -23,7 +24,7 @@ type Pick = { phone: string; name: string };
 export default function NewTripScreen() {
   const router = useRouter();
   const { session, profile } = useAuth();
-  const params = useLocalSearchParams<{ step?: string; openDate?: string; jump?: string }>();
+  const params = useLocalSearchParams<{ step?: string; openDate?: string; jump?: string; consent?: string; demo?: string }>();
   // DEV only: `?step=2` opens the invite step directly (screenshots, tests)
   const [step, setStep] = useState<1 | 2>(__DEV__ && params.step === "2" ? 2 : 1);
   const [title, setTitle] = useState("");
@@ -32,7 +33,10 @@ export default function NewTripScreen() {
   const [end, setEnd] = useState("");
   const [currency, setCurrency] = useState("USD");
   const [error, setError] = useState<string | null>(null);
-  const [picks, setPicks] = useState<Pick[]>([]);
+  // DEV only: `?demo=1` pre-fills one invitee and `?consent=1` ticks the box (compliance screenshots)
+  const [picks, setPicks] = useState<Pick[]>(__DEV__ && params.demo === "1" ? [{ phone: "+15555550199", name: "(555) 555-0199" }] : []);
+  // SMS consent (carrier compliance): the inviter confirms permission before any text goes out
+  const [consent, setConsent] = useState(__DEV__ && params.consent === "1");
   const [manual, setManual] = useState("");
   const [contacts, setContacts] = useState<Pick[] | null>(null);
   const [query, setQuery] = useState("");
@@ -65,6 +69,7 @@ export default function NewTripScreen() {
   }
 
   async function finish() {
+    if (picks.length > 0 && !consent) return setError("Confirm you have their permission before sending invites.");
     setBusy(true); setError(null);
     const { data: trip, error: e1 } = await supabase.from("trips").insert({ title: title.trim(), description: description.trim() || null, start_date: start, end_date: end, base_currency: currency, created_by: session!.user.id }).select("id").single();
     if (e1 || !trip) { setBusy(false); setError(e1?.message ?? "Couldn't create the trip."); return; }
@@ -149,9 +154,20 @@ export default function NewTripScreen() {
         )}
 
         <View style={{ paddingVertical: theme.spacing.lg, gap: theme.spacing.sm }}>
+          {step === 2 && picks.length > 0 && (
+            <View style={{ gap: theme.spacing.xs, marginBottom: theme.spacing.xs }}>
+              <Pressable onPress={() => setConsent((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: consent }} style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
+                <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, marginTop: 1, borderColor: consent ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: consent ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{consent && <Text variant="caption3" color={theme.colors.text.onFill.onPrimary}>✓</Text>}</View>
+                <Text variant="caption1" style={{ flex: 1 }}>I have these people&apos;s permission to send them one text from Checkm8 about this trip. They can reply STOP to opt out. Msg &amp; data rates may apply.</Text>
+              </Pressable>
+              <Pressable onPress={() => openBrowserAsync("https://www.check-m8.io/sms")} accessibilityRole="link" style={{ paddingLeft: 34 }}>
+                <Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>How Checkm8 texts work ↗</Text>
+              </Pressable>
+            </View>
+          )}
           {step === 1
             ? <Button title="Next: invite people" onPress={next} />
-            : <Button title={picks.length ? `Create trip and invite ${picks.length}` : "Create trip"} onPress={finish} loading={busy} />}
+            : <Button title={picks.length ? `Create trip and invite ${picks.length}` : "Create trip"} onPress={finish} loading={busy} disabled={picks.length > 0 && !consent} />}
           {step === 2 && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Each person gets one text from Checkm8 with a link to this trip and can reply STOP. Only add people who expect it. You can add more later.</Text>}
         </View>
       </KeyboardAvoidingView>
