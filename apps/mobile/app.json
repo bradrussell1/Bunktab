@@ -36,7 +36,9 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.READ_CONTACTS",
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.RECORD_AUDIO"
       ],
       "intentFilters": [
         {
@@ -89,6 +91,12 @@
     "owner": "brad.russell1",
     "runtimeVersion": {
       "policy": "appVersion"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6aae70aa-4f50-401e-a864-c96a954c6a93"
+      }
     }
   }
 }
