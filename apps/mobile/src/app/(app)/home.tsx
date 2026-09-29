@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase";
  * Home (spec: Screens → Home): Current and Past trips as cards with title,
  * cover photo, member avatars and your balance ("You're owed $142" / "You
  * owe $58"), search across trips by title or member name, and the
- * always-visible "New Shared Expense" button. Balances are computed here
+ * always-visible "Grab the Check" button. Balances are computed here
  * from the same rows the trip page uses (base cents, paid minus share),
  * so the two screens can never disagree. Reloads whenever the screen
  * regains focus, so a trip created or edited elsewhere shows at once.
@@ -67,7 +67,10 @@ export default function HomeScreen() {
       <View style={{ gap: theme.spacing.md, flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: theme.spacing.sm }}>
           <Text variant="largeTitle">Trips</Text>
-          <Pressable onPress={() => router.push("/(app)/settings")} accessibilityRole="button" accessibilityLabel="Your profile"><Avatar name={profile?.display_name ?? "?"} uri={profile?.photo_url} size={36} /></Pressable>
+          <Pressable onPress={() => router.push("/(app)/settings")} accessibilityRole="button" accessibilityLabel="Profile" style={({ pressed }) => ({ alignItems: "center", gap: 2, opacity: pressed ? 0.7 : 1 })}>
+            <Avatar name={profile?.display_name ?? "?"} uri={profile?.photo_url} size={36} />
+            <Text variant="caption3" color={theme.colors.text.onBackground.accent}>Profile</Text>
+          </Pressable>
         </View>
         {!loading && (
           <Hero>
@@ -97,7 +100,7 @@ export default function HomeScreen() {
         />
       </View>
       <View style={{ position: "absolute", left: theme.screenPadding, right: theme.screenPadding, bottom: theme.spacing.xxl, gap: theme.spacing.sm }}>
-        <Button title="New Shared Expense" onPress={() => router.push("/(app)/trip/new")} />
+        <Button title="Grab the Check" onPress={() => router.push("/(app)/trip/new")} />
         <Button title="Sign out" kind="text" size="small" onPress={signOut} />
       </View>
     </Screen>
@@ -116,11 +119,9 @@ function TripCard({ trip, me, onPress }: { trip: TripRow; me: string; onPress: (
       <Card style={{ padding: 0, overflow: "hidden" }}>
         {cover && <Image source={{ uri: cover }} style={{ width: "100%", height: 120 }} resizeMode="cover" accessibilityIgnoresInvertColors />}
         <View style={{ padding: theme.spacing.lg, gap: theme.spacing.sm }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: theme.spacing.md }}>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text variant="headline">{trip.title}</Text>
-              <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{formatDateRange(trip.start_date, trip.end_date)}</Text>
-            </View>
+          <View style={{ gap: 4 }}>
+            <Text variant="largeTitle" style={{ fontSize: 22, lineHeight: 28 }} numberOfLines={2}>{trip.title}</Text>
+            <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{formatDateRange(trip.start_date, trip.end_date)}</Text>
             <Text variant="caption1Semibold" color={balance.color}>{balance.label}</Text>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center" }}>

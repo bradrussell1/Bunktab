@@ -3,7 +3,7 @@ import { theme } from "@checkm8/theme";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, View } from "react-native";
-import { Text } from "./ui";
+import { FieldSurface, Text } from "./ui";
 
 /**
  * Date field + calendar sheet (spec: Create trip → start and end dates).
@@ -23,9 +23,10 @@ export function DateField({ label, value, onChange, min, placeholder = "Pick a d
   return (
     <View style={{ gap: 6 }}>
       <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>{label}</Text>
-      <Pressable onPress={() => setOpen(true)} accessibilityRole="button" accessibilityLabel={`${label}: ${value ? formatDateLong(value) : placeholder}`}
-        style={{ height: 48, borderRadius: theme.radius.control, borderWidth: 1, borderColor: theme.colors.border.neutral, backgroundColor: theme.colors.fill.field, paddingHorizontal: 12, justifyContent: "center" }}>
-        <Text variant="body" color={value ? theme.colors.text.onBackground.primary : theme.colors.text.onBackground.tertiary} numberOfLines={1}>{value ? formatDateLong(value) : placeholder}</Text>
+      <Pressable onPress={() => setOpen(true)} accessibilityRole="button" accessibilityLabel={`${label}: ${value ? formatDateLong(value) : placeholder}`}>
+        <FieldSurface focused={open} style={{ height: 48, paddingHorizontal: 12 }}>
+          <Text variant="body" color={value ? theme.colors.hero.ink : theme.colors.hero.inkMid} numberOfLines={1}>{value ? formatDateLong(value) : placeholder}</Text>
+        </FieldSurface>
       </Pressable>
       <CalendarSheet visible={open} title={label} value={value} min={min} initialJump={devJump} onClose={() => setOpen(false)} onPick={(d) => { onChange(d); setOpen(false); }} />
     </View>

@@ -8,28 +8,45 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 SplashScreen.preventAutoHideAsync();
 
 /**
- * Root: session provider + protected route groups. Signed out → (auth);
- * signed in without a display name → the profile step; otherwise → (app).
- * Dark only (Dusk & Pastel theme).
+ * Root: session provider + protected route groups.
+ *  signed out                 → landing, login, signup, phone
+ *  signed out OR no phone yet → code, add-phone (sign-up finishes here;
+ *                               Google/Apple accounts add a number here)
+ *  forgot-password code       → new-password (held until saved/skipped)
+ *  no display name yet        → the profile step (text-code accounts only)
+ *  otherwise                  → (app)
+ * `callback` (OAuth) and the DEV login are always reachable.
  */
 function Routes() {
-  const { session, profile, loading } = useAuth();
+  const { session, profile, loading, pendingPasswordReset } = useAuth();
   useEffect(() => { if (!loading) SplashScreen.hideAsync(); }, [loading]);
   if (loading) return null;
   const signedIn = !!session;
-  const needsProfile = signedIn && !profile?.display_name;
+  const needsPhone = signedIn && !session.user.phone;
+  const needsPassword = signedIn && !needsPhone && pendingPasswordReset;
+  const needsProfile = signedIn && !needsPhone && !needsPassword && !profile?.display_name;
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background.main } }}>
       <Stack.Protected guard={!signedIn}>
+        <Stack.Screen name="(auth)/landing" />
+        <Stack.Screen name="(auth)/login" />
+        <Stack.Screen name="(auth)/signup" />
         <Stack.Screen name="(auth)/phone" />
-        <Stack.Screen name="(auth)/verify" />
+      </Stack.Protected>
+      <Stack.Protected guard={!signedIn || needsPhone}>
+        <Stack.Screen name="(auth)/add-phone" />
+        <Stack.Screen name="(auth)/code" />
+      </Stack.Protected>
+      <Stack.Protected guard={needsPassword}>
+        <Stack.Screen name="(auth)/new-password" />
       </Stack.Protected>
       <Stack.Protected guard={needsProfile}>
         <Stack.Screen name="(auth)/profile" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn && !needsProfile}>
+      <Stack.Protected guard={signedIn && !needsPhone && !needsPassword && !needsProfile}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>
+      <Stack.Screen name="(auth)/callback" />
       {__DEV__ && <Stack.Screen name="dev-login" />}
     </Stack>
   );

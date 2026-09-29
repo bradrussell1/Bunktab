@@ -91,7 +91,7 @@ export default function NewTripScreen() {
 
         {step === 1 ? (
           <ScrollView contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
-            <Text variant="largeTitle">New trip</Text>
+            <Text variant="largeTitle">Grab the Check</Text>
             <Input label="Title" placeholder="Tahoe long weekend" value={title} onChangeText={setTitle} maxLength={80} autoFocus />
             <Input label="Description (optional)" placeholder="Who, where, what to remember" value={description} onChangeText={(v) => setDescription(v.slice(0, 250))} multiline numberOfLines={3} style={{ height: 88, paddingTop: 12 }} helper={`${description.length}/250`} />
             <View style={{ flexDirection: "row", gap: theme.spacing.md }}>

@@ -5,23 +5,26 @@ import { supabase } from "@/lib/supabase";
 
 /**
  * DEV ONLY: checkm8://dev-login?phone=15555550100 signs a test number in
- * with the fixed test code, so the app can be driven from the command line
- * (xcrun simctl openurl). Compiled out of release builds by the __DEV__
- * guard; the test numbers only exist in the project's auth config anyway.
+ * with the fixed test code; ?signout=1 signs out. Lets the app be driven
+ * from the command line (xcrun simctl openurl). Compiled out of release
+ * builds by the __DEV__ guard; the test numbers only exist in the
+ * project's auth config anyway.
  */
 export default function DevLogin() {
-  const { phone } = useLocalSearchParams<{ phone?: string }>();
+  const { phone, signout } = useLocalSearchParams<{ phone?: string; signout?: string }>();
   const [done, setDone] = useState(false);
   useEffect(() => {
-    if (!__DEV__ || !phone) { setDone(true); return; }
+    if (!__DEV__ || (!phone && !signout)) { setDone(true); return; }
     (async () => {
-      const p = phone.startsWith("+") ? phone : `+${phone}`;
       await supabase.auth.signOut();
-      await supabase.auth.signInWithOtp({ phone: p });
-      await supabase.auth.verifyOtp({ phone: p, token: "123456", type: "sms" });
+      if (phone) {
+        const p = phone.startsWith("+") ? phone : `+${phone}`;
+        await supabase.auth.signInWithOtp({ phone: p });
+        await supabase.auth.verifyOtp({ phone: p, token: "123456", type: "sms" });
+      }
       setDone(true);
     })();
-  }, [phone]);
+  }, [phone, signout]);
   if (!done) return <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator /></View>;
   return <Redirect href="/" />;
 }

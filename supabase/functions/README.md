@@ -104,3 +104,39 @@ Login codes go through **Twilio Verify** (service `VAf406e76f8503f527b61d0f38f81
 ## Receipt reading key
 
 `ANTHROPIC_API_KEY` is set. If the key is not scoped to a workspace, also set `ANTHROPIC_WORKSPACE_ID` (Console → Workspaces), or the API answers 400.
+
+## Accounts (mobile)
+
+- **Sign-up** = name, email, password, phone, Venmo (optional) → "Enter the
+  code we just sent you". Under the hood the account is created on
+  email + password (`mailer_autoconfirm` is ON because no SMTP provider is
+  configured, so the email is trusted without a confirmation mail), then
+  `updateUser({ phone })` texts a code through Twilio Verify and
+  `verifyOtp(type: "phone_change")` confirms it. The trigger
+  `handle_new_auth_user` copies `display_name` / `venmo_username` from the
+  sign-up metadata and keeps `users.email`/`users.phone` in step with
+  `auth.users`. An account whose phone isn't confirmed is held on the
+  add-phone/code step by the app's root layout (that also covers Google and
+  Apple accounts, which arrive without a phone).
+- Why not phone first: GoTrue refuses `updateUser({ email })` on a
+  phone-created account without a mailer ("Email address "" is invalid"),
+  so email + password login would never work.
+- **Login** = email or phone + password (`signInWithPassword`). "Text me a
+  code instead" keeps the old OTP login for accounts that predate passwords
+  (the three test numbers).
+- **Forgot password** = phone → texted code (`shouldCreateUser: false`, so an
+  unknown number is told so) → the code signs the user in → "Set a new
+  password" (`updateUser({ password })`).
+- **Google / Apple**: wired through `signInWithOAuth` + `expo-web-browser`
+  with redirect `checkm8://callback` (Expo Go: `exp://…/--/callback`; both on
+  the redirect allow-list). NOT enabled in Supabase yet: needs a Google
+  OAuth client id + secret and an Apple Services ID + key (Apple Developer
+  account). Until then the buttons show "… isn't switched on yet".
+- Auth config set 2026-09-28: `password_min_length` 8, `mailer_autoconfirm`
+  true, `mailer_secure_email_change_enabled` false, `site_url`
+  https://www.check-m8.io, redirect allow-list `checkm8://**, exp://**,
+  https://www.check-m8.io/**`. Turn email confirmation back on once an SMTP
+  provider exists.
+- Deleting an account now clears its email too, and a taken email never
+  fails a sign-up (the new row just gets no email; migration 0014).
+- The web guest view (apps/web) still uses the phone-code login only.

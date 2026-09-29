@@ -1,8 +1,9 @@
 import { alpha, theme } from "@checkm8/theme";
 import { LinearGradient } from "expo-linear-gradient";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Image,
   Pressable,
   StyleSheet,
@@ -63,6 +64,19 @@ export function HeroAction({ onPress, label, glyph = "↗", size = 52 }: { onPre
   );
 }
 
+/** On-hero link/CTA: pill, ink on dusk, chevron › that turns down when expanded. */
+export function HeroLink({ title, onPress, expanded, expandable = expanded !== undefined }: { title: string; onPress: () => void; expanded?: boolean; expandable?: boolean }) {
+  const rot = useRef(new Animated.Value(expanded ? 1 : 0)).current;
+  useEffect(() => { Animated.timing(rot, { toValue: expanded ? 1 : 0, duration: 180, useNativeDriver: true }).start(); }, [expanded, rot]);
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={expandable ? { expanded: !!expanded } : undefined}
+      style={({ pressed }) => [styles.heroLink, { opacity: pressed ? 0.85 : 1 }]}>
+      <RNText style={{ ...type.caption1Semibold, color: colors.hero.onCta }}>{title}</RNText>
+      <Animated.Text style={{ ...type.title2, lineHeight: 18, color: colors.hero.onCta, marginTop: -1, transform: [{ rotate: rot.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "90deg"] }) }] }}>›</Animated.Text>
+    </Pressable>
+  );
+}
+
 export function Divider({ onHero }: { onHero?: boolean }) {
   return <View style={[styles.divider, onHero && { backgroundColor: colors.hero.divider }]} />;
 }
@@ -117,27 +131,37 @@ export function Button({ title, kind = "primary", size = "large", loading, disab
   );
 }
 
-export function Input({ label, error, helper, style, onFocus, onBlur, ...rest }: { label?: string; error?: string | null; helper?: string } & TextInputProps) {
+/** Pastel field surface shared by Input and DateField: gradient, ink text, peach focus ring. */
+export function FieldSurface({ children, focused, error, style }: { children: ReactNode; focused?: boolean; error?: boolean; style?: StyleProp<ViewStyle> }) {
+  return (
+    <LinearGradient colors={[...colors.hero.gradient]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+      style={[styles.field, focused && styles.fieldFocused, error && { borderColor: colors.fill.destructive, borderWidth: 2 }, style]}>
+      {children}
+    </LinearGradient>
+  );
+}
+
+export function Input({ label, error, helper, style, onFocus, onBlur, multiline, ...rest }: { label?: string; error?: string | null; helper?: string } & TextInputProps) {
+  const [focused, setFocused] = useState(false);
+  const flat = (StyleSheet.flatten(style) ?? {}) as TextStyle & ViewStyle;
+  const { paddingTop, textAlign, ...box } = flat;
   return (
     <View style={{ gap: spacing.xs }}>
       {label && <Text variant="caption1Semibold" color={colors.text.onBackground.secondary}>{label}</Text>}
-      <FocusInput error={!!error} style={style} onFocus={onFocus} onBlur={onBlur} {...rest} />
+      <FieldSurface focused={focused} error={!!error} style={[multiline ? { minHeight: 48 } : { height: 48 }, box]}>
+        <TextInput
+          placeholderTextColor={colors.hero.inkMid}
+          selectionColor={colors.hero.dusk}
+          keyboardAppearance="dark"
+          multiline={multiline}
+          style={[styles.inputText, multiline && { paddingVertical: 12, textAlignVertical: "top" }, paddingTop !== undefined && { paddingTop }, textAlign !== undefined && { textAlign }]}
+          onFocus={(e) => { setFocused(true); onFocus?.(e); }}
+          onBlur={(e) => { setFocused(false); onBlur?.(e); }}
+          {...rest}
+        />
+      </FieldSurface>
       {error ? <Text variant="caption1" color={colors.text.destructive}>{error}</Text> : helper ? <Text variant="caption1" color={colors.text.onBackground.tertiary}>{helper}</Text> : null}
     </View>
-  );
-}
-function FocusInput({ error, style, onFocus, onBlur, ...rest }: { error: boolean } & TextInputProps) {
-  const [focused, setFocused] = useState(false);
-  return (
-    <TextInput
-      placeholderTextColor={colors.text.onBackground.tertiary}
-      selectionColor={colors.system.cursor}
-      keyboardAppearance="dark"
-      style={[styles.input, focused && { borderColor: colors.border.primary }, error && { borderColor: colors.fill.destructive }, style]}
-      onFocus={(e) => { setFocused(true); onFocus?.(e); }}
-      onBlur={(e) => { setFocused(false); onBlur?.(e); }}
-      {...rest}
-    />
   );
 }
 export function ListItem({ title, subtitle, left, right, onPress }: { title: string; subtitle?: string; left?: ReactNode; right?: ReactNode; onPress?: () => void }) {
@@ -164,11 +188,11 @@ export function Avatar({ name, uri, size = 32, onHero }: { name: string; uri?: s
   );
 }
 
-/** The Done badge (Caption Caps 2). Mint fill, ink text. Never peach. */
+/** The Done badge (Caption Caps 2). Ink on dusk orange. Never peach. */
 export function DoneBadge() {
   return (
     <View style={styles.doneBadge} accessibilityLabel="Done adding expenses">
-      <RNText style={{ ...type.captionCaps2, color: colors.text.onFill.onSuccess }}>Done</RNText>
+      <RNText style={{ ...type.captionCaps2, color: colors.text.onFill.onPrimary }}>Done</RNText>
     </View>
   );
 }
@@ -206,11 +230,14 @@ const styles = StyleSheet.create({
   hero: { borderRadius: radius.hero, padding: spacing.xl, overflow: "hidden" },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.divider.default },
   button: { alignItems: "center", justifyContent: "center", borderRadius: radius.control, flexDirection: "row" },
-  input: { ...type.body, color: colors.text.onBackground.primary, backgroundColor: colors.fill.field, borderWidth: 1, borderColor: colors.border.neutral, borderRadius: radius.control, paddingHorizontal: spacing.md, height: 48 },
+  field: { borderRadius: radius.control, borderWidth: 1, borderColor: alpha(palette.heroInk, 0.12), overflow: "hidden", justifyContent: "center" },
+  fieldFocused: { borderColor: colors.border.primary, borderWidth: 2 },
+  inputText: { ...type.body, color: colors.hero.ink, paddingHorizontal: spacing.md, flexGrow: 1, minHeight: 46 },
+  heroLink: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: colors.hero.dusk, borderRadius: radius.pill, paddingLeft: 14, paddingRight: 10, paddingVertical: 8 },
   listItem: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.lg, backgroundColor: colors.background.surface },
   avatar: { backgroundColor: colors.background.elevated, borderWidth: 1, borderColor: colors.border.neutral, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   avatarHero: { backgroundColor: alpha(palette.peach, 0.35), borderColor: alpha(palette.heroInk, 0.15) },
-  doneBadge: { backgroundColor: colors.fill.success, borderRadius: radius.tag, paddingHorizontal: 6, paddingVertical: 2 },
+  doneBadge: { backgroundColor: colors.fill.warning, borderRadius: radius.tag, paddingHorizontal: 6, paddingVertical: 2 },
   seg: { flexDirection: "row", backgroundColor: colors.fill.secondary, borderRadius: radius.control, padding: 2 },
   segItem: { flex: 1, alignItems: "center", paddingVertical: spacing.sm, borderRadius: radius.control - 2 },
   segOn: { backgroundColor: palette.line },

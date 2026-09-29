@@ -2,7 +2,7 @@ import { formatCents, venmoChargeLink, venmoPayLink } from "@checkm8/core";
 import { theme } from "@checkm8/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, ScrollView, View } from "react-native";
+import { ActivityIndicator, Linking, Pressable, ScrollView, Switch, View } from "react-native";
 import { Avatar, Button, Card, Divider, Hero, HeroAction, HeroText, ListItem, Screen, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -25,6 +25,7 @@ export default function CloseoutScreen() {
   const { data, loading, reload } = useTrip(id);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
+  const [settling, setSettling] = useState(false);
 
   useEffect(() => {
     if (!data || generated) return;
@@ -38,10 +39,18 @@ export default function CloseoutScreen() {
   const owed = settlements.filter((s) => s.to_user === me);
   const others = settlements.filter((s) => s.from_user !== me && s.to_user !== me);
   const venmoOf = (uid: string) => members.find((m) => m.user_id === uid)?.venmo_username ?? null;
+  const meMember = members.find((m) => m.user_id === me);
+  const settledUp = !!meMember?.settled_up_at;
 
   async function open(link: { app: string; web: string }) {
     const can = await Linking.canOpenURL(link.app).catch(() => false);
     await Linking.openURL(can ? link.app : link.web);
+  }
+  async function toggleSettledUp(v: boolean) {
+    setSettling(true);
+    const { error: e } = await supabase.rpc("set_settled_up", { p_trip: trip.id, p_on: v });
+    if (e) setError(e.message);
+    await reload(); setSettling(false);
   }
   async function mark(sid: string, action: "mark_paid" | "unmark" | "confirm") {
     const { error: e } = await supabase.rpc("mark_settlement", { p_settlement: sid, p_action: action });
@@ -57,6 +66,13 @@ export default function CloseoutScreen() {
       </View>
       <ScrollView contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: 40 }}>
         {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
+        <Card style={{ gap: theme.spacing.sm }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: theme.spacing.md }}>
+            <Text variant="text">Settled up</Text>
+            <Switch value={settledUp} onValueChange={toggleSettledUp} disabled={settling} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.line }} />
+          </View>
+          <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>Turn this on once you&apos;ve paid and/or been paid for this trip. It marks your payments paid and greys out the expenses.</Text>
+        </Card>
         {settlements.length === 0 && (
           <Hero>
             <HeroText variant="captionCaps2" tone="mid">Nothing to settle</HeroText>

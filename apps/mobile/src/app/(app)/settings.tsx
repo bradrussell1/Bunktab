@@ -61,7 +61,7 @@ export default function SettingsScreen() {
     <Screen>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: theme.spacing.sm }}>
         <Button title="‹ Trips" kind="text" size="small" onPress={() => router.back()} />
-        <Text variant="title2">You</Text>
+        <Text variant="title2">Profile</Text>
         <View style={{ width: 60 }} />
       </View>
       <ScrollView contentContainerStyle={{ gap: theme.spacing.xl, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">

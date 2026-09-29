@@ -39,7 +39,7 @@ import { activeMembers, useTrip, type Expense } from "@/lib/trips";
  * currency fetches its rate on selection, editable, locked on save.
  */
 const SPLITS: { key: SplitType; label: string }[] = [
-  { key: "equal", label: "Equal" }, { key: "exact", label: "Exact" }, { key: "percent", label: "%" }, { key: "shares", label: "Shares" },
+  { key: "equal", label: "Equal" }, { key: "exact", label: "Exact" }, { key: "percent", label: "%" },
 ];
 
 export default function ExpenseScreen() {
@@ -62,7 +62,6 @@ export default function ExpenseScreen() {
   const [split, setSplit] = useState<SplitType>("equal");
   const [exact, setExact] = useState<Record<string, string>>({});
   const [percents, setPercents] = useState<Record<string, string>>({});
-  const [weights, setWeights] = useState<Record<string, string>>({});
   const [lodging, setLodging] = useState(false);
   const [nights, setNights] = useState("1");
   const [presence, setPresence] = useState<Record<string, boolean[]>>({});
@@ -89,7 +88,7 @@ export default function ExpenseScreen() {
       setCategory(existing.category); setSubcategory(existing.subcategory);
       setPayers(Object.fromEntries(existing.expense_payers.map((p) => [p.user_id, String(p.amount_cents / 100)])));
       setInvolved(existing.expense_shares.map((s) => s.user_id));
-      setSplit(existing.split_type === "nights" ? "equal" : existing.split_type);
+      setSplit(existing.split_type === "nights" || existing.split_type === "shares" ? "equal" : existing.split_type);
       setLodging(existing.split_type === "nights");
       if (existing.split_type === "exact") setExact(Object.fromEntries(existing.expense_shares.map((s) => [s.user_id, String(s.share_cents / 100)])));
       if (existing.receipt_url) setReceiptPath(existing.receipt_url);
@@ -211,13 +210,12 @@ export default function ExpenseScreen() {
       const shares =
         split === "equal" ? computeShares({ ...base, type: "equal" })
         : split === "exact" ? computeShares({ ...base, type: "exact", exactCents: Object.fromEntries(involved.map((u) => [u, parseToCents(exact[u] ?? "") ?? 0])) })
-        : split === "percent" ? computeShares({ ...base, type: "percent", percents: Object.fromEntries(involved.map((u) => [u, Number(percents[u] ?? 0)])) })
-        : computeShares({ ...base, type: "shares", shares: Object.fromEntries(involved.map((u) => [u, Number(weights[u] ?? 1)])) });
+        : computeShares({ ...base, type: "percent", percents: Object.fromEntries(involved.map((u) => [u, Number(percents[u] ?? 0)])) });
       return { shares, error: null };
     } catch (e) {
       return { shares: null, error: e instanceof SplitError ? e.message : String(e) };
     }
-  }, [total, involved, payers, lodging, presence, nightsN, split, exact, percents, weights]);
+  }, [total, involved, payers, lodging, presence, nightsN, split, exact, percents]);
 
   async function save() {
     if (!data) return;
@@ -320,7 +318,6 @@ export default function ExpenseScreen() {
                     <Check on={on} /><Avatar name={m.display_name ?? "?"} size={28} /><Text variant="headline" style={{ flex: 1 }}>{name(m.user_id)}</Text>
                     {on && !lodging && split === "exact" && <Input placeholder="0.00" keyboardType="decimal-pad" value={exact[m.user_id] ?? ""} onChangeText={(v) => setExact((x) => ({ ...x, [m.user_id]: v }))} style={{ width: 96, height: 36 }} />}
                     {on && !lodging && split === "percent" && <Input placeholder="%" keyboardType="decimal-pad" value={percents[m.user_id] ?? ""} onChangeText={(v) => setPercents((x) => ({ ...x, [m.user_id]: v }))} style={{ width: 72, height: 36 }} />}
-                    {on && !lodging && split === "shares" && <Input placeholder="1" keyboardType="number-pad" value={weights[m.user_id] ?? ""} onChangeText={(v) => setWeights((x) => ({ ...x, [m.user_id]: v }))} style={{ width: 64, height: 36 }} />}
                     {on && preview?.shares && <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>{formatCents(preview.shares[m.user_id] ?? 0, currency)}</Text>}
                   </Pressable>
                   {on && lodging && (

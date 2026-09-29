@@ -1,43 +1,35 @@
 import { CATEGORIES } from "@checkm8/core";
 import { theme } from "@checkm8/theme";
-import { useEffect, useRef } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { RotaryCarousel } from "./RotaryCarousel";
 import { Text } from "./ui";
 
 /**
- * Category + subcategory as two stacked horizontal selectors (spec:
- * Categories, two linked dropdowns). Row 1 is the fixed top-level list;
- * row 2 shows the chosen category's subcategories and stays greyed out
- * until a category is picked. Categories with no subcategories show a
- * single muted "No subcategory" chip. Nothing is selected by default.
+ * Category + subcategory as two stacked rotary carousels (spec: Categories,
+ * two linked dropdowns). Row 1 is the fixed top-level list; row 2 shows the
+ * chosen category's subcategories and stays greyed out until a category is
+ * picked. Categories with no subcategories show a single muted "No
+ * subcategory" chip. Nothing is selected by default. Each row loops when it
+ * overflows and centres when it doesn't.
  */
 export function CategoryPicker({ category, subcategory, onChange }: { category: string | null; subcategory: string | null; onChange: (category: string | null, subcategory: string | null) => void }) {
   const cat = CATEGORIES.find((c) => c.key === category) ?? null;
-  const row1 = useRef<ScrollView>(null);
-  const xs = useRef<Record<string, number>>({});
-
-  // keep the selected top-level chip in view (editing an existing expense)
-  useEffect(() => {
-    if (category && xs.current[category] !== undefined) row1.current?.scrollTo({ x: Math.max(0, xs.current[category]! - 16), animated: false });
-  }, [category]);
-
+  const subs = cat ? cat.subcategories : [];
   return (
     <View style={{ gap: theme.spacing.sm }}>
       <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Category</Text>
-      <ScrollView ref={row1} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm, paddingRight: theme.screenPadding }} keyboardShouldPersistTaps="handled">
-        {CATEGORIES.map((c) => (
-          <View key={c.key} onLayout={(e) => { xs.current[c.key] = e.nativeEvent.layout.x; }}>
-            <Chip label={c.label} on={category === c.key} onPress={() => onChange(c.key, null)} />
-          </View>
-        ))}
-      </ScrollView>
+      <RotaryCarousel items={[...CATEGORIES]} keyOf={(c) => c.key}
+        renderItem={(c) => <Chip label={c.label} on={category === c.key} onPress={() => onChange(c.key, null)} />} />
 
       <Text variant="caption1Semibold" color={cat ? theme.colors.text.onBackground.secondary : theme.colors.text.onBackground.tertiary}>Subcategory</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm, paddingRight: theme.screenPadding }} keyboardShouldPersistTaps="handled" scrollEnabled={!!cat && cat.subcategories.length > 0}>
-        {!cat && ["Pick a category first", "…", "…"].map((l, i) => <Chip key={i} label={l} on={false} muted />)}
-        {cat && cat.subcategories.length === 0 && <Chip label="No subcategory" on={false} muted />}
-        {cat && cat.subcategories.map((s) => <Chip key={s.key} label={s.label} on={subcategory === s.key} onPress={() => onChange(cat.key, s.key)} />)}
-      </ScrollView>
+      {!cat && (
+        <RotaryCarousel items={["Pick a category first", "…", "…"]} keyOf={(l, i) => `${i}`} disabled renderItem={(l) => <Chip label={l} on={false} muted />} />
+      )}
+      {cat && subs.length === 0 && <RotaryCarousel items={["No subcategory"]} keyOf={(l) => l} disabled renderItem={(l) => <Chip label={l} on={false} muted />} />}
+      {cat && subs.length > 0 && (
+        <RotaryCarousel key={cat.key} items={[...subs]} keyOf={(s) => s.key}
+          renderItem={(s) => <Chip label={s.label} on={subcategory === s.key} onPress={() => onChange(cat.key, s.key)} />} />
+      )}
     </View>
   );
 }

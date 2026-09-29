@@ -1,17 +1,21 @@
 import type { Session } from "@supabase/supabase-js";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { registerForPush, unregisterPush } from "./push";
 import { supabase } from "./supabase";
 
 /**
  * Session + profile for the whole app. `profile` is our users row; a user
- * whose display_name is empty is on first login and goes to the profile
- * step (spec: Login). Phone login auto-links invites by number through the
- * accept_invites_for_me RPC on every sign-in.
+ * whose display_name is empty (an old text-code login) goes to the profile
+ * step. Sign-up collects the name up front, so those users skip it.
+ * `pendingPasswordReset` is set by the forgot-password code screen: the
+ * texted code signs the user in, and the root layout keeps them on the
+ * "Set a new password" screen until it's saved. Every sign-in auto-links
+ * invites by number through the accept_invites_for_me RPC.
  */
 export type Profile = {
   id: string;
   phone: string | null;
+  email: string | null;
   display_name: string | null;
   photo_url: string | null;
   venmo_username: string | null;
@@ -21,6 +25,8 @@ type AuthState = {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  pendingPasswordReset: boolean;
+  setPendingPasswordReset: (v: boolean) => void;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -31,9 +37,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pendingPasswordReset, setPendingPasswordReset] = useState(false);
+  const linked = useRef<string | null>(null);
 
   const loadProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase.from("users").select("id, phone, display_name, photo_url, venmo_username").eq("id", userId).maybeSingle();
+    const { data } = await supabase.from("users").select("id, phone, email, display_name, photo_url, venmo_username").eq("id", userId).maybeSingle();
     setProfile((data as Profile | null) ?? null);
   }, []);
 
@@ -48,11 +56,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, s) => {
       setSession(s);
       if (s) {
-        if (event === "SIGNED_IN") await supabase.rpc("accept_invites_for_me", { p_via: "app" }).then(() => undefined, () => undefined);
+        // link invites by number as soon as a confirmed phone is on the session:
+        // at sign-in for existing accounts, after the code for new ones
+        const key = `${s.user.id}:${s.user.phone ?? ""}`;
+        if (s.user.phone && linked.current !== key && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
+          linked.current = key;
+          await supabase.rpc("accept_invites_for_me", { p_via: "app" }).then(() => undefined, () => undefined);
+        }
         await loadProfile(s.user.id);
         if (event === "SIGNED_IN") registerForPush(s.user.id);
       } else {
         setProfile(null);
+        setPendingPasswordReset(false);
       }
       setLoading(false);
     });
@@ -63,9 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     profile,
     loading,
+    pendingPasswordReset,
+    setPendingPasswordReset,
     refreshProfile: async () => { if (session) await loadProfile(session.user.id); },
     signOut: async () => { if (session) await unregisterPush(session.user.id); await supabase.auth.signOut(); },
-  }), [session, profile, loading, loadProfile]);
+  }), [session, profile, loading, pendingPasswordReset, loadProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -84,4 +101,29 @@ export function toE164(input: string, defaultCountry = "1"): string | null {
   if (digits.length === 10) return `+${defaultCountry}${digits}`;
   if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
   return null;
+}
+
+/** Email or phone? Login takes either in one field. */
+export function parseIdentifier(input: string): { email: string } | { phone: string } | null {
+  const t = input.trim();
+  if (!t) return null;
+  if (t.includes("@")) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t) ? { email: t.toLowerCase() } : null;
+  const phone = toE164(t);
+  return phone ? { phone } : null;
+}
+
+export const isValidEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
+
+/** Supabase's wording for a provider that isn't configured yet. */
+export function friendlyAuthError(message: string, provider?: "google" | "apple"): string {
+  const m = message.toLowerCase();
+  if (provider && (m.includes("not enabled") || m.includes("unsupported provider") || m.includes("provider is not"))) {
+    return `${provider === "google" ? "Google" : "Apple"} sign-in isn't switched on yet.`;
+  }
+  if (m.includes("invalid login credentials")) return "That email or phone and password don't match.";
+  if (m.includes("user already registered") || m.includes("already been registered")) return "There's already an account with that number. Log in instead.";
+  if (m.includes("rate limit") || m.includes("too many")) return "Too many tries. Wait a minute and try again.";
+  if (m.includes("token has expired") || m.includes("otp_expired")) return "That code has expired. Request a new one.";
+  if (m.includes("invalid") && m.includes("otp")) return "That code isn't right. Check the text and try again.";
+  return message;
 }
