@@ -3,9 +3,8 @@ import { theme } from "@checkm8/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActionSheetIOS, ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, Switch, View } from "react-native";
-import { RotaryCarousel } from "@/components/RotaryCarousel";
 import { NotchedHero, notchInset } from "@/components/NotchedHero";
-import { Avatar, Button, DoneBadge, Divider, Hero, HeroLink, HeroText, Screen, Segmented, Text } from "@/components/ui";
+import { Avatar, Button, DoneBadge, Divider, Hero, HeroLink, HeroPill, HeroText, Screen, Segmented, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { uploadPrivateImage, useSignedUrl } from "@/lib/media";
 import { pickImage } from "@/lib/storage";
@@ -15,18 +14,21 @@ import { activeMembers, memberName, membersWithNoExpenses, myDelta, myExpenses, 
 
 /**
  * The trip page (spec: Screens → Trip page): header with cover photo (tap to
- * add or change), member chips in a rotary carousel with Done badges; the
+ * add or change), an "Attendees:" pill with a scrolling row of member chips and Done badges; the
  * "Your Check" hero with the settlement preview behind a HeroLink; who
  * hasn't logged yet; Expenses (yours) · All Expenses · Summary on a second
  * pastel card (mint = owed to you, dusk = you owe); the sticky footer with
  * Add expense, the Done toggle and Close out. "Settled up" (close-out
  * switch) greys the expenses and relabels the check. The ⋯ menu holds
  * Profile, Trip history and, for the owner, Close out anyway / Delete.
+ * `?readonly=1` (opened from Profile → History) shows the same page with
+ * nothing tappable, no footer and a "‹ History" back button.
  */
 type Tab = "mine" | "all" | "summary";
 
 export default function TripScreen() {
-  const { id, tab: tabParam } = useLocalSearchParams<{ id: string; tab?: string }>();
+  const { id, tab: tabParam, readonly: roParam } = useLocalSearchParams<{ id: string; tab?: string; readonly?: string }>();
+  const readonly = roParam === "1";
   const router = useRouter();
   const { session } = useAuth();
   const me = session!.user.id;
@@ -113,10 +115,12 @@ export default function TripScreen() {
         {/* header */}
         <View style={{ paddingTop: theme.spacing.sm, gap: theme.spacing.sm, paddingHorizontal: theme.screenPadding }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <Button title="‹ Trips" kind="text" size="small" onPress={() => router.replace("/(app)/home")} />
-            <Button title="⋯" kind="text" size="small" onPress={openMenu} accessibilityLabel="Trip menu" />
+            {readonly
+              ? <Button title="‹ History" kind="text" size="small" onPress={() => router.back()} />
+              : <Button title="‹ Trips" kind="text" size="small" onPress={() => router.replace("/(app)/home")} />}
+            {!readonly && <Button title="⋯" kind="text" size="small" onPress={openMenu} accessibilityLabel="Trip menu" />}
           </View>
-          <Pressable onPress={changeCover} disabled={coverBusy} accessibilityRole="button" accessibilityLabel={coverUrl ? "Change cover photo" : "Add cover photo"}
+          <Pressable onPress={changeCover} disabled={coverBusy || readonly} accessibilityRole="button" accessibilityLabel={coverUrl ? "Change cover photo" : "Add cover photo"}
             style={{ height: coverUrl ? 160 : 44, borderRadius: theme.radius.card, overflow: "hidden", backgroundColor: theme.colors.background.elevated, borderWidth: 1, borderColor: theme.colors.border.soft, alignItems: "center", justifyContent: "center" }}>
             {coverUrl
               ? <Image source={{ uri: coverUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
@@ -127,13 +131,17 @@ export default function TripScreen() {
           <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{formatDateRange(trip.start_date, trip.end_date)} · {cur}{closed ? ` · ${trip.status}` : ""}</Text>
         </View>
 
-        {/* members: rotary carousel, 2–20 people */}
-        <RotaryCarousel items={figures.members} keyOf={(m) => m.user_id} style={{ paddingHorizontal: theme.screenPadding }}
-          renderItem={(m) => <MemberChip m={m} me={me} compact={compactChips} onPress={() => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} />} />
+        {/* attendees: pastel pill + one scrolling row of chips, 2–20 people */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm, paddingLeft: theme.screenPadding }}>
+          <HeroPill>Attendees:</HeroPill>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm, paddingRight: theme.screenPadding }} style={{ flex: 1 }}>
+            {figures.members.map((m) => <MemberChip key={m.user_id} m={m} me={me} compact={compactChips} onPress={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} />)}
+          </ScrollView>
+        </View>
 
         <View style={{ paddingHorizontal: theme.screenPadding, gap: theme.spacing.lg }}>
           {/* Your Check + settlement preview */}
-          {data.expenses.length > 0 && !settledUp ? (
+          {data.expenses.length > 0 && !settledUp && !readonly ? (
             // the Settlement preview pill sits in a bottom-left notch; the plan expands above it
             <NotchedHero corner="bl" slotWidth={156} slotHeight={34} contentStyle={{ paddingBottom: notchInset(156, 34).height + 4 }}
               renderSlot={() => <HeroLink title="Settlement preview" expanded={showPlan} onPress={() => setShowPlan((v) => !v)} />}>
@@ -174,7 +182,7 @@ export default function TripScreen() {
               {shownExpenses.map((e, i) => (
                 <View key={e.id} style={settledUp ? { opacity: 0.45 } : undefined}>
                   {i > 0 && <Divider onHero />}
-                  <ExpenseRow e={e} me={me} data={data} onOpen={() => router.push(`/(app)/trip/${trip.id}/expense?expense=${e.id}`)} onHistory={() => router.push(`/(app)/trip/${trip.id}/history?expense=${e.id}`)} />
+                  <ExpenseRow e={e} me={me} data={data} onOpen={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/expense?expense=${e.id}`)} onHistory={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/history?expense=${e.id}`)} />
                 </View>
               ))}
             </Hero>
@@ -207,7 +215,7 @@ export default function TripScreen() {
                 <HeroText variant="captionCaps2" tone="mid">Paid so far</HeroText>
                 <HeroText variant="caption1" tone="mid">What each person has fronted before settlement, and their share of the total.</HeroText>
                 {[...figures.members].map((m) => ({ m, paid: paidBy(data, m.user_id), share: shareOf(data, m.user_id), net: figures.nets[m.user_id] ?? 0 })).sort((a, b) => b.paid - a.paid).map(({ m, paid, share, net }) => (
-                  <Pressable key={m.user_id} onPress={() => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} accessibilityRole="button" style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md, paddingVertical: 6 }}>
+                  <Pressable key={m.user_id} disabled={readonly} onPress={() => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} accessibilityRole="button" style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md, paddingVertical: 6 }}>
                     <Avatar name={m.display_name ?? "?"} uri={m.photo_url} onHero />
                     <View style={{ flex: 1, gap: 2 }}>
                       <HeroText variant="headline">{m.user_id === me ? "You" : (m.display_name ?? "Member")}</HeroText>
@@ -217,14 +225,14 @@ export default function TripScreen() {
                   </Pressable>
                 ))}
               </View>
-              {closed && <Button title="View recap" kind="secondary" size="medium" onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} />}
+              {closed && !readonly && <Button title="View recap" kind="secondary" size="medium" onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} />}
             </Hero>
           )}
         </View>
       </ScrollView>
 
-      {/* sticky footer */}
-      {trip.status === "open" && (
+      {/* sticky footer (none in read-only) */}
+      {!readonly && trip.status === "open" && (
         <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: theme.screenPadding, paddingBottom: 28, gap: theme.spacing.sm, backgroundColor: theme.colors.background.surface, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <Text variant="text">Done adding expenses</Text>
@@ -237,7 +245,7 @@ export default function TripScreen() {
           {!unlocked && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Close out unlocks when everyone has tapped Done.</Text>}
         </View>
       )}
-      {closed && (
+      {!readonly && closed && (
         <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: theme.screenPadding, paddingBottom: 28, flexDirection: "row", gap: theme.spacing.sm, backgroundColor: theme.colors.background.surface, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
           <Button title="View recap" size="medium" style={{ flex: 1 }} onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} />
           <Button title="Payments" kind="secondary" size="medium" style={{ flex: 1 }} onPress={() => router.push(`/(app)/trip/${trip.id}/closeout`)} />
@@ -248,11 +256,11 @@ export default function TripScreen() {
 }
 
 /** Member chip for the rotary: avatar, name (first name when compact), Done badge. */
-function MemberChip({ m, me, compact, onPress }: { m: Member; me: string; compact: boolean; onPress: () => void }) {
+function MemberChip({ m, me, compact, onPress }: { m: Member; me: string; compact: boolean; onPress?: () => void }) {
   const full = m.user_id === me ? "You" : (m.display_name ?? m.phone ?? "Invited");
   const label = compact ? full.split(/\s+/)[0]! : full;
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${full} details${m.done_at ? ", done" : ""}`}
+    <Pressable onPress={onPress} disabled={!onPress} accessibilityRole="button" accessibilityLabel={`${full} details${m.done_at ? ", done" : ""}`}
       style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: theme.colors.background.surface, borderWidth: 1, borderColor: theme.colors.border.neutral, borderRadius: theme.radius.pill, paddingRight: 10, paddingLeft: 3, paddingVertical: 3 }}>
       <Avatar name={m.display_name ?? "?"} uri={m.photo_url} size={26} />
       <Text variant="caption1Semibold" numberOfLines={1}>{label}</Text>
@@ -262,13 +270,13 @@ function MemberChip({ m, me, compact, onPress }: { m: Member; me: string; compac
 }
 
 /** Feed row on the pastel card: receipt thumb or glyph, description, payer/people/category, amount, my delta (mint owed to me / dusk I owe), Edited tag → history. */
-function ExpenseRow({ e, me, data, onOpen, onHistory }: { e: Expense; me: string; data: TripData; onOpen: () => void; onHistory: () => void }) {
+function ExpenseRow({ e, me, data, onOpen, onHistory }: { e: Expense; me: string; data: TripData; onOpen?: () => void; onHistory?: () => void }) {
   const thumb = useSignedUrl("receipts", e.receipt_url);
   const edited = e.updated_at !== e.created_at;
   const cur = data.trip.base_currency;
   const delta = myDelta(e, me);
   return (
-    <Pressable onPress={onOpen} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, opacity: pressed ? 0.7 : 1 })}>
+    <Pressable onPress={onOpen} disabled={!onOpen} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, opacity: pressed ? 0.7 : 1 })}>
       {thumb
         ? <Image source={{ uri: thumb }} style={{ width: 40, height: 40, borderRadius: theme.radius.control }} accessibilityLabel="Receipt" accessibilityIgnoresInvertColors />
         : <View style={{ width: 40, height: 40, borderRadius: theme.radius.control, backgroundColor: theme.colors.hero.divider, alignItems: "center", justifyContent: "center" }}><HeroText variant="caption3" tone="mid">{CATEGORY_GLYPH[e.category] ?? "OT"}</HeroText></View>}
@@ -283,7 +291,7 @@ function ExpenseRow({ e, me, data, onOpen, onHistory }: { e: Expense; me: string
         {delta !== 0 && <HeroText variant="caption1Semibold" tone={delta > 0 ? "mint" : "dusk"}>{delta > 0 ? `+${formatCents(delta, cur)} owed to you` : `you owe ${formatCents(-delta, cur)}`}</HeroText>}
         {e.currency !== cur && <HeroText variant="caption1" tone="mid">{formatCents(e.amount_cents + e.tip_cents, e.currency)}</HeroText>}
         {edited && (
-          <Pressable onPress={onHistory} hitSlop={8} accessibilityRole="button" accessibilityLabel="Edited, view history" style={{ paddingHorizontal: 6, paddingVertical: 1, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: theme.colors.hero.divider }}>
+          <Pressable onPress={onHistory} disabled={!onHistory} hitSlop={8} accessibilityRole="button" accessibilityLabel="Edited, view history" style={{ paddingHorizontal: 6, paddingVertical: 1, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: theme.colors.hero.divider }}>
             <HeroText variant="caption3" tone="mid">Edited</HeroText>
           </Pressable>
         )}

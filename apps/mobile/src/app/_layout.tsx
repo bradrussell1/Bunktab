@@ -9,13 +9,15 @@ SplashScreen.preventAutoHideAsync();
 
 /**
  * Root: session provider + protected route groups.
- *  signed out                 → landing, login, signup, phone
+ *  signed out                 → landing, login (hub), password, forgot, signup, phone
  *  signed out OR no phone yet → code, add-phone (sign-up finishes here;
  *                               Google/Apple accounts add a number here)
- *  forgot-password code       → new-password (held until saved/skipped)
+ *  forgot-password code       → reset-password (held until saved/skipped)
  *  no display name yet        → the profile step (text-code accounts only)
  *  otherwise                  → (app)
- * `callback` (OAuth) and the DEV login are always reachable.
+ * `reset-password` is also reachable while signed in (Profile → Change
+ * Password, mode=change); `callback` (OAuth) and the DEV login are always
+ * reachable.
  */
 function Routes() {
   const { session, profile, loading, pendingPasswordReset } = useAuth();
@@ -30,6 +32,8 @@ function Routes() {
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="(auth)/landing" />
         <Stack.Screen name="(auth)/login" />
+        <Stack.Screen name="(auth)/password" />
+        <Stack.Screen name="(auth)/forgot" />
         <Stack.Screen name="(auth)/signup" />
         <Stack.Screen name="(auth)/phone" />
       </Stack.Protected>
@@ -37,8 +41,8 @@ function Routes() {
         <Stack.Screen name="(auth)/add-phone" />
         <Stack.Screen name="(auth)/code" />
       </Stack.Protected>
-      <Stack.Protected guard={needsPassword}>
-        <Stack.Screen name="(auth)/new-password" />
+      <Stack.Protected guard={signedIn}>
+        <Stack.Screen name="(auth)/reset-password" />
       </Stack.Protected>
       <Stack.Protected guard={needsProfile}>
         <Stack.Screen name="(auth)/profile" />

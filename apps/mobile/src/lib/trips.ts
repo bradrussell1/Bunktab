@@ -115,3 +115,27 @@ export function memberName(d: TripData, userId: string, me?: string): string {
   if (userId === me) return "You";
   return d.members.find((m) => m.user_id === userId)?.display_name ?? "Someone";
 }
+
+/* ---------- trip summaries (Home, Profile → History) ---------- */
+
+export type TripSummary = { id: string; title: string; status: Trip["status"]; start_date: string; end_date: string; cover_photo_url: string | null; last_activity_at: string; net_cents: number; paid_cents: number; expense_count: number };
+
+/** Every trip I'm in, with my net (paid − share) and what I fronted, from the same rows the trip page uses. */
+export async function loadTripSummaries(me: string): Promise<TripSummary[]> {
+  const [t, e] = await Promise.all([
+    supabase.from("trips").select("id, title, status, start_date, end_date, cover_photo_url, last_activity_at").order("last_activity_at", { ascending: false }),
+    supabase.from("expenses").select("trip_id, expense_payers(user_id, base_amount_cents), expense_shares(user_id, base_share_cents)").is("deleted_at", null),
+  ]);
+  type E = { trip_id: string; expense_payers: { user_id: string; base_amount_cents: number }[]; expense_shares: { user_id: string; base_share_cents: number }[] };
+  const by = new Map<string, { net: number; paid: number; n: number }>();
+  for (const x of (e.data ?? []) as unknown as E[]) {
+    const paid = x.expense_payers.filter((p) => p.user_id === me).reduce((s, p) => s + p.base_amount_cents, 0);
+    const share = x.expense_shares.filter((p) => p.user_id === me).reduce((s, p) => s + p.base_share_cents, 0);
+    const cur = by.get(x.trip_id) ?? { net: 0, paid: 0, n: 0 };
+    by.set(x.trip_id, { net: cur.net + paid - share, paid: cur.paid + paid, n: cur.n + 1 });
+  }
+  return ((t.data ?? []) as Omit<TripSummary, "net_cents" | "paid_cents" | "expense_count">[]).map((r) => {
+    const s = by.get(r.id) ?? { net: 0, paid: 0, n: 0 };
+    return { ...r, net_cents: s.net, paid_cents: s.paid, expense_count: s.n };
+  });
+}

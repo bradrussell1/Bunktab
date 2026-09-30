@@ -227,3 +227,28 @@ describe("calendar math", () => {
     expect(r[12]).toEqual({ year: 2027, month: 2 });
   });
 });
+
+import { digitsOnly, formatPhoneDisplay, formatUsPhoneInput, toE164 as toE164Core } from "../src/phone";
+describe("phone", () => {
+  it("formats progressively while typing", () => {
+    expect(formatUsPhoneInput("")).toBe("");
+    expect(formatUsPhoneInput("5")).toBe("(5");
+    expect(formatUsPhoneInput("555")).toBe("(555");
+    expect(formatUsPhoneInput("5555")).toBe("(555) 5");
+    expect(formatUsPhoneInput("5555550")).toBe("(555) 555-0");
+    expect(formatUsPhoneInput("5555550100")).toBe("(555) 555-0100");
+    expect(formatUsPhoneInput("(555) 555-01")).toBe("(555) 555-01");
+    expect(formatUsPhoneInput("+1 555 555 0100 99")).toBe("(555) 555-0100");
+    expect(formatUsPhoneInput("+44 20 7946 0958")).toBe("+442079460958");
+  });
+  it("normalises to E.164 and back to display", () => {
+    expect(toE164Core("(555) 555-0100")).toBe("+15555550100");
+    expect(toE164Core("15555550100")).toBe("+15555550100");
+    expect(toE164Core("+44 20 7946 0958")).toBe("+442079460958");
+    expect(toE164Core("123")).toBeNull();
+    expect(digitsOnly("+1 (555) 555-0100")).toBe("15555550100");
+    expect(formatPhoneDisplay("+15555550100")).toBe("(555) 555-0100");
+    expect(formatPhoneDisplay("15555550100")).toBe("(555) 555-0100");
+    expect(formatPhoneDisplay("+442079460958")).toBe("+442079460958");
+  });
+});

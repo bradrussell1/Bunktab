@@ -1,33 +1,23 @@
 import { theme } from "@checkm8/theme";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
-import { Button, Divider, Input, Screen, Text } from "@/components/ui";
-import { friendlyAuthError, parseIdentifier } from "@/lib/auth";
+import { useEffect, useState } from "react";
+import { ScrollView, View } from "react-native";
+import { Button, Divider, Screen, Text } from "@/components/ui";
+import { useAuth } from "@/lib/auth";
 import { signInWithProvider, type OAuthProvider } from "@/lib/oauth";
-import { supabase } from "@/lib/supabase";
 
 /**
- * Log in (user brief #23): email OR phone in one field, password, forgot
- * password (by text, since every account has a verified number), Google and
- * Apple, and a text-code fallback for accounts created before passwords.
+ * Login hub (user feedback #2): Google, Apple, an "or" rule, then
+ * "Continue with email or phone" → the password page. "Text me a code
+ * instead" stays at the bottom for accounts that predate passwords. A
+ * one-shot notice (e.g. after a password reset) shows above the buttons.
  */
 export default function LoginScreen() {
   const router = useRouter();
-  const [id, setId] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState<"password" | OAuthProvider | null>(null);
+  const { notice, setNotice } = useAuth();
+  const [busy, setBusy] = useState<OAuthProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  async function login() {
-    const who = parseIdentifier(id);
-    if (!who) { setError("Enter the email or phone number on your account."); return; }
-    if (!password) { setError("Enter your password."); return; }
-    setBusy("password"); setError(null);
-    const { error: e } = await supabase.auth.signInWithPassword({ ...who, password });
-    setBusy(null);
-    if (e) setError(friendlyAuthError(e.message));
-  }
+  useEffect(() => () => setNotice(null), [setNotice]); // clear the notice when leaving
 
   async function oauth(provider: OAuthProvider) {
     setBusy(provider); setError(null);
@@ -38,32 +28,29 @@ export default function LoginScreen() {
 
   return (
     <Screen>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: theme.spacing.sm }}>
-          <Button title="‹ Back" kind="text" size="small" onPress={() => router.back()} />
+      <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: theme.spacing.sm }}>
+        <Button title="‹ Back" kind="text" size="small" onPress={() => router.back()} />
+      </View>
+      <ScrollView contentContainerStyle={{ gap: theme.spacing.xl, paddingBottom: 48, flexGrow: 1 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentInsetAdjustmentBehavior="automatic">
+        <View style={{ gap: theme.spacing.xs }}>
+          <Text variant="largeTitle">Log in</Text>
+          <Text variant="body" color={theme.colors.text.onBackground.secondary}>Pick how you'd like to sign in.</Text>
         </View>
-        <ScrollView contentContainerStyle={{ gap: theme.spacing.xl, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
-          <View style={{ gap: theme.spacing.xs }}>
-            <Text variant="largeTitle">Log in</Text>
-            <Text variant="body" color={theme.colors.text.onBackground.secondary}>Use the email or phone number on your account.</Text>
-          </View>
-          <Input label="Email or phone" placeholder="you@example.com or (555) 555-0100" value={id} onChangeText={setId} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="username" autoComplete="username" />
-          <Input label="Password" placeholder="••••••••" value={password} onChangeText={setPassword} secureTextEntry textContentType="password" autoComplete="current-password" onSubmitEditing={login} returnKeyType="go" error={error} />
-          <Button title="Log in" onPress={login} loading={busy === "password"} disabled={busy !== null && busy !== "password"} />
-          <Button title="Forgot your password?" kind="text" size="small" style={{ alignSelf: "center" }} onPress={() => router.push({ pathname: "/(auth)/phone", params: { mode: "reset" } })} />
-
-          <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
-            <View style={{ flex: 1 }}><Divider /></View>
-            <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>or</Text>
-            <View style={{ flex: 1 }}><Divider /></View>
-          </View>
-          <View style={{ gap: theme.spacing.sm }}>
-            <Button title="Continue with Google" kind="secondary" size="medium" onPress={() => oauth("google")} loading={busy === "google"} disabled={busy !== null && busy !== "google"} />
-            <Button title="Continue with Apple" kind="secondary" size="medium" onPress={() => oauth("apple")} loading={busy === "apple"} disabled={busy !== null && busy !== "apple"} />
-          </View>
-          <Button title="Text me a code instead" kind="text" size="small" style={{ alignSelf: "center" }} onPress={() => router.push({ pathname: "/(auth)/phone", params: { mode: "otp" } })} />
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {notice && <Text variant="caption1Semibold" color={theme.colors.text.success}>{notice}</Text>}
+        <View style={{ gap: theme.spacing.sm }}>
+          <Button title="Continue with Google" kind="secondary" onPress={() => oauth("google")} loading={busy === "google"} disabled={busy !== null && busy !== "google"} />
+          <Button title="Continue with Apple" kind="secondary" onPress={() => oauth("apple")} loading={busy === "apple"} disabled={busy !== null && busy !== "apple"} />
+        </View>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
+          <View style={{ flex: 1 }}><Divider /></View>
+          <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>or</Text>
+          <View style={{ flex: 1 }}><Divider /></View>
+        </View>
+        <Button title="Continue with email or phone" onPress={() => router.push("/(auth)/password")} disabled={busy !== null} />
+        {error && <Text variant="caption1" color={theme.colors.text.destructive} style={{ textAlign: "center" }}>{error}</Text>}
+        <View style={{ flex: 1 }} />
+        <Button title="Text me a code instead" kind="text" size="small" style={{ alignSelf: "center" }} onPress={() => router.push({ pathname: "/(auth)/phone", params: { mode: "otp" } })} />
+      </ScrollView>
     </Screen>
   );
 }

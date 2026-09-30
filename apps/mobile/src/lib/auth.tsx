@@ -1,7 +1,7 @@
 import type { Session } from "@supabase/supabase-js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { registerForPush, unregisterPush } from "./push";
-import { supabase } from "./supabase";
+import { isNetworkError, supabase } from "./supabase";
 
 /**
  * Session + profile for the whole app. `profile` is our users row; a user
@@ -9,8 +9,12 @@ import { supabase } from "./supabase";
  * step. Sign-up collects the name up front, so those users skip it.
  * `pendingPasswordReset` is set by the forgot-password code screen: the
  * texted code signs the user in, and the root layout keeps them on the
- * "Set a new password" screen until it's saved. Every sign-in auto-links
- * invites by number through the accept_invites_for_me RPC.
+ * reset-password screen until it's saved. `notice` is a one-shot line the
+ * login hub shows after a reset ("Password updated…"). Every sign-in
+ * auto-links invites by number through the accept_invites_for_me RPC.
+ *
+ * Nothing awaited in the auth listener may throw: a failed profile read or
+ * invite link must never leave `loading` stuck or block navigation.
  */
 export type Profile = {
   id: string;
@@ -27,6 +31,8 @@ type AuthState = {
   loading: boolean;
   pendingPasswordReset: boolean;
   setPendingPasswordReset: (v: boolean) => void;
+  notice: string | null;
+  setNotice: (v: string | null) => void;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -38,11 +44,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [pendingPasswordReset, setPendingPasswordReset] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const linked = useRef<string | null>(null);
 
   const loadProfile = useCallback(async (userId: string) => {
-    const { data } = await supabase.from("users").select("id, phone, email, display_name, photo_url, venmo_username").eq("id", userId).maybeSingle();
-    setProfile((data as Profile | null) ?? null);
+    try {
+      const { data } = await supabase.from("users").select("id, phone, email, display_name, photo_url, venmo_username").eq("id", userId).maybeSingle();
+      if (data) setProfile(data as Profile);
+    } catch { /* keep whatever we had; the next focus reloads */ }
   }, []);
 
   useEffect(() => {
@@ -50,26 +59,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!alive) return;
       setSession(data.session);
-      if (data.session) { await loadProfile(data.session.user.id); registerForPush(data.session.user.id); }
+      if (data.session) { await loadProfile(data.session.user.id); registerForPush(data.session.user.id).catch(() => undefined); }
       setLoading(false);
-    });
+    }).catch(() => { if (alive) setLoading(false); });
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, s) => {
       setSession(s);
-      if (s) {
-        // link invites by number as soon as a confirmed phone is on the session:
-        // at sign-in for existing accounts, after the code for new ones
-        const key = `${s.user.id}:${s.user.phone ?? ""}`;
-        if (s.user.phone && linked.current !== key && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
-          linked.current = key;
-          await supabase.rpc("accept_invites_for_me", { p_via: "app" }).then(() => undefined, () => undefined);
+      try {
+        if (s) {
+          // link invites by number as soon as a confirmed phone is on the session:
+          // at sign-in for existing accounts, after the code for new ones
+          const key = `${s.user.id}:${s.user.phone ?? ""}`;
+          if (s.user.phone && linked.current !== key && (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "TOKEN_REFRESHED")) {
+            linked.current = key;
+            supabase.rpc("accept_invites_for_me", { p_via: "app" }).then(() => undefined, () => undefined);
+          }
+          await loadProfile(s.user.id);
+          if (event === "SIGNED_IN") registerForPush(s.user.id).catch(() => undefined);
+        } else {
+          setProfile(null);
+          setPendingPasswordReset(false);
         }
-        await loadProfile(s.user.id);
-        if (event === "SIGNED_IN") registerForPush(s.user.id);
-      } else {
-        setProfile(null);
-        setPendingPasswordReset(false);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
     return () => { alive = false; sub.subscription.unsubscribe(); };
   }, [loadProfile]);
@@ -80,9 +92,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     pendingPasswordReset,
     setPendingPasswordReset,
+    notice,
+    setNotice,
     refreshProfile: async () => { if (session) await loadProfile(session.user.id); },
-    signOut: async () => { if (session) await unregisterPush(session.user.id); await supabase.auth.signOut(); },
-  }), [session, profile, loading, pendingPasswordReset, loadProfile]);
+    signOut: async () => {
+      if (session) await unregisterPush(session.user.id).catch(() => undefined);
+      await supabase.auth.signOut().catch(() => undefined);
+    },
+  }), [session, profile, loading, pendingPasswordReset, notice, loadProfile]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -114,9 +131,10 @@ export function parseIdentifier(input: string): { email: string } | { phone: str
 
 export const isValidEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
 
-/** Supabase's wording for a provider that isn't configured yet. */
+/** Supabase's wording → ours. */
 export function friendlyAuthError(message: string, provider?: "google" | "apple"): string {
   const m = message.toLowerCase();
+  if (isNetworkError(message)) return "Connection hiccup. Tap Log in again.";
   if (provider && (m.includes("not enabled") || m.includes("unsupported provider") || m.includes("provider is not"))) {
     return `${provider === "google" ? "Google" : "Apple"} sign-in isn't switched on yet.`;
   }

@@ -1,7 +1,7 @@
 import { theme } from "@checkm8/theme";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Button, Input, Screen, Text } from "@/components/ui";
 import { friendlyAuthError, toE164, useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -24,7 +24,7 @@ export default function AddPhoneScreen() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
       const pending = (data.user as { new_phone?: string } | null)?.new_phone;
       if (pending) router.replace({ pathname: "/(auth)/code", params: { phone: `+${pending.replace(/^\+/, "")}`, mode: "phone_change" } });
       else setChecking(false);
@@ -44,15 +44,15 @@ export default function AddPhoneScreen() {
   if (checking) return <Screen><View /></Screen>;
   return (
     <Screen>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "center", gap: theme.spacing.xxl, paddingBottom: 80 }}>
+      <ScrollView contentContainerStyle={{ gap: theme.spacing.xl, paddingTop: theme.spacing.xxl, paddingBottom: 48 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentInsetAdjustmentBehavior="automatic">
         <View style={{ gap: theme.spacing.sm }}>
           <Text variant="largeTitle">Add your phone number</Text>
           <Text variant="body" color={theme.colors.text.onBackground.secondary}>Friends invite you by number, so we need to confirm one. We'll text you a code.</Text>
         </View>
-        <Input label="Phone number" keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" placeholder="(555) 555-0100" value={raw} onChangeText={setRaw} error={error} onSubmitEditing={send} returnKeyType="send" autoFocus />
-        <Button title="Text me a code" onPress={send} loading={busy} />
+        <Input label="Phone number" keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" placeholder="(555) 555-0100" value={raw} onChangeText={setRaw} error={error} onSubmitEditing={send} returnKeyType="done" autoFocus />
+        <Button title="Continue" onPress={send} loading={busy} />
         <Button title="Sign out" kind="text" size="small" style={{ alignSelf: "center" }} onPress={signOut} />
-      </KeyboardAvoidingView>
+      </ScrollView>
     </Screen>
   );
 }

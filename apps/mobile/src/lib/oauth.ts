@@ -1,24 +1,63 @@
+import * as AppleAuthentication from "expo-apple-authentication";
+import * as Crypto from "expo-crypto";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+import { Platform } from "react-native";
 import { friendlyAuthError } from "./auth";
 import { supabase } from "./supabase";
 
 /**
- * Google / Apple sign-in through Supabase's OAuth flow in a system browser
- * sheet: Supabase hands back a URL on our scheme carrying the tokens, and we
- * set the session from it. Neither provider is enabled in the project yet
- * (no Google OAuth client, no Apple Services ID); until then Supabase
- * answers "provider is not enabled" and the caller shows a friendly line.
+ * Google: Supabase's OAuth flow in a system browser sheet; Supabase hands
+ * back a URL on our scheme carrying the tokens and we set the session from
+ * it. Redirect is `checkm8://callback` in a real build and `exp://…/--/callback`
+ * in Expo Go (Linking.createURL picks the right one); both are on the
+ * project's redirect allow-list. The Google Cloud client must list
+ * `https://<ref>.supabase.co/auth/v1/callback` as an authorised redirect URI.
  *
- * Redirect: `checkm8://callback` in a real build, `exp://…/--/callback` in
- * Expo Go (Linking.createURL picks the right one). Both patterns are on the
- * project's redirect allow-list.
+ * Apple: native Sign in with Apple on iOS (Apple requires the native sheet
+ * when it's offered). The identity token goes to Supabase as an id token
+ * with a nonce; the provider is enabled with the bundle id as client id, no
+ * secret needed. Expo Go has no Apple entitlement, so the button explains
+ * that there. Apple only sends the name on the first sign-in, so it's saved
+ * to the users row right then.
  */
 WebBrowser.maybeCompleteAuthSession();
 
 export type OAuthProvider = "google" | "apple";
 
 export async function signInWithProvider(provider: OAuthProvider): Promise<{ error: string | null }> {
+  if (provider === "apple" && Platform.OS === "ios") return signInWithAppleNative();
+  return signInWithBrowser(provider);
+}
+
+async function signInWithAppleNative(): Promise<{ error: string | null }> {
+  if (!(await AppleAuthentication.isAvailableAsync().catch(() => false))) {
+    return { error: "Apple sign-in works in the App Store / TestFlight build." };
+  }
+  const rawNonce = Crypto.randomUUID().replace(/-/g, "");
+  const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
+  let credential: AppleAuthentication.AppleAuthenticationCredential;
+  try {
+    credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [AppleAuthentication.AppleAuthenticationScope.FULL_NAME, AppleAuthentication.AppleAuthenticationScope.EMAIL],
+      nonce: hashedNonce,
+    });
+  } catch (e) {
+    const code = (e as { code?: string }).code ?? "";
+    if (code === "ERR_REQUEST_CANCELED" || code === "ERR_CANCELED") return { error: null };
+    return { error: friendlyAuthError(e instanceof Error ? e.message : "Apple sign-in failed.", "apple") };
+  }
+  if (!credential.identityToken) return { error: "Apple didn't return a sign-in token. Try again." };
+  const { data, error } = await supabase.auth.signInWithIdToken({ provider: "apple", token: credential.identityToken, nonce: rawNonce });
+  if (error) return { error: friendlyAuthError(error.message, "apple") };
+  const name = [credential.fullName?.givenName, credential.fullName?.familyName].filter(Boolean).join(" ").trim();
+  if (name && data.user) {
+    await supabase.from("users").update({ display_name: name }).eq("id", data.user.id).is("display_name", null).then(() => undefined, () => undefined);
+  }
+  return { error: null };
+}
+
+async function signInWithBrowser(provider: OAuthProvider): Promise<{ error: string | null }> {
   const redirectTo = Linking.createURL("callback");
   const { data, error } = await supabase.auth.signInWithOAuth({ provider, options: { redirectTo, skipBrowserRedirect: true } });
   if (error || !data?.url) return { error: friendlyAuthError(error?.message ?? "Couldn't start sign-in.", provider) };

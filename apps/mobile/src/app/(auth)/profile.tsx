@@ -2,7 +2,7 @@ import { isValidVenmoUsername, venmoProfileUrl } from "@checkm8/core";
 import { theme } from "@checkm8/theme";
 import { openBrowserAsync } from "expo-web-browser";
 import { useState } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Button, Input, Screen, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -31,7 +31,7 @@ export default function ProfileScreen() {
 
   return (
     <Screen>
-      <View style={{ flex: 1, justifyContent: "center", gap: theme.spacing.xxl }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: theme.spacing.xxl, paddingBottom: 48 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentInsetAdjustmentBehavior="automatic">
         <View style={{ gap: theme.spacing.sm }}>
           <Text variant="largeTitle">Almost there</Text>
           <Text variant="body" color={theme.colors.text.onBackground.secondary}>How should your trip mates see you, and where should they send money?</Text>
@@ -43,7 +43,7 @@ export default function ProfileScreen() {
         </View>
         {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
         <Button title="Save and continue" onPress={save} loading={busy} />
-      </View>
+      </ScrollView>
     </Screen>
   );
 }

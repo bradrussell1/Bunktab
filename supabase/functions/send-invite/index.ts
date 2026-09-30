@@ -29,8 +29,9 @@ Deno.serve(async (req) => {
   if (callerId && inv.invited_by !== callerId) return json({ error: "forbidden" }, 403);
   if (inv.status !== "pending") return json({ skipped: inv.status });
 
-  // already on the app? then a push will do and the phone login links them anyway
-  const { data: existing } = await admin.from("users").select("id").eq("phone", inv.phone).maybeSingle();
+  // already on the app? the insert trigger attached them and marked the invite accepted (handled above).
+  // A phone-only account with no display name (never finished sign-up) still gets the text.
+  const { data: existing } = await admin.from("users").select("id, display_name").eq("phone", inv.phone).maybeSingle();
   const trip = (inv as unknown as { trips: { title: string } | null }).trips;
   const inviter = (inv as unknown as { users: { display_name: string | null } | null }).users;
   const who = inviter?.display_name?.split(" ")[0] || "A friend";
@@ -41,7 +42,9 @@ Deno.serve(async (req) => {
 
   const sid = Deno.env.get("TWILIO_ACCOUNT_SID"), tok = Deno.env.get("TWILIO_AUTH_TOKEN"), from = Deno.env.get("TWILIO_FROM");
   let result: Record<string, unknown>;
-  if (!sid || !tok || !from) {
+  if (existing?.display_name) {
+    result = { skipped: "has account" };  // no text to people who already use Checkm8 (user decision 2026-09-30)
+  } else if (!sid || !tok || !from) {
     result = { error: "twilio not configured", missing: [!sid && "TWILIO_ACCOUNT_SID", !tok && "TWILIO_AUTH_TOKEN", !from && "TWILIO_FROM"].filter(Boolean) };
   } else {
     const form = new URLSearchParams({ To: to, Body: text });

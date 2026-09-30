@@ -104,7 +104,7 @@ let r = await fetch(`${BASE}/functions/v1/read-receipt`, { method: "POST", heade
 ok("read-receipt refuses a non-member", r.status === 401, r.status);
 r = await fetch(`${BASE}/functions/v1/read-receipt`, { method: "POST", headers: { "Content-Type": "application/json", apikey: ANON, Authorization: `Bearer ${ja}` }, body: JSON.stringify({ bucket: "receipts", path: `${tid}/x.jpg` }) });
 const rr = await r.json();
-ok("read-receipt answers a member (soft-fails until ANTHROPIC_API_KEY is set)", r.status === 200 && ("total_cents" in rr || rr.error), rr);
+ok("read-receipt answers a member (404 for a missing object, or a soft/real read)", (r.status === 200 && ("total_cents" in rr || rr.error)) || (r.status === 404 && /not found/i.test(rr.error ?? "")), { status: r.status, rr });
 console.log("     read-receipt:", JSON.stringify(rr));
 
 [st] = await call("DELETE", `/rest/v1/trips?id=eq.${tid}`, undefined, ja); ok("owner deletes the trip", st === 204, st);

@@ -29,10 +29,10 @@ import { activeMembers, useTrip, type Expense } from "@/lib/trips";
 
 /**
  * Add or edit an expense (spec: Screens → Add or edit expense). Amount and
- * currency; who paid (defaults to you; several payers supported); who's
- * involved (everyone by default); the split type; description; category and
- * subcategory from the fixed list; tip as its own field; the lodging toggle
- * that switches to nights. Shares are computed by @checkm8/core and saved
+ * currency; the payer is always you (an edit keeps the original payer);
+ * who's involved (everyone by default); the split type; description; category and
+ * subcategory from the fixed list; tip as its own field; "Pro-rate lodging
+ * by nights", offered only for hotels and rentals, switches to nights. Shares are computed by @checkm8/core and saved
  * through save_expense in one transaction; the server re-checks the sums.
  * A receipt photo uploads to the private receipts bucket and the total is
  * read server-side to pre-fill the amount (tip stays separate); a non-base
@@ -57,7 +57,6 @@ export default function ExpenseScreen() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<string | null>(null); // nothing picked until the user chooses
   const [subcategory, setSubcategory] = useState<string | null>(null);
-  const [payers, setPayers] = useState<Record<string, string>>({});
   const [involved, setInvolved] = useState<string[]>([]);
   const [split, setSplit] = useState<SplitType>("equal");
   const [exact, setExact] = useState<Record<string, string>>({});
@@ -86,7 +85,6 @@ export default function ExpenseScreen() {
       setAmount(String(existing.amount_cents / 100)); setTip(existing.tip_cents ? String(existing.tip_cents / 100) : "");
       setCurrency(existing.currency); setFx(String(existing.fx_rate)); setDescription(existing.description);
       setCategory(existing.category); setSubcategory(existing.subcategory);
-      setPayers(Object.fromEntries(existing.expense_payers.map((p) => [p.user_id, String(p.amount_cents / 100)])));
       setInvolved(existing.expense_shares.map((s) => s.user_id));
       setSplit(existing.split_type === "nights" || existing.split_type === "shares" ? "equal" : existing.split_type);
       setLodging(existing.split_type === "nights");
@@ -95,7 +93,6 @@ export default function ExpenseScreen() {
       if (existing.nights) { setNights(String(existing.nights)); setPresence(Object.fromEntries(existing.expense_shares.map((s) => [s.user_id, s.night_presence ?? fullPresence([s.user_id], existing.nights!)[s.user_id]!]))); }
     } else {
       setCurrency(data.trip.base_currency);
-      setPayers({ [me]: "" });
       setInvolved(ids);
       const n = Math.max(1, nightsBetween(data.trip.start_date, data.trip.end_date));
       setNights(String(n)); setPresence(fullPresence(ids, n));
@@ -150,19 +147,9 @@ export default function ExpenseScreen() {
     else if (isLodgingCategory(key, sub)) setLodging(true);
   }
   function toggleInvolved(uid: string) { setInvolved((v) => (v.includes(uid) ? v.filter((x) => x !== uid) : [...v, uid])); }
-  function togglePayer(uid: string) {
-    setPayers((p) => {
-      const n = { ...p };
-      if (uid in n) delete n[uid];
-      else {
-        n[uid] = "";
-        // going from one payer to several: the first payer starts with the whole total so the sum begins right
-        const ids = Object.keys(n);
-        if (ids.length === 2 && total > 0) { const first = ids.find((k) => k !== uid)!; if (!n[first]) n[first] = (total / 100).toFixed(2); }
-      }
-      return n;
-    });
-  }
+  // the payer: you, or on an edit the person who originally paid
+  const payerId = existing?.expense_payers[0]?.user_id ?? me;
+  const lodgingOffered = category === "travel" && isLodgingCategory(category, subcategory);
   function setNightsCount(v: string) {
     setNights(v);
     const n = Math.max(1, parseInt(v, 10) || 1);
@@ -201,7 +188,7 @@ export default function ExpenseScreen() {
   const preview = useMemo(() => {
     try {
       if (total <= 0 || involved.length === 0) return null;
-      const payerIds = Object.keys(payers);
+      const payerIds = [payerId];
       if (lodging) {
         const pres = Object.fromEntries(involved.map((uid) => [uid, presence[uid] ?? Array.from({ length: nightsN }, () => true)]));
         return { shares: computeNightsShares({ amountCents: total, nights: nightsN, presence: pres, payerIds }).shares, error: null };
@@ -215,19 +202,14 @@ export default function ExpenseScreen() {
     } catch (e) {
       return { shares: null, error: e instanceof SplitError ? e.message : String(e) };
     }
-  }, [total, involved, payers, lodging, presence, nightsN, split, exact, percents]);
+  }, [total, involved, payerId, lodging, presence, nightsN, split, exact, percents]);
 
   async function save() {
     if (!data) return;
     if (!description.trim()) return setError("Describe the expense.");
     if (!category || (cat && cat.subcategories.length > 0 && !subcategory)) return setError("Pick a category.");
     if (total <= 0) return setError("Enter an amount.");
-    const payerIds = Object.keys(payers);
-    if (payerIds.length === 0) return setError("Who paid?");
-    // payers: one payer takes it all; several must be typed and add up
-    const payerCents: Record<string, number> = payerIds.length === 1 ? { [payerIds[0]!]: total } : Object.fromEntries(payerIds.map((u) => [u, parseToCents(payers[u] ?? "") ?? 0]));
-    const payerSum = Object.values(payerCents).reduce((a, b) => a + b, 0);
-    if (payerSum !== total) return setError(`Payers add up to ${formatCents(payerSum, currency)}, not ${formatCents(total, currency)}.`);
+    const payerCents: Record<string, number> = { [payerId]: total };
     if (!preview?.shares) return setError(preview?.error ?? "Fix the split.");
     setBusy(true); setError(null);
     const base = toBaseCents(total, fxRate);
@@ -253,6 +235,7 @@ export default function ExpenseScreen() {
 
   if (!data || !seeded) return <Screen><View /></Screen>;
   const name = (uid: string) => (uid === me ? "You" : members.find((m) => m.user_id === uid)?.display_name ?? "Member");
+  const payerNote = payerId === me ? "You paid this" : `${name(payerId)} paid this`;
 
   return (
     <Screen padded={false}>
@@ -291,19 +274,9 @@ export default function ExpenseScreen() {
             </ScrollView>
             {currency !== data.trip.base_currency && <Input label={`Rate: 1 ${currency} in ${data.trip.base_currency}`} keyboardType="decimal-pad" value={fx} helper={`${formatCents(total, currency)} = ${formatCents(toBaseCents(total, fxRate), data.trip.base_currency)}${fxNote ? ` · ${fxNote}` : " · locked on save"}`} onChangeText={(v) => { setFx(v); setFxNote("Typed rate, locked on save"); }} />}
           </View>
-          <Input label="Description" placeholder="Dinner at Rosa's" value={description} onChangeText={setDescription} maxLength={140} />
+          <Input label="Description" placeholder="Dinner at Rosa's" value={description} onChangeText={setDescription} maxLength={140} helper={payerNote} />
 
           <CategoryPicker category={category} subcategory={subcategory} onChange={changeCategory} />
-
-          <Card style={{ padding: 0, overflow: "hidden" }}>
-            <Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary} style={{ padding: 12, paddingBottom: 4 }}>Who paid</Text>
-            {members.map((m) => (
-              <Pressable key={m.user_id} onPress={() => togglePayer(m.user_id)} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 12 }}>
-                <Check on={m.user_id in payers} /><Avatar name={m.display_name ?? "?"} size={28} /><Text variant="headline" style={{ flex: 1 }}>{name(m.user_id)}</Text>
-                {Object.keys(payers).length > 1 && m.user_id in payers && <Input placeholder="0.00" keyboardType="decimal-pad" value={payers[m.user_id]} onChangeText={(v) => setPayers((p) => ({ ...p, [m.user_id]: v }))} style={{ width: 96, height: 36 }} />}
-              </Pressable>
-            ))}
-          </Card>
 
           <Card style={{ padding: 0, overflow: "hidden" }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 12, paddingBottom: 4 }}>
@@ -334,9 +307,15 @@ export default function ExpenseScreen() {
           </Card>
 
           <View style={{ gap: theme.spacing.sm }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            {/* one row: "Split" on the left; for hotels/rentals a right-aligned "Pro-rate lodging by nights" switch */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", minHeight: 31 }}>
               <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Split</Text>
-              {category === "travel" && <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Text variant="caption1">Lodging (by nights)</Text><Switch value={lodging} onValueChange={setLodging} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.line }} /></View>}
+              {lodgingOffered && (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
+                  <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Pro-rate lodging by nights</Text>
+                  <Switch value={lodging} onValueChange={setLodging} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.line }} accessibilityLabel="Pro-rate lodging by nights" />
+                </View>
+              )}
             </View>
             {lodging ? (
               <Input label="Nights" keyboardType="number-pad" value={nights} onChangeText={setNightsCount} helper={`${formatDayShort(data.trip.start_date)} → ${formatDayShort(addDays(data.trip.start_date, nightsN))} · ${nightsN} ${nightsN === 1 ? "night" : "nights"} · ${formatCents(Math.round(total / nightsN), currency)} a night, split among the people ticked for each night.`} />

@@ -188,6 +188,15 @@ export function Avatar({ name, uri, size = 32, onHero }: { name: string; uri?: s
   );
 }
 
+/** Small pastel pill with dusk text, e.g. the "Attendees:" label on the trip page. */
+export function HeroPill({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  return (
+    <LinearGradient colors={[...colors.hero.gradient]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.heroPill, style]}>
+      <RNText style={{ ...type.caption1Semibold, color: colors.hero.dusk }}>{children}</RNText>
+    </LinearGradient>
+  );
+}
+
 /** The Done badge (Caption Caps 2). Ink on dusk orange. Never peach. */
 export function DoneBadge() {
   return (
@@ -233,6 +242,7 @@ const styles = StyleSheet.create({
   field: { borderRadius: radius.control, borderWidth: 1, borderColor: alpha(palette.heroInk, 0.12), overflow: "hidden", justifyContent: "center" },
   fieldFocused: { borderColor: colors.border.primary, borderWidth: 2 },
   inputText: { ...type.body, color: colors.hero.ink, paddingHorizontal: spacing.md, flexGrow: 1, minHeight: 46 },
+  heroPill: { borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6, alignSelf: "flex-start" },
   heroLink: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: colors.hero.dusk, borderRadius: radius.pill, paddingLeft: 14, paddingRight: 10, paddingVertical: 8 },
   listItem: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.lg, backgroundColor: colors.background.surface },
   avatar: { backgroundColor: colors.background.elevated, borderWidth: 1, borderColor: colors.border.neutral, alignItems: "center", justifyContent: "center", overflow: "hidden" },

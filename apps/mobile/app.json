@@ -2,7 +2,7 @@
   "expo": {
     "name": "Checkm8",
     "slug": "checkm8",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "checkm8",
@@ -22,7 +22,8 @@
       "config": {
         "usesNonExemptEncryption": false
       },
-      "appleTeamId": "8LR5F2TH8L"
+      "appleTeamId": "8LR5F2TH8L",
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.checkm8.app",
@@ -79,7 +80,8 @@
         }
       ],
       "expo-notifications",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true,

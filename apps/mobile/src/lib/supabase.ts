@@ -9,6 +9,11 @@ import { AppState, Platform } from "react-native";
  * the phone's secure storage (Keychain / Keystore). SecureStore caps a value
  * at 2048 bytes and a Supabase session is larger, so the adapter chunks it.
  * On web the session falls back to AsyncStorage (localStorage).
+ *
+ * Auth requests get one automatic retry on a transport failure ("Network
+ * request failed" on a flaky cellular hop): those calls are safe to repeat
+ * and a first-tap failure at login was the reported symptom. Data calls are
+ * not retried here, so a write can never be applied twice.
  */
 const CHUNK = 1800;
 
@@ -49,6 +54,24 @@ const url = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "";
 export const supabaseConfigured = Boolean(url && anonKey);
 
+/** True for the transport-level failures RN's fetch throws before any response. */
+export function isNetworkError(e: unknown): boolean {
+  const m = e instanceof Error ? e.message.toLowerCase() : String(e).toLowerCase();
+  return m.includes("network request failed") || m.includes("fetch failed") || m.includes("load failed") || m.includes("the internet connection appears to be offline");
+}
+
+const retryingFetch: typeof fetch = async (input, init) => {
+  const target = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+  const retryable = target.includes("/auth/v1/");
+  try {
+    return await fetch(input, init);
+  } catch (e) {
+    if (!retryable || !isNetworkError(e)) throw e;
+    await new Promise((r) => setTimeout(r, 250));
+    return fetch(input, init);
+  }
+};
+
 export const supabase = createClient(url || "https://placeholder.supabase.co", anonKey || "placeholder", {
   auth: {
     storage: Platform.OS === "web" ? webStorage : chunkedSecureStore,
@@ -56,9 +79,12 @@ export const supabase = createClient(url || "https://placeholder.supabase.co", a
     persistSession: true,
     detectSessionInUrl: false,
   },
+  global: { fetch: retryingFetch },
 });
 
-// Refresh tokens only while the app is in the foreground.
+// Refresh tokens only while the app is in the foreground. supabase-js
+// serialises refreshes with sign-in behind its own lock, so a foreground
+// event during a login can't race it.
 if (Platform.OS !== "web") {
   AppState.addEventListener("change", (state) => {
     if (state === "active") supabase.auth.startAutoRefresh();

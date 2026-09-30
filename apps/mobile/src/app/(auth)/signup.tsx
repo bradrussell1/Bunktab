@@ -3,7 +3,7 @@ import { theme } from "@checkm8/theme";
 import { useRouter } from "expo-router";
 import { openBrowserAsync } from "expo-web-browser";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Button, Input, Screen, Text } from "@/components/ui";
 import { friendlyAuthError, isValidEmail, toE164 } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -57,11 +57,10 @@ export default function SignupScreen() {
 
   return (
     <Screen>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: theme.spacing.sm }}>
           <Button title="‹ Back" kind="text" size="small" onPress={() => router.back()} />
         </View>
-        <ScrollView contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: 48 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentInsetAdjustmentBehavior="automatic">
           <View style={{ gap: theme.spacing.xs }}>
             <Text variant="largeTitle">Create your account</Text>
             <Text variant="body" color={theme.colors.text.onBackground.secondary}>We'll text a code to confirm your number.</Text>
@@ -78,7 +77,6 @@ export default function SignupScreen() {
           <Button title="Next" onPress={next} loading={busy} />
           <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>By continuing you agree to the Terms and Privacy Policy at check-m8.io.</Text>
         </ScrollView>
-      </KeyboardAvoidingView>
     </Screen>
   );
 }

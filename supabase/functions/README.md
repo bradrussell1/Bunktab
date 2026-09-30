@@ -107,6 +107,9 @@ Login codes go through **Twilio Verify** (service `VAf406e76f8503f527b61d0f38f81
 
 ## Accounts (mobile)
 
+- **Landing** → Login hub: Continue with Google, Continue with Apple, "or",
+  Continue with email or phone (→ password page), and "Text me a code
+  instead" for accounts that predate passwords.
 - **Sign-up** = name, email, password, phone, Venmo (optional) → "Enter the
   code we just sent you". Under the hood the account is created on
   email + password (`mailer_autoconfirm` is ON because no SMTP provider is
@@ -121,22 +124,31 @@ Login codes go through **Twilio Verify** (service `VAf406e76f8503f527b61d0f38f81
 - Why not phone first: GoTrue refuses `updateUser({ email })` on a
   phone-created account without a mailer ("Email address "" is invalid"),
   so email + password login would never work.
-- **Login** = email or phone + password (`signInWithPassword`). "Text me a
-  code instead" keeps the old OTP login for accounts that predate passwords
-  (the three test numbers).
-- **Forgot password** = phone → texted code (`shouldCreateUser: false`, so an
-  unknown number is told so) → the code signs the user in → "Set a new
-  password" (`updateUser({ password })`).
-- **Google / Apple**: wired through `signInWithOAuth` + `expo-web-browser`
-  with redirect `checkm8://callback` (Expo Go: `exp://…/--/callback`; both on
-  the redirect allow-list). NOT enabled in Supabase yet: needs a Google
-  OAuth client id + secret and an Apple Services ID + key (Apple Developer
-  account). Until then the buttons show "… isn't switched on yet".
-- Auth config set 2026-09-28: `password_min_length` 8, `mailer_autoconfirm`
+- **Login** = email or phone + password (`signInWithPassword`).
+- **Forgot password** = "Email or phone" → Continue. The anon-callable RPC
+  `request_password_reset(identifier)` (migration 20260930000001) returns
+  the E.164 phone on that account (null for unknown identifiers; this does
+  reveal whether an email has an account, as any phone-based reset does) →
+  `signInWithOtp({ phone, shouldCreateUser: false })` → the code signs the
+  user in → "Reset password" (identifier read-only, new + confirm,
+  `updateUser({ password })`) → signed out → login hub with "Password
+  updated. Log in with your new password." The same screen serves Profile →
+  Change Password as `/(auth)/reset-password?mode=change` (no code, no
+  sign-out, back to Profile).
+- **Google**: web OAuth through Supabase (`signInWithOAuth`, redirect
+  `checkm8://callback`; Expo Go uses `exp://…/--/callback`; both allow-listed).
+  The Google Cloud OAuth client MUST list
+  `https://qywowvkkkxldgxoatdsh.supabase.co/auth/v1/callback` under
+  Authorized redirect URIs, or Google answers `redirect_uri_mismatch`.
+- **Apple**: native Sign in with Apple (`expo-apple-authentication`,
+  `ios.usesAppleSignIn`), identity token → `signInWithIdToken({ provider:
+  "apple", nonce })`. Supabase: `external_apple_enabled` with client id
+  `com.check-m8.app` (the bundle id); no Services ID or secret is needed for
+  the native path. Requires a native build (not Expo Go); the App ID must
+  have the Sign in with Apple capability.
+- **Transport retries**: auth requests (`/auth/v1/*`) get one automatic
+  retry on a transport failure; data calls never do.
+- Auth config set 2026-09-28/30: `password_min_length` 8, `mailer_autoconfirm`
   true, `mailer_secure_email_change_enabled` false, `site_url`
   https://www.check-m8.io, redirect allow-list `checkm8://**, exp://**,
-  https://www.check-m8.io/**`. Turn email confirmation back on once an SMTP
-  provider exists.
-- Deleting an account now clears its email too, and a taken email never
-  fails a sign-up (the new row just gets no email; migration 0014).
-- The web guest view (apps/web) still uses the phone-code login only.
+  https://www.check-m8.io/**`, Apple provider on, Google provider on.
