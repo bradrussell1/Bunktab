@@ -20,6 +20,20 @@ export default function SettingsScreen() {
   const [photoBusy, setPhotoBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [pw1, setPw1] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  async function changePassword() {
+    if (pw1.length < 8) { setPwMsg({ ok: false, text: "Use at least 8 characters." }); return; }
+    if (pw1 !== pw2) { setPwMsg({ ok: false, text: "The two passwords don't match." }); return; }
+    setPwBusy(true); setPwMsg(null);
+    const { error: e } = await supabase.auth.updateUser({ password: pw1 });
+    setPwBusy(false);
+    if (e) { setPwMsg({ ok: false, text: e.message }); return; }
+    setPw1(""); setPw2(""); setPwMsg({ ok: true, text: "Password updated." });
+  }
 
   async function changePhoto() {
     setError(null);
@@ -81,6 +95,13 @@ export default function SettingsScreen() {
           {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
           {saved && !error && <Text variant="caption1" color={theme.colors.text.success}>Saved.</Text>}
           <Button title="Save" size="medium" onPress={save} loading={busy} />
+        </Card>
+        <Card style={{ gap: theme.spacing.lg }}>
+          <Text variant="headline">Change password</Text>
+          <Input label="New password" placeholder="At least 8 characters" value={pw1} onChangeText={setPw1} secureTextEntry autoCapitalize="none" textContentType="newPassword" />
+          <Input label="Confirm new password" value={pw2} onChangeText={setPw2} secureTextEntry autoCapitalize="none" textContentType="newPassword" />
+          {pwMsg && <Text variant="caption1" color={pwMsg.ok ? theme.colors.text.success : theme.colors.text.destructive}>{pwMsg.text}</Text>}
+          <Button title="Update password" kind="secondary" size="medium" onPress={changePassword} loading={pwBusy} disabled={pw1.length < 8 || pw1 !== pw2} />
         </Card>
         <Button title="Sign out" kind="secondary" size="medium" onPress={signOut} />
         <Button title="Delete account" kind="text" size="small" onPress={deleteAccount} />
