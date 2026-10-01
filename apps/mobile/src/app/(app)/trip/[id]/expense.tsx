@@ -267,7 +267,7 @@ export default function ExpenseScreen() {
             <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Currency</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm }}>
               {[data.trip.base_currency, ...COMMON_CURRENCIES.filter((c) => c !== data.trip.base_currency)].map((c) => (
-                <Pressable key={c} onPress={() => setCurrency(c)} accessibilityRole="radio" accessibilityState={{ selected: currency === c }} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: currency === c ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: currency === c ? theme.colors.fill.primary : theme.colors.background.surface }}>
+                <Pressable key={c} onPress={() => setCurrency(c)} accessibilityRole="radio" accessibilityState={{ selected: currency === c }} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: currency === c ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: currency === c ? theme.colors.fill.primary : theme.colors.background.surface }}>
                   <Text variant="caption1Semibold" color={currency === c ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{c}</Text>
                 </Pressable>
               ))}
@@ -297,7 +297,7 @@ export default function ExpenseScreen() {
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 12, paddingBottom: 10, paddingLeft: 64 }}>
                       {Array.from({ length: nightsN }, (_, i) => {
                         const stayed = presence[m.user_id]?.[i] ?? true;
-                        return <Pressable key={i} onPress={() => setPresence((p) => ({ ...p, [m.user_id]: Array.from({ length: nightsN }, (_, k) => (k === i ? !stayed : p[m.user_id]?.[k] ?? true)) }))} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: stayed ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: stayed ? theme.colors.fill.primary : "transparent" }}><Text variant="caption3" color={stayed ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.secondary}>{weekdayShort(addDays(data.trip.start_date, i))}</Text></Pressable>;
+                        return <Pressable key={i} onPress={() => setPresence((p) => ({ ...p, [m.user_id]: Array.from({ length: nightsN }, (_, k) => (k === i ? !stayed : p[m.user_id]?.[k] ?? true)) }))} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: stayed ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: stayed ? theme.colors.fill.primary : "transparent" }}><Text variant="caption3" color={stayed ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.secondary}>{weekdayShort(addDays(data.trip.start_date, i))}</Text></Pressable>;
                       })}
                     </View>
                   )}
@@ -313,7 +313,7 @@ export default function ExpenseScreen() {
               {lodgingOffered && (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
                   <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Pro-rate lodging by nights</Text>
-                  <Switch value={lodging} onValueChange={setLodging} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.line }} accessibilityLabel="Pro-rate lodging by nights" />
+                  <Switch value={lodging} onValueChange={setLodging} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.grayDeep }} accessibilityLabel="Pro-rate lodging by nights" />
                 </View>
               )}
             </View>
@@ -340,5 +340,5 @@ export default function ExpenseScreen() {
 }
 
 function Check({ on }: { on: boolean }) {
-  return <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: on ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{on && <Text variant="caption3" color={theme.colors.text.onFill.onPrimary}>✓</Text>}</View>;
+  return <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: on ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{on && <Text variant="caption3" color={theme.colors.text.onFill.onPrimary}>✓</Text>}</View>;
 }

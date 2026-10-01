@@ -60,7 +60,7 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
           </div>
         </div>
 
-        {/* the one pastel hero on this page */}
+        {/* the one navy hero on this page */}
         <div className="hero stack" style={{ gap: 8 }}>
           <p className="t-caps">Your balance</p>
           <p className={`h-large ${fig.mine < 0 ? "t-owe" : fig.mine > 0 ? "t-success" : ""}`}>

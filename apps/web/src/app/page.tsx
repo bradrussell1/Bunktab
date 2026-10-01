@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-/** Landing: dark canvas, one pastel hero carrying the pitch, carbon tiles for the steps. */
+/** Landing: light canvas, one navy hero carrying the pitch with a gold arrow, white tiles for the steps. */
 export default function Landing() {
   return (
     <main className="col">

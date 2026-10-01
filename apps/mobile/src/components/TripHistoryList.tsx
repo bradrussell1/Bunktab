@@ -24,7 +24,7 @@ export function TripHistoryList({ trips, loading }: { trips: TripSummary[]; load
             <ListItem
               title={t.title}
               subtitle={`${formatDateRange(t.start_date, t.end_date)} · ${t.expense_count} ${t.expense_count === 1 ? "expense" : "expenses"}${status ? ` · ${status}` : ""}`}
-              right={<Text variant="caption1Semibold" color={net > 0 ? theme.colors.text.success : net < 0 ? theme.colors.text.onBackground.accent : theme.colors.text.onBackground.secondary}>{net === 0 ? (t.expense_count ? "Even" : "—") : net > 0 ? `+${formatCents(net)}` : `−${formatCents(-net)}`}</Text>}
+              right={<Text variant="caption1Semibold" color={net > 0 ? theme.colors.text.success : net < 0 ? theme.colors.text.destructive : theme.colors.text.onBackground.secondary}>{net === 0 ? (t.expense_count ? "Even" : "—") : net > 0 ? `+${formatCents(net)}` : `−${formatCents(-net)}`}</Text>}
               onPress={() => router.push(`/(app)/trip/${t.id}?readonly=1`)}
             />
           </View>

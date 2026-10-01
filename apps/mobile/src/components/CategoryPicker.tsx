@@ -37,7 +37,7 @@ export function CategoryPicker({ category, subcategory, onChange }: { category: 
 function Chip({ label, on, onPress, muted }: { label: string; on: boolean; onPress?: () => void; muted?: boolean }) {
   return (
     <Pressable onPress={onPress} disabled={muted || !onPress} accessibilityRole="radio" accessibilityState={{ selected: on, disabled: muted }}
-      style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: theme.radius.pill, borderWidth: 1, opacity: muted ? 0.4 : 1, borderColor: on ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : theme.colors.background.surface }}>
+      style={{ paddingHorizontal: 14, paddingVertical: 9, borderRadius: theme.radius.pill, borderWidth: 1, opacity: muted ? 0.4 : 1, borderColor: on ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : theme.colors.background.surface }}>
       <Text variant="caption1Semibold" color={muted ? theme.colors.text.onBackground.tertiary : on ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{label}</Text>
     </Pressable>
   );

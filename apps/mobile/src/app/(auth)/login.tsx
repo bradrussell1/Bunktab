@@ -38,8 +38,8 @@ export default function LoginScreen() {
         </View>
         {notice && <Text variant="caption1Semibold" color={theme.colors.text.success}>{notice}</Text>}
         <View style={{ gap: theme.spacing.sm }}>
-          <Button title="Continue with Google" kind="secondary" onPress={() => oauth("google")} loading={busy === "google"} disabled={busy !== null && busy !== "google"} />
-          <Button title="Continue with Apple" kind="secondary" onPress={() => oauth("apple")} loading={busy === "apple"} disabled={busy !== null && busy !== "apple"} />
+          <Button title="Continue with Google" kind="outline" onPress={() => oauth("google")} loading={busy === "google"} disabled={busy !== null && busy !== "google"} />
+          <Button title="Continue with Apple" kind="outline" onPress={() => oauth("apple")} loading={busy === "apple"} disabled={busy !== null && busy !== "apple"} />
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
           <View style={{ flex: 1 }}><Divider /></View>

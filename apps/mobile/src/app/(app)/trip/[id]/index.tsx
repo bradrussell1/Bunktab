@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActionSheetIOS, ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, Switch, View } from "react-native";
 import { NotchedHero, notchInset } from "@/components/NotchedHero";
-import { Avatar, Button, DoneBadge, Divider, Hero, HeroLink, HeroPill, HeroText, Screen, Segmented, Text } from "@/components/ui";
+import { Avatar, Button, DoneBadge, Divider, Hero, HeroLink, HeroPill, HeroText, Screen, Segmented, Text, Tile } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { uploadPrivateImage, useSignedUrl } from "@/lib/media";
 import { pickImage } from "@/lib/storage";
@@ -175,58 +175,58 @@ export default function TripScreen() {
           <Segmented options={[{ key: "mine", label: "Expenses" }, { key: "all", label: "All Expenses" }, { key: "summary", label: "Summary" }]} value={tab} onChange={setTab} />
 
           {tab !== "summary" && (
-            <Hero style={{ padding: 0 }}>
+            <Tile style={{ padding: 0, overflow: "hidden" }}>
               {shownExpenses.length === 0 && (
-                <HeroText variant="caption1" tone="mid" style={{ padding: 16 }}>{tab === "mine" ? "You haven't added an expense yet. Tap Add expense to log what you paid." : "No expenses yet. Add the first one."}</HeroText>
+                <CardText variant="caption1" tone="mid" style={{ padding: 16 }}>{tab === "mine" ? "You haven't added an expense yet. Tap Add expense to log what you paid." : "No expenses yet. Add the first one."}</CardText>
               )}
               {shownExpenses.map((e, i) => (
                 <View key={e.id} style={settledUp ? { opacity: 0.45 } : undefined}>
-                  {i > 0 && <Divider onHero />}
+                  {i > 0 && <Divider />}
                   <ExpenseRow e={e} me={me} data={data} onOpen={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/expense?expense=${e.id}`)} onHistory={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/history?expense=${e.id}`)} />
                 </View>
               ))}
-            </Hero>
+            </Tile>
           )}
 
           {tab === "summary" && (
-            <Hero style={{ gap: theme.spacing.lg }}>
+            <Tile style={{ gap: theme.spacing.lg }}>
               <View style={{ gap: 2 }}>
-                <HeroText variant="captionCaps2" tone="mid">Trip total</HeroText>
-                <HeroText variant="largeTitle">{formatCents(figures.total, cur)}</HeroText>
-                <HeroText variant="caption1" tone="mid">{data.expenses.length} {data.expenses.length === 1 ? "expense" : "expenses"} · {figures.members.length} people</HeroText>
+                <CardText variant="captionCaps2" tone="mid">Trip total</CardText>
+                <CardText variant="largeTitle">{formatCents(figures.total, cur)}</CardText>
+                <CardText variant="caption1" tone="mid">{data.expenses.length} {data.expenses.length === 1 ? "expense" : "expenses"} · {figures.members.length} people</CardText>
               </View>
               {figures.total > 0 && (
-                <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.hero.divider }}>
+                <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
                   {CATEGORIES.map((c) => {
                     const cents = data.expenses.filter((e) => e.category === c.key).reduce((s, e) => s + e.base_amount_cents, 0);
                     if (!cents) return null;
                     const pct = cents / figures.total;
                     return (
                       <View key={c.key} style={{ gap: 4 }}>
-                        <View style={{ flexDirection: "row", justifyContent: "space-between" }}><HeroText variant="caption1Semibold">{c.label}</HeroText><HeroText variant="caption1Semibold" tone="mid">{formatCents(cents, cur)} · {Math.round(pct * 100)}%</HeroText></View>
-                        <View style={{ height: 8, borderRadius: 4, backgroundColor: theme.colors.hero.divider }}><View style={{ width: `${Math.max(2, Math.round(pct * 100))}%`, height: 8, borderRadius: 4, backgroundColor: theme.colors.hero.dusk }} /></View>
+                        <View style={{ flexDirection: "row", justifyContent: "space-between" }}><CardText variant="caption1Semibold">{c.label}</CardText><CardText variant="caption1Semibold" tone="mid">{formatCents(cents, cur)} · {Math.round(pct * 100)}%</CardText></View>
+                        <View style={{ height: 8, borderRadius: 4, backgroundColor: theme.colors.divider.default }}><View style={{ width: `${Math.max(2, Math.round(pct * 100))}%`, height: 8, borderRadius: 4, backgroundColor: theme.colors.fill.primary }} /></View>
                       </View>
                     );
                   })}
                 </View>
               )}
               {figures.total > 0 && <FunFacts data={data} me={me} />}
-              <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.hero.divider }}>
-                <HeroText variant="captionCaps2" tone="mid">Paid so far</HeroText>
-                <HeroText variant="caption1" tone="mid">What each person has fronted before settlement, and their share of the total.</HeroText>
+              <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
+                <CardText variant="captionCaps2" tone="mid">Paid so far</CardText>
+                <CardText variant="caption1" tone="mid">What each person has fronted before settlement, and their share of the total.</CardText>
                 {[...figures.members].map((m) => ({ m, paid: paidBy(data, m.user_id), share: shareOf(data, m.user_id), net: figures.nets[m.user_id] ?? 0 })).sort((a, b) => b.paid - a.paid).map(({ m, paid, share, net }) => (
                   <Pressable key={m.user_id} disabled={readonly} onPress={() => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} accessibilityRole="button" style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md, paddingVertical: 6 }}>
-                    <Avatar name={m.display_name ?? "?"} uri={m.photo_url} onHero />
+                    <Avatar name={m.display_name ?? "?"} uri={m.photo_url} />
                     <View style={{ flex: 1, gap: 2 }}>
-                      <HeroText variant="headline">{m.user_id === me ? "You" : (m.display_name ?? "Member")}</HeroText>
-                      <HeroText variant="caption1" tone="mid">Paid {formatCents(paid, cur)} · share {formatCents(share, cur)}</HeroText>
+                      <CardText variant="headline">{m.user_id === me ? "You" : (m.display_name ?? "Member")}</CardText>
+                      <CardText variant="caption1" tone="mid">Paid {formatCents(paid, cur)} · share {formatCents(share, cur)}</CardText>
                     </View>
-                    <HeroText variant="text" tone={net > 0 ? "mint" : net < 0 ? "dusk" : "mid"}>{net === 0 ? "even" : net > 0 ? `+${formatCents(net, cur)}` : `−${formatCents(-net, cur)}`}</HeroText>
+                    <CardText variant="text" tone={net > 0 ? "mint" : net < 0 ? "dusk" : "mid"}>{net === 0 ? "even" : net > 0 ? `+${formatCents(net, cur)}` : `−${formatCents(-net, cur)}`}</CardText>
                   </Pressable>
                 ))}
               </View>
               {closed && !readonly && <Button title="View recap" kind="secondary" size="medium" onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} />}
-            </Hero>
+            </Tile>
           )}
         </View>
       </ScrollView>
@@ -236,7 +236,7 @@ export default function TripScreen() {
         <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: theme.screenPadding, paddingBottom: 28, gap: theme.spacing.sm, backgroundColor: theme.colors.background.surface, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <Text variant="text">Done adding expenses</Text>
-            <Switch value={!!meMember?.done_at} onValueChange={toggleDone} disabled={busy} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.line }} />
+            <Switch value={!!meMember?.done_at} onValueChange={toggleDone} disabled={busy} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.grayDeep }} />
           </View>
           <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
             <Button title="Add expense" kind="secondary" size="medium" style={{ flex: 1 }} onPress={() => router.push(`/(app)/trip/${trip.id}/expense`)} />
@@ -253,6 +253,13 @@ export default function TripScreen() {
       )}
     </Screen>
   );
+}
+
+/** Text on a white tile using the hero tone names: ink = black, mid = secondary, mint = gold (dark gold at caption size), dusk = red. */
+function CardText({ tone = "ink", color, variant, ...rest }: { tone?: "ink" | "mid" | "dusk" | "mint" } & React.ComponentProps<typeof Text>) {
+  const small = variant === "caption1" || variant === "caption1Semibold" || variant === "caption3" || variant === "captionCaps2";
+  const c = color ?? (tone === "mid" ? theme.colors.text.onBackground.secondary : tone === "dusk" ? theme.colors.text.destructive : tone === "mint" ? (small ? theme.colors.text.successDeep : theme.colors.text.success) : theme.colors.text.onBackground.primary);
+  return <Text variant={variant} color={c} {...rest} />;
 }
 
 /** Member chip for the rotary: avatar, name (first name when compact), Done badge. */
@@ -279,20 +286,20 @@ function ExpenseRow({ e, me, data, onOpen, onHistory }: { e: Expense; me: string
     <Pressable onPress={onOpen} disabled={!onOpen} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, opacity: pressed ? 0.7 : 1 })}>
       {thumb
         ? <Image source={{ uri: thumb }} style={{ width: 40, height: 40, borderRadius: theme.radius.control }} accessibilityLabel="Receipt" accessibilityIgnoresInvertColors />
-        : <View style={{ width: 40, height: 40, borderRadius: theme.radius.control, backgroundColor: theme.colors.hero.divider, alignItems: "center", justifyContent: "center" }}><HeroText variant="caption3" tone="mid">{CATEGORY_GLYPH[e.category] ?? "OT"}</HeroText></View>}
+        : <View style={{ width: 40, height: 40, borderRadius: theme.radius.control, backgroundColor: theme.colors.divider.default, alignItems: "center", justifyContent: "center" }}><CardText variant="caption3" tone="mid">{CATEGORY_GLYPH[e.category] ?? "OT"}</CardText></View>}
       <View style={{ flex: 1, gap: 2 }}>
-        <HeroText variant="headline" numberOfLines={1}>{e.description}</HeroText>
-        <HeroText variant="caption1" tone="mid" numberOfLines={2}>
+        <CardText variant="headline" numberOfLines={1}>{e.description}</CardText>
+        <CardText variant="caption1" tone="mid" numberOfLines={2}>
           {memberName(data, e.expense_payers[0]?.user_id ?? e.created_by, me)} paid{e.expense_payers.length > 1 ? ` +${e.expense_payers.length - 1}` : ""} · {e.expense_shares.length} {e.expense_shares.length === 1 ? "person" : "people"} · {categoryLabel(e.category, e.subcategory)}
-        </HeroText>
+        </CardText>
       </View>
       <View style={{ alignItems: "flex-end", gap: 2 }}>
-        <HeroText variant="text">{formatCents(e.base_amount_cents, cur)}</HeroText>
-        {delta !== 0 && <HeroText variant="caption1Semibold" tone={delta > 0 ? "mint" : "dusk"}>{delta > 0 ? `+${formatCents(delta, cur)} owed to you` : `you owe ${formatCents(-delta, cur)}`}</HeroText>}
-        {e.currency !== cur && <HeroText variant="caption1" tone="mid">{formatCents(e.amount_cents + e.tip_cents, e.currency)}</HeroText>}
+        <CardText variant="text">{formatCents(e.base_amount_cents, cur)}</CardText>
+        {delta !== 0 && <CardText variant="caption1Semibold" tone={delta > 0 ? "mint" : "dusk"}>{delta > 0 ? `+${formatCents(delta, cur)} owed to you` : `you owe ${formatCents(-delta, cur)}`}</CardText>}
+        {e.currency !== cur && <CardText variant="caption1" tone="mid">{formatCents(e.amount_cents + e.tip_cents, e.currency)}</CardText>}
         {edited && (
-          <Pressable onPress={onHistory} disabled={!onHistory} hitSlop={8} accessibilityRole="button" accessibilityLabel="Edited, view history" style={{ paddingHorizontal: 6, paddingVertical: 1, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: theme.colors.hero.divider }}>
-            <HeroText variant="caption3" tone="mid">Edited</HeroText>
+          <Pressable onPress={onHistory} disabled={!onHistory} hitSlop={8} accessibilityRole="button" accessibilityLabel="Edited, view history" style={{ paddingHorizontal: 6, paddingVertical: 1, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: theme.colors.divider.default }}>
+            <CardText variant="caption3" tone="mid">Edited</CardText>
           </Pressable>
         )}
       </View>
@@ -314,11 +321,11 @@ function FunFacts({ data, me }: { data: TripData; me: string }) {
   if (logger) facts.push({ k: "Most receipts logged", v: `${memberName(data, logger[0], me)} · ${logger[1]}` });
   if (!facts.length) return null;
   return (
-    <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.hero.divider }}>
+    <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
       {facts.map((f) => (
         <View key={f.k} style={{ gap: 1 }}>
-          <HeroText variant="captionCaps2" tone="mid">{f.k}</HeroText>
-          <HeroText variant="body">{f.v}</HeroText>
+          <CardText variant="captionCaps2" tone="mid">{f.k}</CardText>
+          <CardText variant="body">{f.v}</CardText>
         </View>
       ))}
     </View>

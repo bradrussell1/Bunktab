@@ -166,7 +166,7 @@ function PersonRow({ person, on, onPress }: { person: Person; on: boolean; onPre
         <Text variant="headline" numberOfLines={1}>{person.name}</Text>
         {(person.subtitle || person.phone) && <Text variant="caption1" color={theme.colors.text.onBackground.secondary} numberOfLines={1}>{person.subtitle ?? person.phone}</Text>}
       </View>
-      <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: on ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>
+      <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: on ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>
         {on && <Text variant="caption3" color={theme.colors.text.onFill.onPrimary}>✓</Text>}
       </View>
     </Pressable>

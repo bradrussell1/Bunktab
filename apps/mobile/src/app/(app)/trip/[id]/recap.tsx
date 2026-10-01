@@ -58,7 +58,7 @@ export default function RecapScreen() {
           <Hero style={{ padding: 0 }}>
             {coverUrl
               ? <Image source={{ uri: coverUrl }} style={{ width: "100%", height: 180 }} resizeMode="cover" accessibilityIgnoresInvertColors />
-              : <View style={{ paddingHorizontal: theme.spacing.xl, paddingTop: theme.spacing.xl }}><HeroText variant="captionCaps2" tone="dusk">Checkm8</HeroText></View>}
+              : <View style={{ paddingHorizontal: theme.spacing.xl, paddingTop: theme.spacing.xl }}><HeroText variant="captionCaps2" tone="mint">Checkm8</HeroText></View>}
             <View style={{ padding: theme.spacing.xl, gap: theme.spacing.md }}>
               <View style={{ gap: 2 }}>
                 <HeroText variant="largeTitle">{trip.title}</HeroText>
@@ -86,7 +86,7 @@ function Stat({ label, value, dusk }: { label: string; value: string; dusk?: boo
   return (
     <View style={{ gap: 2 }}>
       <HeroText variant="captionCaps2" tone="mid">{label}</HeroText>
-      <HeroText variant={dusk ? "text" : "headline"} tone={dusk ? "dusk" : "ink"}>{value}</HeroText>
+      <HeroText variant={dusk ? "text" : "headline"} tone={dusk ? "mint" : "ink"}>{value}</HeroText>
     </View>
   );
 }

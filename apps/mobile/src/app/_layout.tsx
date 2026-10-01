@@ -59,7 +59,7 @@ function Routes() {
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <Routes />
     </AuthProvider>
   );

@@ -70,7 +70,7 @@ export default function CloseoutScreen() {
         <Card style={{ gap: theme.spacing.sm }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: theme.spacing.md }}>
             <Text variant="text">Settled up</Text>
-            <Switch value={settledUp} onValueChange={toggleSettledUp} disabled={settling} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.line }} />
+            <Switch value={settledUp} onValueChange={toggleSettledUp} disabled={settling} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.grayDeep }} />
           </View>
           <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>Turn this on once you&apos;ve paid and/or been paid for this trip. It marks your payments paid and greys out the expenses.</Text>
         </Card>
@@ -103,7 +103,7 @@ export default function CloseoutScreen() {
                   <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
                     <Button title="Pay in Venmo" size="small" style={{ flex: 1 }} disabled={!handle || paid} onPress={() => open(venmoPayLink(handle!, s.amount_cents, trip.title))} />
                     <Pressable onPress={() => mark(s.id, paid ? "unmark" : "mark_paid")} disabled={s.status === "confirmed"} accessibilityRole="button"
-                      style={({ pressed }) => ({ flex: 1, height: 36, borderRadius: theme.radius.control, borderWidth: 1, borderColor: theme.colors.hero.divider, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.7 : s.status === "confirmed" ? 0.5 : 1 })}>
+                      style={({ pressed }) => ({ flex: 1, height: 36, borderRadius: theme.radius.control, borderWidth: 1, borderColor: theme.colors.hero.ink, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.7 : s.status === "confirmed" ? 0.5 : 1 })}>
                       <HeroText variant="caption1Semibold">{paid ? "Undo" : "Mark as paid"}</HeroText>
                     </Pressable>
                   </View>

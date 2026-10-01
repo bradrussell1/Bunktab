@@ -25,7 +25,7 @@ export function DateField({ label, value, onChange, min, placeholder = "Pick a d
       <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>{label}</Text>
       <Pressable onPress={() => setOpen(true)} accessibilityRole="button" accessibilityLabel={`${label}: ${value ? formatDateLong(value) : placeholder}`}>
         <FieldSurface focused={open} style={{ height: 48, paddingHorizontal: 12 }}>
-          <Text variant="body" color={value ? theme.colors.hero.ink : theme.colors.hero.inkMid} numberOfLines={1}>{value ? formatDateLong(value) : placeholder}</Text>
+          <Text variant="body" color={value ? theme.colors.text.onBackground.primary : theme.colors.text.onBackground.tertiary} numberOfLines={1}>{value ? formatDateLong(value) : placeholder}</Text>
         </FieldSurface>
       </Pressable>
       <CalendarSheet visible={open} title={label} value={value} min={min} initialJump={devJump} onClose={() => setOpen(false)} onPick={(d) => { onChange(d); setOpen(false); }} />
@@ -81,7 +81,7 @@ export function CalendarSheet({ visible, title, value, min, initialJump = false,
                 return (
                   <Pressable key={c.iso} disabled={off} onPress={() => onPick(c.iso)} accessibilityRole="button" accessibilityState={{ disabled: off, selected }} accessibilityLabel={formatDateLong(c.iso)}
                     style={{ flex: 1, aspectRatio: 1, alignItems: "center", justifyContent: "center", padding: 2 }}>
-                    <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: selected ? theme.colors.fill.primary : "transparent", borderWidth: selected || c.isToday ? 1 : 0, borderColor: theme.colors.border.primary }}>
+                    <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: selected ? theme.colors.fill.primary : "transparent", borderWidth: selected || c.isToday ? 1 : 0, borderColor: theme.colors.border.focus }}>
                       <Text variant={selected || c.isToday ? "caption1Semibold" : "caption1"} color={selected ? theme.colors.text.onFill.onPrimary : off ? theme.colors.text.onBackground.tertiary : theme.colors.text.onBackground.primary} style={off && !c.inMonth ? { opacity: 0.5 } : undefined}>{c.day}</Text>
                     </View>
                   </Pressable>
@@ -101,7 +101,7 @@ export function CalendarSheet({ visible, title, value, min, initialJump = false,
                     const on = compareMonth(m, ym) === 0, isNow = compareMonth(m, anchor) === 0;
                     return (
                       <Pressable key={`${m.year}-${m.month}`} onPress={() => { setYm(m); setJump(false); }} accessibilityRole="button" accessibilityState={{ selected: on }}
-                        style={{ width: "30%", paddingVertical: 10, alignItems: "center", borderRadius: theme.radius.control, borderWidth: 1, borderColor: on ? theme.colors.border.primary : isNow ? theme.colors.border.neutral : "transparent", backgroundColor: on ? theme.colors.fill.primary : theme.colors.fill.secondary }}>
+                        style={{ width: "30%", paddingVertical: 10, alignItems: "center", borderRadius: theme.radius.control, borderWidth: 1, borderColor: on ? theme.colors.border.focus : isNow ? theme.colors.border.neutral : "transparent", backgroundColor: on ? theme.colors.fill.primary : theme.colors.fill.secondary }}>
                         <Text variant="caption1Semibold" color={on ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{monthLabel(m, false).slice(0, 3)}</Text>
                         <Text variant="caption3" color={on ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.tertiary}>{m.year}</Text>
                       </Pressable>

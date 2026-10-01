@@ -111,7 +111,7 @@ function TripCard({ trip, me, onPress }: { trip: TripRow; me: string; onPress: (
   const cover = useSignedUrl("covers", trip.cover_photo_url); // object path in the private bucket
   const balance = trip.status !== "open" ? { label: trip.status === "settled" ? "Settled" : "Archived", color: theme.colors.text.onBackground.secondary }
     : trip.net_cents > 0 ? { label: `You're owed ${formatCents(trip.net_cents)}`, color: theme.colors.text.success }
-    : trip.net_cents < 0 ? { label: `You owe ${formatCents(-trip.net_cents)}`, color: theme.colors.text.onBackground.accent }
+    : trip.net_cents < 0 ? { label: `You owe ${formatCents(-trip.net_cents)}`, color: theme.colors.text.destructive }
     : { label: "You're even", color: theme.colors.text.onBackground.secondary };
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${trip.title}, ${balance.label}`}>

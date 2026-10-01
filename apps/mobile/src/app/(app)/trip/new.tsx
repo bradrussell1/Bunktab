@@ -173,7 +173,7 @@ export default function NewTripScreen() {
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm }}>
                 {COMMON_CURRENCIES.slice(0, 8).map((c) => (
                   <Pressable key={c} onPress={() => setCurrency(c)} accessibilityRole="radio" accessibilityState={{ selected: currency === c }}
-                    style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: currency === c ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: currency === c ? theme.colors.fill.primary : theme.colors.background.surface }}>
+                    style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: currency === c ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: currency === c ? theme.colors.fill.primary : theme.colors.background.surface }}>
                     <Text variant="caption1Semibold" color={currency === c ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{c}</Text>
                   </Pressable>
                 ))}
@@ -210,7 +210,7 @@ export default function NewTripScreen() {
               {picks.length > 0 && (
                 <View style={{ gap: theme.spacing.xs }}>
                   <Pressable onPress={() => setAgreed((v) => !v)} accessibilityRole="checkbox" accessibilityState={{ checked: agreed }} style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-                    <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: agreed ? theme.colors.border.primary : theme.colors.border.neutral, backgroundColor: agreed ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{agreed && <Text variant="caption3" color={theme.colors.text.onFill.onPrimary}>✓</Text>}</View>
+                    <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: agreed ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: agreed ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{agreed && <Text variant="caption3" color={theme.colors.text.onFill.onPrimary}>✓</Text>}</View>
                     <Text variant="body" style={{ flex: 1 }}>I agree to the <Text variant="text" color={theme.colors.text.onBackground.accent} onPress={() => openBrowserAsync(TERMS)}>Terms &amp; Conditions</Text></Text>
                   </Pressable>
                   <Pressable onPress={() => openBrowserAsync(SMS_INFO)} accessibilityRole="link" style={{ paddingLeft: 34 }}>

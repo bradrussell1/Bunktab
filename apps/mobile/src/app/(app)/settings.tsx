@@ -120,11 +120,11 @@ export default function ProfileScreen() {
         {/* 3–6: fields */}
         <Card style={{ gap: theme.spacing.lg }}>
           <Input label="Name" value={name} onChangeText={setName} autoCapitalize="words" textContentType="name" />
-          <View style={{ opacity: 0.55 }}>
+          <View>
             <Input label={identifierLabel} value={identifier} editable={false} helper="Used to sign in; can't be changed here." />
           </View>
           <View style={{ gap: theme.spacing.xs }}>
-            <View style={{ opacity: 0.55 }}>
+            <View>
               <Input label="Password" value="••••••••" editable={false} secureTextEntry />
             </View>
             {/* the reset-password route is built alongside the account flows */}

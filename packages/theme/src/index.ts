@@ -1,52 +1,43 @@
 /**
- * Checkm8 design tokens - "Dusk & Pastel" (palette 01, Mist & Dusk Apricot).
+ * Checkm8 design tokens - "Gold & Navy" light theme (2026-10-01).
  *
- * A deep near-black canvas; ONE pastel mesh-gradient hero card per screen
- * (the number that matters: your position, the trip balance, your
- * payments); everything else sits on matte carbon tiles. Peach is the only
- * call-to-action colour; dusk orange is key text and links; soft mint means
- * money coming to you and "Done". Dark only.
+ * Palette from the brief: Light #F5F5F7, Gray #E5E5E5, Gold #FCA311,
+ * Blue #14213D, Black #000000. Light canvas; white tiles with a gray
+ * hairline; ONE navy hero card per screen (the number that matters) with
+ * white type and a gold figure; gold is the only call-to-action colour and
+ * always carries black text; navy is the accent for links, badges and the
+ * large titles; black is body text. Money owed to you is gold, money you
+ * owe stays red.
  *
  * Rules:
- * - Peach (`fill.primary`) is used ONLY for actions: primary buttons, the
- *   selected chip/segment, switches that are on. Never for balances.
- * - Text on peach is always ink (`text.onFill.onPrimary`), never white.
- * - On the pastel hero use the `hero.*` colours (dark ink, hero mint, hero
- *   dusk); the on-dark text colours are unreadable there.
- * - Dusk orange on the pastel card is for short bold key lines (the
- *   reference uses it at 12px bold); body copy on the hero stays ink.
- * - Mint = owed to you / Done. Dusk = you owe / attention. Red = destructive only.
+ * - Gold (`fill.primary`) ONLY on actions (primary buttons, selected
+ *   chips/segments, switches on) and on "owed to you" figures. Never white
+ *   text on gold.
+ * - On the navy hero use `hero.*` colours (white ink, gold owed, red owe).
+ * - Gold on white is low-contrast at small sizes: use it for figures ≥ 15px
+ *   semibold, and `text.successDeep` (dark gold) for small owed captions.
+ * - Red = you owe / destructive only.
  */
 
 export const palette = {
-  // canvas and tiles
-  base: "#0C0E12",
-  baseDeep: "#08090D",
-  tile: "#14171E",
-  tileRaised: "#1A1E27",
-  field: "#12141C",
-  line: "#252A36",
-  lineSoft: "#1D222C",
-  // text on dark
-  textHi: "#F0F3F8",
-  textMid: "#8F96A3",
-  textLo: "#656C76",
-  // accents
-  peach: "#F6AD7B",
-  peachSoft: "#FBB285",
-  dusk: "#D97E4A",
-  duskDeep: "#E06D44",
-  mint: "#8FD9BF",
-  mintDeep: "#136548",
+  light: "#F5F5F7",
+  white: "#FFFFFF",
+  gray: "#E5E5E5",
+  grayDeep: "#CFCFD4",
+  gold: "#FCA311",
+  goldDeep: "#9A6300",
+  goldSoft: "#FFE8BF",
+  navy: "#14213D",
+  navyRaised: "#1E2E52",
+  navyLine: "#2B3D66",
+  black: "#000000",
+  ink: "#0B0D12",
+  inkMid: "#4B515C",
+  inkLow: "#7A808B",
   red: "#E0605A",
   redDeep: "#B8423D",
-  // pastel mesh + ink on it
-  meshA: "#F4ECC2",
-  meshB: "#DCE6EE",
-  meshC: "#E2E5F5",
-  heroInk: "#111419",
-  heroInkMid: "#656C76",
-  white: "#FFFFFF",
+  onNavyMid: "#C9CED8",
+  onNavyLow: "#8F98AD",
 } as const;
 
 /** rgba() from a hex and an alpha. */
@@ -56,44 +47,47 @@ export function alpha(hex: string, a: number): string {
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
 }
 
-/** Kit roles → values. Role names are stable; only values changed in the re-skin. */
+/** Kit roles → values. Role names are stable across re-skins. */
 export const colors = {
-  background: { main: palette.base, surface: palette.tile, elevated: palette.tileRaised },
+  background: { main: palette.light, surface: palette.white, elevated: palette.white },
   fill: {
-    primary: palette.peach,
-    primaryDisabled: alpha(palette.peach, 0.35),
-    secondary: palette.tileRaised,
-    field: palette.field,
-    warning: palette.dusk,
+    primary: palette.gold,
+    primaryDisabled: alpha(palette.gold, 0.4),
+    secondary: palette.gray,
+    field: palette.white,
+    warning: palette.gold,
     destructive: palette.red,
-    success: palette.mint,
+    success: palette.gold,
   },
   text: {
     onBackground: {
-      primary: palette.textHi,
-      secondary: palette.textMid,
-      tertiary: palette.textLo,
-      accent: palette.dusk,
+      primary: palette.ink,
+      secondary: palette.inkMid,
+      tertiary: palette.inkLow,
+      accent: palette.navy,
+      title: palette.navy,
     },
-    onFill: { onPrimary: palette.heroInk, onSecondary: palette.textHi, onDark: palette.textHi, onSuccess: palette.heroInk },
-    warning: palette.dusk,
+    onFill: { onPrimary: palette.black, onSecondary: palette.ink, onDark: palette.white, onSuccess: palette.black },
+    warning: palette.goldDeep,
     destructive: palette.red,
-    success: palette.mint,
+    success: palette.gold,
+    successDeep: palette.goldDeep,
   },
-  border: { primary: palette.peach, neutral: palette.line, soft: palette.lineSoft },
-  divider: { default: palette.lineSoft },
-  icons: { accentOnLight: palette.dusk, accentOnDark: palette.peach, outline: palette.textMid },
-  system: { cursor: palette.peach, dimming40: alpha("#000000", 0.6) },
-  /** The one pastel card per screen. Gradient runs top-left → bottom-right. */
+  border: { primary: palette.navy, neutral: palette.gray, soft: palette.gray, focus: palette.gold },
+  divider: { default: palette.gray },
+  icons: { accentOnLight: palette.navy, accentOnDark: palette.gold, outline: palette.inkMid },
+  system: { cursor: palette.navy, dimming40: alpha(palette.black, 0.4) },
+  /** The one navy card per screen. Gradient is a subtle navy lift, top-left → bottom-right. */
   hero: {
-    gradient: [palette.meshA, palette.meshB, palette.meshC] as readonly [string, string, string],
-    ink: palette.heroInk,
-    inkMid: palette.heroInkMid,
-    dusk: palette.dusk,
-    mint: palette.mintDeep,
-    cta: palette.peach,
-    onCta: palette.heroInk,
-    divider: alpha(palette.heroInk, 0.12),
+    gradient: [palette.navy, palette.navyRaised, palette.navy] as readonly [string, string, string],
+    ink: palette.white,
+    inkMid: palette.onNavyMid,
+    dusk: palette.red,
+    mint: palette.gold,
+    cta: palette.gold,
+    onCta: palette.black,
+    divider: alpha(palette.white, 0.14),
+    chip: alpha(palette.white, 0.12),
   },
 } as const;
 
@@ -118,17 +112,17 @@ export const screenPadding = 16;
 
 export const radius = { tag: 4, control: 8, sheet: 12, card: 16, hero: 22, pill: 24 } as const;
 
-/** Shadows are black on black: only the hero card and sheets get one. */
+/** Soft shadows on a light canvas: tiles get a whisper, the hero a lift. */
 export const elevation = {
-  xs: { shadowColor: "#000000", shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
-  sm: { shadowColor: "#000000", shadowOpacity: 0.55, shadowRadius: 16, shadowOffset: { width: 0, height: 12 }, elevation: 6 },
+  xs: { shadowColor: palette.navy, shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  sm: { shadowColor: palette.navy, shadowOpacity: 0.22, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 5 },
 } as const;
 
 export const theme = { palette, colors, type, spacing, screenPadding, radius, elevation } as const;
 export type Theme = typeof theme;
 
 /** CSS for the hero background (web). */
-export const heroGradientCss = `linear-gradient(135deg, ${palette.meshA} 0%, ${palette.meshB} 50%, ${palette.meshC} 100%)`;
+export const heroGradientCss = `linear-gradient(135deg, ${palette.navy} 0%, ${palette.navyRaised} 50%, ${palette.navy} 100%)`;
 
 /** The same tokens as CSS custom properties, for the Next.js web guest view. */
 export function cssVariables(): string {
@@ -147,13 +141,16 @@ export function cssVariables(): string {
     `--text-secondary: ${colors.text.onBackground.secondary}`,
     `--text-tertiary: ${colors.text.onBackground.tertiary}`,
     `--text-accent: ${colors.text.onBackground.accent}`,
+    `--text-title: ${colors.text.onBackground.title}`,
     `--text-success: ${colors.text.success}`,
+    `--text-success-deep: ${colors.text.successDeep}`,
     `--text-destructive: ${colors.text.destructive}`,
     `--text-on-primary: ${colors.text.onFill.onPrimary}`,
     `--text-on-success: ${colors.text.onFill.onSuccess}`,
     `--border-primary: ${colors.border.primary}`,
     `--border-neutral: ${colors.border.neutral}`,
     `--border-soft: ${colors.border.soft}`,
+    `--border-focus: ${colors.border.focus}`,
     `--divider: ${colors.divider.default}`,
     `--dimming-40: ${colors.system.dimming40}`,
     `--hero-gradient: ${heroGradientCss}`,
@@ -162,6 +159,7 @@ export function cssVariables(): string {
     `--hero-dusk: ${colors.hero.dusk}`,
     `--hero-mint: ${colors.hero.mint}`,
     `--hero-divider: ${colors.hero.divider}`,
+    `--hero-chip: ${colors.hero.chip}`,
     `--radius-tag: ${radius.tag}px`,
     `--radius-control: ${radius.control}px`,
     `--radius-sheet: ${radius.sheet}px`,
