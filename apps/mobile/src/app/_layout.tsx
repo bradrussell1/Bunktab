@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 import { Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, useFonts } from "@expo-google-fonts/inter";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
 
 SplashScreen.preventAutoHideAsync();
@@ -58,8 +58,11 @@ function Routes() {
 }
 
 export default function RootLayout() {
-  const [fontsReady] = useFonts({ Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold });
-  if (!fontsReady) return null; // splash stays up until Inter is in memory
+  const [fontsReady, fontError] = useFonts({ Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold });
+  const [waited, setWaited] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setWaited(true), 3000); return () => clearTimeout(t); }, []);
+  if (fontError) console.warn("Inter failed to load; falling back to the system font", fontError);
+  if (!fontsReady && !fontError && !waited) return null; // hold the splash briefly for Inter; never block the app on it
   return (
     <AuthProvider>
       <StatusBar style="dark" />

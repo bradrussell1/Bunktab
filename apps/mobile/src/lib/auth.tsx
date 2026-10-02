@@ -56,15 +56,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let alive = true;
+    // never let a hung network call keep the splash up
+    const safety = setTimeout(() => { if (alive) setLoading(false); }, 4000);
     supabase.auth.getSession().then(async ({ data }) => {
       if (!alive) return;
       setSession(data.session);
       if (data.session) { await loadProfile(data.session.user.id); registerForPush(data.session.user.id).catch(() => undefined); }
       setLoading(false);
     }).catch(() => { if (alive) setLoading(false); });
-    const { data: sub } = supabase.auth.onAuthStateChange(async (event, s) => {
+    // supabase-js holds its auth lock while this callback runs: other client
+    // calls made synchronously inside it can deadlock, so defer them a tick
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
-      try {
+      setTimeout(async () => { try {
         if (s) {
           // link invites by number as soon as a confirmed phone is on the session:
           // at sign-in for existing accounts, after the code for new ones
@@ -81,9 +85,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } finally {
         setLoading(false);
-      }
+      } }, 0);
     });
-    return () => { alive = false; sub.subscription.unsubscribe(); };
+    return () => { alive = false; clearTimeout(safety); sub.subscription.unsubscribe(); };
   }, [loadProfile]);
 
   const value = useMemo<AuthState>(() => ({

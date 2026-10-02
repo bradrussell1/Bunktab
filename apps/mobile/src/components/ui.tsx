@@ -36,8 +36,8 @@ export function inter(style: StyleProp<TextStyle>): TextStyle {
   const { fontWeight: _w, ...rest } = flat;
   return { ...rest, fontFamily: INTER[w] ?? INTER["400"] };
 }
-function IText({ style, ...rest }: React.ComponentProps<typeof RNText>) { return <IText {...rest} style={inter(style)} />; }
-function ITextInput({ style, ...rest }: TextInputProps) { return <ITextInput {...rest} style={inter(style as StyleProp<TextStyle>)} />; }
+function IText({ style, ...rest }: React.ComponentProps<typeof RNText>) { return <RNText {...rest} style={inter(style)} />; }
+function ITextInput({ style, ...rest }: TextInputProps) { return <TextInput {...rest} style={inter(style as StyleProp<TextStyle>)} />; }
 
 /* ---------- layout ---------- */
 
