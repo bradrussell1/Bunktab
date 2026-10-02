@@ -28,6 +28,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
  */
 const { colors, type, spacing, radius, screenPadding, elevation, palette } = theme;
 
+/** Inter everywhere: pick the loaded face from the style weight and drop fontWeight so no platform fakes a bolder face on top. */
+const INTER: Record<string, string> = { "300": "Inter_300Light", "400": "Inter_400Regular", "500": "Inter_500Medium", "600": "Inter_600SemiBold", "700": "Inter_700Bold", "800": "Inter_800ExtraBold", normal: "Inter_400Regular", bold: "Inter_700Bold" };
+export function inter(style: StyleProp<TextStyle>): TextStyle {
+  const flat = (StyleSheet.flatten(style) ?? {}) as TextStyle;
+  const w = String(flat.fontWeight ?? "400");
+  const { fontWeight: _w, ...rest } = flat;
+  return { ...rest, fontFamily: INTER[w] ?? INTER["400"] };
+}
+function IText({ style, ...rest }: React.ComponentProps<typeof RNText>) { return <IText {...rest} style={inter(style)} />; }
+function ITextInput({ style, ...rest }: TextInputProps) { return <ITextInput {...rest} style={inter(style as StyleProp<TextStyle>)} />; }
+
 /* ---------- layout ---------- */
 
 export function Screen({ children, style, padded = true }: { children: ReactNode; style?: StyleProp<ViewStyle>; padded?: boolean }) {
@@ -63,7 +74,7 @@ export function Hero({ children, style }: { children: ReactNode; style?: StylePr
 export function HeroAction({ onPress, label, glyph = "↗", size = 52 }: { onPress: () => void; label: string; glyph?: string; size?: number }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => ({ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.hero.cta, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.85 : 1 })}>
-      <RNText style={{ fontSize: size * 0.42, fontWeight: "700", color: colors.hero.onCta, lineHeight: size * 0.5 }}>{glyph}</RNText>
+      <IText style={{ fontSize: size * 0.42, fontWeight: "700", color: colors.hero.onCta, lineHeight: size * 0.5 }}>{glyph}</IText>
     </Pressable>
   );
 }
@@ -75,7 +86,7 @@ export function HeroLink({ title, onPress, expanded, expandable = expanded !== u
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityState={expandable ? { expanded: !!expanded } : undefined}
       style={({ pressed }) => [styles.heroLink, { opacity: pressed ? 0.85 : 1 }]}>
-      <RNText style={{ ...type.caption1Semibold, color: colors.hero.onCta }}>{title}</RNText>
+      <IText style={{ ...type.caption1Semibold, color: colors.hero.onCta }}>{title}</IText>
       <Animated.Text style={{ ...type.title2, lineHeight: 18, color: colors.hero.onCta, marginTop: -1, transform: [{ rotate: rot.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "90deg"] }) }] }}>›</Animated.Text>
     </Pressable>
   );
@@ -91,7 +102,7 @@ type Variant = keyof typeof type;
 /** Body text is black; large titles default to navy (`text.onBackground.title`). */
 export function Text({ variant = "body", color, style, children, ...rest }: { variant?: Variant; color?: string; style?: StyleProp<TextStyle>; children: ReactNode } & Omit<React.ComponentProps<typeof RNText>, "style">) {
   const fallback = variant === "largeTitle" ? colors.text.onBackground.title : colors.text.onBackground.primary;
-  return <RNText style={[type[variant] as TextStyle, { color: color ?? fallback }, style]} {...rest}>{children}</RNText>;
+  return <IText style={[type[variant] as TextStyle, { color: color ?? fallback }, style]} {...rest}>{children}</IText>;
 }
 
 /** Text on the navy hero: white by default; `tone` picks mid (muted white) / dusk (red, you owe) / mint (gold, owed to you). */
@@ -133,7 +144,7 @@ export function Button({ title, kind = "primary", size = "large", loading, disab
       ]}
       {...rest}
     >
-      {loading ? <ActivityIndicator color={label} /> : <RNText style={[labelStyle, { color: label }]}>{title}</RNText>}
+      {loading ? <ActivityIndicator color={label} /> : <IText style={[labelStyle, { color: label }]}>{title}</IText>}
     </Pressable>
   );
 }
@@ -156,7 +167,7 @@ export function Input({ label, error, helper, style, onFocus, onBlur, multiline,
     <View style={{ gap: spacing.xs }}>
       {label && <Text variant="caption1Semibold" color={colors.text.onBackground.secondary}>{label}</Text>}
       <FieldSurface focused={focused} error={!!error} readOnly={readOnly} style={[multiline ? { minHeight: 48 } : { height: 48 }, box]}>
-        <TextInput
+        <ITextInput
           placeholderTextColor={colors.text.onBackground.tertiary}
           selectionColor={colors.text.onBackground.accent}
           keyboardAppearance="light"
@@ -191,7 +202,7 @@ export function Avatar({ name, uri, size = 32, onHero }: { name: string; uri?: s
     <View style={[styles.avatar, onHero && styles.avatarHero, { width: size, height: size, borderRadius: size / 2 }]} accessibilityLabel={name}>
       {uri
         ? <Image source={{ uri }} style={{ width: size, height: size }} accessibilityIgnoresInvertColors />
-        : <RNText style={{ ...type.caption3, color: onHero ? colors.hero.ink : colors.text.onBackground.primary, fontSize: Math.max(10, size / 2.8), lineHeight: Math.max(12, size / 2.2) }}>{initials}</RNText>}
+        : <IText style={{ ...type.caption3, color: onHero ? colors.hero.ink : colors.text.onBackground.primary, fontSize: Math.max(10, size / 2.8), lineHeight: Math.max(12, size / 2.2) }}>{initials}</IText>}
     </View>
   );
 }
@@ -200,7 +211,7 @@ export function Avatar({ name, uri, size = 32, onHero }: { name: string; uri?: s
 export function HeroPill({ children, style, onHero }: { children: ReactNode; style?: StyleProp<ViewStyle>; onHero?: boolean }) {
   return (
     <View style={[styles.heroPill, onHero && { backgroundColor: colors.hero.chip }, style]}>
-      <RNText style={{ ...type.caption1Semibold, color: colors.hero.mint }}>{children}</RNText>
+      <IText style={{ ...type.caption1Semibold, color: colors.hero.mint }}>{children}</IText>
     </View>
   );
 }
@@ -209,7 +220,7 @@ export function HeroPill({ children, style, onHero }: { children: ReactNode; sty
 export function DoneBadge() {
   return (
     <View style={styles.doneBadge} accessibilityLabel="Done adding expenses">
-      <RNText style={{ ...type.captionCaps2, color: colors.text.onFill.onDark }}>Done</RNText>
+      <IText style={{ ...type.captionCaps2, color: colors.text.onFill.onDark }}>Done</IText>
     </View>
   );
 }
@@ -221,7 +232,7 @@ export function Segmented<K extends string>({ options, value, onChange }: { opti
         const on = o.key === value;
         return (
           <Pressable key={o.key} onPress={() => onChange(o.key)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={[styles.segItem, on && styles.segOn]}>
-            <RNText style={{ ...type.caption1Semibold, color: on ? colors.text.onBackground.primary : colors.text.onBackground.secondary }}>{o.label}</RNText>
+            <IText style={{ ...type.caption1Semibold, color: on ? colors.text.onBackground.primary : colors.text.onBackground.secondary }}>{o.label}</IText>
           </Pressable>
         );
       })}

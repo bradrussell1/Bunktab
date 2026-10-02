@@ -1,5 +1,6 @@
 import { theme } from "@checkm8/theme";
 import { Stack } from "expo-router";
+import { Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, useFonts } from "@expo-google-fonts/inter";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
@@ -57,6 +58,8 @@ function Routes() {
 }
 
 export default function RootLayout() {
+  const [fontsReady] = useFonts({ Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold });
+  if (!fontsReady) return null; // splash stays up until Inter is in memory
   return (
     <AuthProvider>
       <StatusBar style="dark" />
