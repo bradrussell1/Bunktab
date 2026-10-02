@@ -1,4 +1,4 @@
-import { formatCents, venmoChargeLink, venmoPayLink } from "@checkm8/core";
+import { closeoutUnlocked, formatCents, venmoChargeLink, venmoPayLink } from "@checkm8/core";
 import { theme } from "@checkm8/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -7,7 +7,7 @@ import { NotchedHero, notchInset } from "@/components/NotchedHero";
 import { Avatar, Button, Card, Divider, Hero, HeroAction, HeroText, ListItem, Screen, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
-import { memberName, useTrip } from "@/lib/trips";
+import { activeMembers, memberName, useTrip } from "@/lib/trips";
 
 /**
  * Close out and pay (spec: Screens → Close out and pay). The plan is written
@@ -18,6 +18,15 @@ import { memberName, useTrip } from "@/lib/trips";
  * everyone". The trip is settled when every payment is marked paid. The
  * hero is your payments (or what's owed to you when you have none).
  */
+/** Server messages → people words. */
+function friendly(m: string): string {
+  const s = m.toLowerCase();
+  if (s.includes("still locked")) return "Close out is locked until everyone has tapped Done.";
+  if (s.includes("not a member")) return "You're not on this trip any more.";
+  if (s.includes("network")) return "Connection hiccup. Pull to try again.";
+  return m;
+}
+
 export default function CloseoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -28,11 +37,13 @@ export default function CloseoutScreen() {
   const [generated, setGenerated] = useState(false);
   const [settling, setSettling] = useState(false);
 
+  // the plan is only asked for once the gate is open; a locked trip shows a locked state instead
+  const gateOpen = data ? (closeoutUnlocked(activeMembers(data).map((m) => ({ doneAt: m.done_at, removedAt: m.removed_at }))) || !!data.trip.closeout_override_at) : false;
   useEffect(() => {
-    if (!data || generated) return;
+    if (!data || generated || !gateOpen) return;
     setGenerated(true);
-    if (data.trip.status === "open") supabase.rpc("generate_settlements", { p_trip: data.trip.id }).then(({ error: e }) => { if (e) setError(e.message); reload(); });
-  }, [data, generated, reload]);
+    if (data.trip.status === "open") supabase.rpc("generate_settlements", { p_trip: data.trip.id }).then(({ error: e }) => { if (e) setError(friendly(e.message)); reload(); });
+  }, [data, generated, gateOpen, reload]);
 
   if (loading || !data) return <Screen><View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator /></View></Screen>;
   const { trip, settlements, members } = data;
@@ -42,6 +53,8 @@ export default function CloseoutScreen() {
   const venmoOf = (uid: string) => members.find((m) => m.user_id === uid)?.venmo_username ?? null;
   const meMember = members.find((m) => m.user_id === me);
   const settledUp = !!meMember?.settled_up_at;
+  const active = activeMembers(data);
+  const notDone = active.filter((m) => !m.done_at);
 
   async function open(link: { app: string; web: string }) {
     const can = await Linking.canOpenURL(link.app).catch(() => false);
@@ -50,12 +63,12 @@ export default function CloseoutScreen() {
   async function toggleSettledUp(v: boolean) {
     setSettling(true);
     const { error: e } = await supabase.rpc("set_settled_up", { p_trip: trip.id, p_on: v });
-    if (e) setError(e.message);
+    if (e) setError(friendly(e.message));
     await reload(); setSettling(false);
   }
   async function mark(sid: string, action: "mark_paid" | "unmark" | "confirm") {
     const { error: e } = await supabase.rpc("mark_settlement", { p_settlement: sid, p_action: action });
-    if (e) setError(e.message); reload();
+    if (e) setError(friendly(e.message)); reload();
   }
 
   return (
@@ -74,7 +87,14 @@ export default function CloseoutScreen() {
           </View>
           <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>Turn this on once you&apos;ve paid and/or been paid for this trip. It marks your payments paid and greys out the expenses.</Text>
         </Card>
-        {settlements.length === 0 && (
+        {!gateOpen && trip.status === "open" && settlements.length === 0 && (
+          <Hero style={{ gap: theme.spacing.sm }}>
+            <HeroText variant="captionCaps2" tone="mid">Close out is locked</HeroText>
+            <HeroText variant="title2">{active.length - notDone.length} of {active.length} have tapped Done.</HeroText>
+            <HeroText variant="caption1" tone="mid">Still to go: {notDone.map((m) => memberName(data, m.user_id, me)).join(", ")}. The payment plan appears once everyone is done.</HeroText>
+          </Hero>
+        )}
+        {gateOpen && settlements.length === 0 && (
           <Hero>
             <HeroText variant="captionCaps2" tone="mid">Nothing to settle</HeroText>
             <HeroText variant="title2" style={{ marginTop: 4 }}>Everyone is even.</HeroText>
@@ -96,7 +116,7 @@ export default function CloseoutScreen() {
                     <Avatar name={to} onHero />
                     <View style={{ flex: 1, gap: 2 }}>
                       <HeroText variant="headline">Pay {to} {formatCents(s.amount_cents, trip.base_currency)}</HeroText>
-                      <HeroText variant="caption1" tone="mid">{handle ? `@${handle}` : `${to} hasn't added a Venmo username yet`}</HeroText>
+                      <HeroText variant="caption1" tone="mid">{handle ? `@${handle}` : `${to} hasn't added a Venmo handle yet`}</HeroText>
                     </View>
                     {paid && <HeroText variant="caption1Semibold" tone="mint">{s.status === "confirmed" ? "Confirmed" : "Marked paid"}</HeroText>}
                   </View>
@@ -180,7 +200,7 @@ export default function CloseoutScreen() {
             </Card>
           </View>
         )}
-        <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>Venmo does the paying. Checkm8 only prepares each payment and can&apos;t see whether it went through, so mark it paid yourself. &quot;Got it&quot; is optional.</Text>
+        <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>Venmo does the paying. The app only prepares each payment and can&apos;t see whether it went through, so mark each one paid yourself. Recipients can tap Got it to confirm, but they don&apos;t have to.</Text>
       </ScrollView>
     </Screen>
   );

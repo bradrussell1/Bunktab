@@ -64,8 +64,12 @@ export function useTrip(tripId: string | undefined) {
 
 /* ---------- derived figures (all base cents, all through @checkm8/core) ---------- */
 
+/** One ordering everywhere (Home cards, trip page, members): owner first, then by join time. */
+export function sortMembers<T extends { role?: "owner" | "member"; joined_at?: string | null; user_id: string }>(ms: T[]): T[] {
+  return [...ms].sort((a, b) => (a.role === "owner" ? -1 : b.role === "owner" ? 1 : 0) || String(a.joined_at ?? "").localeCompare(String(b.joined_at ?? "")) || a.user_id.localeCompare(b.user_id));
+}
 export function activeMembers(d: TripData): Member[] {
-  return d.members.filter((m) => !m.removed_at);
+  return sortMembers(d.members.filter((m) => !m.removed_at));
 }
 
 export function ledger(d: TripData): LedgerExpense[] {
@@ -118,12 +122,12 @@ export function memberName(d: TripData, userId: string, me?: string): string {
 
 /* ---------- trip summaries (Home, Profile → History) ---------- */
 
-export type TripSummary = { id: string; title: string; status: Trip["status"]; start_date: string; end_date: string; cover_photo_url: string | null; last_activity_at: string; net_cents: number; paid_cents: number; expense_count: number };
+export type TripSummary = { id: string; title: string; status: Trip["status"]; start_date: string; end_date: string; base_currency: string; cover_photo_url: string | null; last_activity_at: string; net_cents: number; paid_cents: number; expense_count: number };
 
 /** Every trip I'm in, with my net (paid − share) and what I fronted, from the same rows the trip page uses. */
 export async function loadTripSummaries(me: string): Promise<TripSummary[]> {
   const [t, e] = await Promise.all([
-    supabase.from("trips").select("id, title, status, start_date, end_date, cover_photo_url, last_activity_at").order("last_activity_at", { ascending: false }),
+    supabase.from("trips").select("id, title, status, start_date, end_date, base_currency, cover_photo_url, last_activity_at").order("last_activity_at", { ascending: false }),
     supabase.from("expenses").select("trip_id, expense_payers(user_id, base_amount_cents), expense_shares(user_id, base_share_cents)").is("deleted_at", null),
   ]);
   type E = { trip_id: string; expense_payers: { user_id: string; base_amount_cents: number }[]; expense_shares: { user_id: string; base_share_cents: number }[] };

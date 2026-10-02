@@ -1,3 +1,4 @@
+import { formatCents } from "@checkm8/core";
 import { theme } from "@checkm8/theme";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -59,7 +60,10 @@ export default function CommentsScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }} keyboardVerticalOffset={8}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: theme.spacing.sm }}>
           <Button title="‹ Back" kind="text" size="small" onPress={() => router.back()} />
-          <Text variant="title2" numberOfLines={1} style={{ flex: 1, textAlign: "center" }}>{exp?.description ?? "Comments"}</Text>
+          <View style={{ flex: 1, alignItems: "center", gap: 1 }}>
+            <Text variant="title2" numberOfLines={1}>{exp?.description ?? "Comments"}</Text>
+            {exp && data && <Text variant="caption1" color={theme.colors.text.onBackground.secondary} numberOfLines={1}>{formatCents(exp.base_amount_cents, data.trip.base_currency)} · paid by {memberName(data, exp.expense_payers[0]?.user_id ?? exp.created_by, me)}</Text>}
+          </View>
           <View style={{ width: 60 }} />
         </View>
         <FlatList
@@ -88,7 +92,7 @@ export default function CommentsScreen() {
         {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
         <View style={{ flexDirection: "row", gap: theme.spacing.sm, alignItems: "flex-end", paddingBottom: theme.spacing.lg }}>
           <View style={{ flex: 1 }}><Input placeholder="Add a comment" value={body} onChangeText={(v) => setBody(v.slice(0, 1000))} multiline style={{ maxHeight: 120, paddingTop: 12 }} /></View>
-          <Button title="Send" size="medium" onPress={send} loading={busy} disabled={!body.trim()} />
+          <Button title="Send" size="medium" kind={body.trim() ? "primary" : "secondary"} onPress={send} loading={busy} disabled={!body.trim()} />
         </View>
       </KeyboardAvoidingView>
     </Screen>

@@ -26,6 +26,7 @@ import { fetchRate, formatFetchedAt } from "@/lib/fx";
 import { pickReceipt, readReceipt, signReceipt, uploadReceipt } from "@/lib/receipts";
 import { supabase } from "@/lib/supabase";
 import { activeMembers, useTrip, type Expense } from "@/lib/trips";
+import { currencyLabel } from "@/lib/currencyLabels";
 
 /**
  * Add or edit an expense (spec: Screens → Add or edit expense). Amount and
@@ -226,10 +227,16 @@ export default function ExpenseScreen() {
     if (e) return setError(e.message);
     router.back();
   }
+  const isOwner = data?.members.find((m) => m.user_id === me)?.role === "owner";
+  const canDelete = !!existing && (existing.created_by === me || isOwner); // user: only the owner or the person who created it
   function remove() {
     Alert.alert("Delete this expense?", "It comes out of every balance and stays in the history.", [
       { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: async () => { await supabase.rpc("delete_expense", { p_id: existing!.id }); router.back(); } },
+      { text: "Delete", style: "destructive", onPress: async () => {
+        const { error: e } = await supabase.rpc("delete_expense", { p_id: existing!.id });
+        if (e) { setError(/owner|created|allowed|42501/i.test(e.message) ? "Only the trip owner or the person who added this expense can delete it." : e.message); return; }
+        router.back();
+      } },
     ]);
   }
 
@@ -243,7 +250,7 @@ export default function ExpenseScreen() {
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: theme.screenPadding, paddingVertical: theme.spacing.sm }}>
           <Button title="Cancel" kind="text" size="small" onPress={() => router.back()} />
           <Text variant="title2">{existing ? "Edit expense" : "Add expense"}</Text>
-          {existing ? <Button title="Delete" kind="text" size="small" onPress={remove} /> : <View style={{ width: 60 }} />}
+          {canDelete ? <Button title="Delete" kind="text" size="small" onPress={remove} /> : <View style={{ width: 60 }} />}
         </View>
         <ScrollView contentContainerStyle={{ paddingHorizontal: theme.screenPadding, gap: theme.spacing.lg, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
           <Card style={{ padding: 12, flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
@@ -268,7 +275,7 @@ export default function ExpenseScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm }}>
               {[data.trip.base_currency, ...COMMON_CURRENCIES.filter((c) => c !== data.trip.base_currency)].map((c) => (
                 <Pressable key={c} onPress={() => setCurrency(c)} accessibilityRole="radio" accessibilityState={{ selected: currency === c }} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: currency === c ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: currency === c ? theme.colors.fill.primary : theme.colors.background.surface }}>
-                  <Text variant="caption1Semibold" color={currency === c ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{c}</Text>
+                  <Text variant="caption1Semibold" color={currency === c ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{currencyLabel(c)}</Text>
                 </Pressable>
               ))}
             </ScrollView>
@@ -281,7 +288,7 @@ export default function ExpenseScreen() {
           <Card style={{ padding: 0, overflow: "hidden" }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 12, paddingBottom: 4 }}>
               <Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary}>Who&apos;s involved</Text>
-              <Button title={involved.length === members.length ? "None" : "Everyone"} kind="text" size="small" onPress={() => setInvolved(involved.length === members.length ? [] : members.map((m) => m.user_id))} />
+              <Button title={involved.length === members.length ? "Clear" : "Select all"} kind="text" size="small" onPress={() => setInvolved(involved.length === members.length ? [] : members.map((m) => m.user_id))} />
             </View>
             {members.map((m) => {
               const on = involved.includes(m.user_id);
@@ -331,6 +338,7 @@ export default function ExpenseScreen() {
             </Card>
           )}
           <Divider />
+          {total <= 0 && (amount.length > 0 || tip.length > 0) && <Text variant="caption1" color={theme.colors.text.destructive}>Enter an amount.</Text>}
           {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
           <Button title={existing ? "Save changes" : `Add ${total ? formatCents(total, currency) : "expense"}`} onPress={save} loading={busy} disabled={total <= 0 || receiptBusy} />
         </ScrollView>

@@ -55,5 +55,14 @@ const sid = plan[0]?.id;
 [st] = await call("POST", "/rest/v1/rpc/mark_settlement", { p_settlement: sid, p_action: "mark_paid" }, jb); ok("payer marks it paid", st === 204, st);
 let tr; [st, tr] = await call("GET", `/rest/v1/trips?select=status&id=eq.${tid}`, undefined, ja); ok("trip becomes settled once every payment is marked", tr[0]?.status === "settled", tr);
 [st] = await call("POST", "/rest/v1/rpc/mark_settlement", { p_settlement: sid, p_action: "confirm" }, ja); ok("recipient's optional Got it", st === 204, st);
+// late expense after a payment was made: the paid row stays, only the residual is re-planned (user decision 2026-10-01)
+await call("POST", "/rest/v1/rpc/save_expense", { p: { trip_id: tid, description: "Late brunch", category: "dining", subcategory: "restaurants", amount_cents: 1000, currency: "USD", payers: [{ user_id: ua, amount_cents: 1000 }], shares: [{ user_id: ua, share_cents: 500 }, { user_id: ub, share_cents: 500 }] } }, ja);
+[st, tr] = await call("GET", `/rest/v1/trips?select=status&id=eq.${tid}`, undefined, ja); ok("a late expense reopens a settled trip", tr[0]?.status === "open", tr);
+await call("POST", "/rest/v1/rpc/set_done", { p_trip: tid, p_done: true }, ja); await call("POST", "/rest/v1/rpc/set_done", { p_trip: tid, p_done: true }, jb);
+[st, plan] = await call("POST", "/rest/v1/rpc/generate_settlements", { p_trip: tid }, ja);
+ok("re-plan keeps the paid row and adds the residual B→A $5.00", st === 200 && plan.length === 2 && plan.some((p) => p.id === sid && p.status === "confirmed" && p.amount_cents === 5500) && plan.some((p) => p.status === "pending" && p.from_user === ub && p.to_user === ua && p.amount_cents === 500), plan);
+[st] = await call("POST", "/rest/v1/rpc/delete_expense", { p_id: eid }, jb); ok("a member cannot delete someone else's expense", st >= 400, st);
+[st] = await call("POST", "/rest/v1/rpc/mark_settlement", { p_settlement: plan.find((p) => p.status === "pending").id, p_action: "mark_paid" }, jb);
+[st, tr] = await call("GET", `/rest/v1/trips?select=status&id=eq.${tid}`, undefined, ja); ok("settled again once the residual is paid", tr[0]?.status === "settled", tr);
 [st] = await call("DELETE", `/rest/v1/trips?id=eq.${tid}`, undefined, ja); ok("owner deletes the trip", st === 204, st);
 ok("nothing left behind", (await call("GET", `/rest/v1/trips?select=id&id=eq.${tid}`, undefined, ja))[1].length === 0);

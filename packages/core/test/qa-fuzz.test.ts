@@ -112,7 +112,7 @@ describe(`core fuzz (seed ${SEED})`, () => {
     expect(() => toBaseCents(100, -1)).toThrow();
   });
 
-  it("documents: convertSharesToBase can produce a NEGATIVE last share for tiny rates (finding)", () => {
+  it("convertSharesToBase never produces a negative share (B-15 fixed)", () => {
     // 3 people × 1 cent each at rate 0.4 → base total 1, first two round to 0, 0 → last = 1. Fine.
     // but 2 people share [1, 1] at rate 0.3: total base = round(0.6)=1; first = round(0.3)=0; last = 1 → fine.
     // adverse case: shares [99, 1] at rate 0.005 → total base round(0.5)=1 (banker? JS rounds .5 up) ; first round(0.495)=0; last=1. ok
@@ -126,7 +126,7 @@ describe(`core fuzz (seed ${SEED})`, () => {
     }
     // Report rather than fail: the app passes per-share base cents from the client and the server
     // folds drift onto the first row, so a negative here would surface as a negative base_share.
-    if (negative) console.warn("NEGATIVE base share from convertSharesToBase", JSON.stringify(negative));
+    expect(negative).toBeNull();
     expect(true).toBe(true);
   });
 });

@@ -2,7 +2,7 @@ import { formatCents, formatDateRange } from "@checkm8/core";
 import { theme } from "@checkm8/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Image, Share, View } from "react-native";
 import ViewShot from "react-native-view-shot";
 import { Button, Divider, Hero, HeroText, Screen, Text } from "@/components/ui";
@@ -27,12 +27,13 @@ export default function RecapScreen() {
   const shot = useRef<React.ElementRef<typeof ViewShot>>(null);
   const [sharing, setSharing] = useState(false);
 
-  if (loading || !data) return <Screen><View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator /></View></Screen>;
+  const openTrip = !!data && data.trip.status === "open";
+  useEffect(() => { if (openTrip && data) router.replace(`/(app)/trip/${data.trip.id}`); }, [openTrip, data, router]);
+  if (loading || !data || openTrip) return <Screen><View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator /></View></Screen>;
   const { trip } = data;
   const cur = trip.base_currency;
   const members = activeMembers(data);
   const total = tripTotal(data);
-  const perPerson = members.length ? Math.round(total / members.length) : 0;
   const big = biggestExpense(data), top = topCategory(data), fronted = frontedMost(data);
   const nameOf = (uid: string) => { const n = memberName(data, uid, me); return n === "You" ? (data.members.find((m) => m.user_id === me)?.display_name ?? "You") : n; };
 
@@ -41,7 +42,7 @@ export default function RecapScreen() {
     try {
       const uri = await shot.current?.capture?.();
       if (uri && (await Sharing.isAvailableAsync())) await Sharing.shareAsync(uri, { mimeType: "image/png", dialogTitle: `${trip.title} recap` });
-      else await Share.share({ message: `${trip.title} (${formatDateRange(trip.start_date, trip.end_date)}): ${formatCents(total, cur)} total, ${formatCents(perPerson, cur)} each. Settled with Checkm8.` });
+      else await Share.share({ message: `${trip.title} (${formatDateRange(trip.start_date, trip.end_date)}): ${formatCents(total, cur)} total across ${members.length} people. Settled with Checkm8.` });
     } catch { /* user dismissed the sheet */ }
     setSharing(false);
   }
@@ -64,10 +65,7 @@ export default function RecapScreen() {
                 <HeroText variant="largeTitle">{trip.title}</HeroText>
                 <HeroText variant="caption1" tone="mid">{formatDateRange(trip.start_date, trip.end_date)} · {members.length} {members.length === 1 ? "person" : "people"}</HeroText>
               </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <View><HeroText variant="captionCaps2" tone="mid">Trip total</HeroText><HeroText variant="largeTitle">{formatCents(total, cur)}</HeroText></View>
-                <View style={{ alignItems: "flex-end" }}><HeroText variant="captionCaps2" tone="mid">Per person</HeroText><HeroText variant="largeTitle">{formatCents(perPerson, cur)}</HeroText></View>
-              </View>
+              <View><HeroText variant="captionCaps2" tone="mid">Trip total</HeroText><HeroText variant="largeTitle">{formatCents(total, cur)}</HeroText></View>
               <Divider onHero />
               <Stat label="Biggest expense" value={big ? `${big.description} · ${formatCents(big.base_amount_cents, cur)}` : "—"} />
               <Stat label="Top category" value={top ? `${top.label} · ${formatCents(top.cents, cur)}` : "—"} />

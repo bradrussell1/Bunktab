@@ -11,6 +11,7 @@ import { PhoneInput } from "@/components/PhoneInput";
 import { Button, Input, Screen, Text } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 import { fetchFriends, type Person } from "@/lib/friends";
+import { currencyLabel } from "@/lib/currencyLabels";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -162,7 +163,7 @@ export default function NewTripScreen() {
         {step === 1 ? (
           <>
             <Text variant="largeTitle">Grab the Check</Text>
-            <Input label="Title" placeholder="Tahoe long weekend" value={title} onChangeText={setTitle} maxLength={80} autoFocus returnKeyType="next" />
+            <Input label="Title" placeholder="Tahoe long weekend" value={title} onChangeText={setTitle} maxLength={80} returnKeyType="next" />
             <Input label="Description (optional)" placeholder="Who, where, what to remember" value={description} onChangeText={(v) => setDescription(v.slice(0, 250))} multiline numberOfLines={3} style={{ height: 88, paddingTop: 12 }} helper={`${description.length}/250`} />
             <View style={{ flexDirection: "row", gap: theme.spacing.md }}>
               <View style={{ flex: 1 }}><DateField label="Start date" value={start} onChange={(d) => { setStart(d); if (end && end < d) setEnd(""); }} devOpen={__DEV__ && params.openDate === "start"} devJump={__DEV__ && params.jump === "1"} /></View>
@@ -171,10 +172,10 @@ export default function NewTripScreen() {
             <View style={{ gap: theme.spacing.xs }}>
               <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Base currency</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.sm }}>
-                {COMMON_CURRENCIES.slice(0, 8).map((c) => (
+                {COMMON_CURRENCIES.map((c) => (
                   <Pressable key={c} onPress={() => setCurrency(c)} accessibilityRole="radio" accessibilityState={{ selected: currency === c }}
                     style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: currency === c ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: currency === c ? theme.colors.fill.primary : theme.colors.background.surface }}>
-                    <Text variant="caption1Semibold" color={currency === c ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{c}</Text>
+                    <Text variant="caption1Semibold" color={currency === c ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{currencyLabel(c)}</Text>
                   </Pressable>
                 ))}
               </View>

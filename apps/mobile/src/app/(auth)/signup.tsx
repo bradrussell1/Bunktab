@@ -70,7 +70,7 @@ export default function SignupScreen() {
           <Input label="Password" placeholder="At least 8 characters" value={password} onChangeText={setPassword} secureTextEntry textContentType="newPassword" autoComplete="new-password" />
           <Input label="Phone number" placeholder="(555) 555-0100" value={phone} onChangeText={setPhone} keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" helper="Your login and how friends' invites find you." />
           <View style={{ gap: theme.spacing.xs }}>
-            <Input label="Venmo username (optional)" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} helper="Needed before close-out. Payments to you open Venmo pre-filled with this." />
+            <Input label="Venmo Handle (optional)" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} helper="You can add it later in Profile. Needed before close-out so friends can pay you in Venmo." />
             {venmo.trim().length >= 5 && <Button title="Check it on venmo.com ↗" kind="text" size="small" style={{ alignSelf: "flex-start" }} onPress={() => openBrowserAsync(venmoProfileUrl(venmo))} />}
           </View>
           {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}

@@ -38,7 +38,7 @@ export default function ProfileScreen() {
         </View>
         <Input label="Display name" placeholder="Bradley" value={name} onChangeText={setName} autoCapitalize="words" textContentType="name" />
         <View style={{ gap: theme.spacing.xs }}>
-          <Input label="Venmo username" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} helper="Optional now, needed before close-out. Payments to you open Venmo pre-filled with this." />
+          <Input label="Venmo Handle" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} helper="Optional now; needed before close-out so friends can pay you in Venmo." />
           {venmo.trim().length >= 5 && <Button title="Check it on venmo.com ↗" kind="text" size="small" style={{ alignSelf: "flex-start" }} onPress={() => openBrowserAsync(venmoProfileUrl(venmo))} />}
         </View>
         {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}

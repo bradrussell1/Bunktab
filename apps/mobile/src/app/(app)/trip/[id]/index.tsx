@@ -1,5 +1,6 @@
 import { CATEGORIES, categoryLabel, closeoutUnlocked, formatCents, formatDateRange } from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+import { alpha, theme } from "@checkm8/theme";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActionSheetIOS, ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, Switch, View } from "react-native";
@@ -127,16 +128,20 @@ export default function TripScreen() {
               : <Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>{coverBusy ? "Uploading…" : "+ Add a cover photo"}</Text>}
             {coverUrl && coverBusy && <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: theme.colors.system.dimming40, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={theme.colors.text.onBackground.primary} /></View>}
           </Pressable>
-          <Text variant="largeTitle">{trip.title}</Text>
+          <Text variant="largeTitle" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8}>{trip.title}</Text>
           <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{formatDateRange(trip.start_date, trip.end_date)} · {cur}{closed ? ` · ${trip.status}` : ""}</Text>
         </View>
 
         {/* attendees: pastel pill + one scrolling row of chips, 2–20 people */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm, paddingLeft: theme.screenPadding }}>
-          <HeroPill>Attendees:</HeroPill>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm, paddingRight: theme.screenPadding }} style={{ flex: 1 }}>
-            {figures.members.map((m) => <MemberChip key={m.user_id} m={m} me={me} compact={compactChips} onPress={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} />)}
-          </ScrollView>
+          <HeroPill>{`Attendees: ${figures.members.filter((m) => m.done_at).length}/${figures.members.length} done`}</HeroPill>
+          <View style={{ flex: 1 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm, paddingRight: theme.screenPadding + 24 }}>
+              {figures.members.map((m) => <MemberChip key={m.user_id} m={m} me={me} compact={compactChips} onPress={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} />)}
+              {figures.members.length > 3 && <View style={{ justifyContent: "center" }}><Text variant="caption1Semibold" color={theme.colors.text.onBackground.tertiary}>{`${figures.members.length} people`}</Text></View>}
+            </ScrollView>
+            {figures.members.length > 3 && <LinearGradient pointerEvents="none" colors={[alpha(theme.palette.light, 0), theme.palette.light]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 28 }} />}
+          </View>
         </View>
 
         <View style={{ paddingHorizontal: theme.screenPadding, gap: theme.spacing.lg }}>

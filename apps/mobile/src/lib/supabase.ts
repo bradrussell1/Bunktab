@@ -62,7 +62,10 @@ export function isNetworkError(e: unknown): boolean {
 
 const retryingFetch: typeof fetch = async (input, init) => {
   const target = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-  const retryable = target.includes("/auth/v1/");
+  const method = (init?.method ?? (typeof input === "object" && "method" in input ? input.method : "GET") ?? "GET").toUpperCase();
+  // only idempotent auth calls: reads, and the token grant (refresh / password). Never sign-up,
+  // OTP sends or code verification: a retry there can double-send a text or burn a code.
+  const retryable = target.includes("/auth/v1/") && (method === "GET" || target.includes("/auth/v1/token"));
   try {
     return await fetch(input, init);
   } catch (e) {

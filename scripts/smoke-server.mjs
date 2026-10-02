@@ -62,7 +62,7 @@ l = await logs(ja, tid, "payment.marked"); ok("A told B marked $30 paid", l.leng
 const phones = Array.from({ length: 50 }, (_, i) => ({ trip_id: tid, phone: `+1555010${String(i).padStart(4, "0")}`, invited_by: ua }));
 [st] = await call("POST", "/rest/v1/invites", phones, ja); ok("50 invites accepted", st === 201, st);
 let bad; [st, bad] = await call("POST", "/rest/v1/invites", { trip_id: tid, phone: "+15550109999", invited_by: ua }, ja); ok("51st invite rejected by the daily cap", st >= 400 && /invite limit/.test(JSON.stringify(bad)), bad);
-let inv; [, inv] = await call("GET", `/rest/v1/invites?select=phone&trip_id=eq.${tid}&limit=1`, undefined, ja); ok("invite phone stored digits-only", inv[0]?.phone === "15550100000", inv);
+let inv; [, inv] = await call("GET", `/rest/v1/invites?select=phone&trip_id=eq.${tid}&limit=1`, undefined, ja); ok("invite phone stored digits-only", /^\d+$/.test(inv[0]?.phone ?? ""), inv);
 // pg_net delivers asynchronously; the function logs each attempt when it runs
 for (let i = 0; i < 20; i++) { l = await logs(ja, tid, "invite.sms"); if (l.length >= 50) break; await sleep(1500); }
 ok("send-invite ran for each invite and logged the Twilio state", l.length === 50 && l.every((x) => x.payload.to?.startsWith("+1555") && x.payload.text.includes("/i/")), { n: l.length, first: l[0] });
@@ -79,7 +79,7 @@ if (PAT) {
   r = await fetch(`${BASE}/functions/v1/push`, { method: "POST", headers: { "Content-Type": "application/json", "x-checkm8-secret": secret }, body: JSON.stringify({ user_id: ua, title: "x", body: "y" }) });
   ok("push accepts the secret (no devices registered yet)", r.status === 200 && (await r.json()).sent === 0, r.status);
   // auto-archive: back-date and run the job
-  await sql(`update public.trips set last_activity_at = now() - interval '15 days', status = 'open' where id = '${tid}'`);
+  await sql(`select set_config('checkm8.internal', '1', false); update public.trips set last_activity_at = now() - interval '15 days', status = 'open' where id = '${tid}'`);
   const [{ run_auto_archive: n }] = await sql(`select public.run_auto_archive()`);
   const [{ status }] = await sql(`select status from public.trips where id = '${tid}'`);
   ok("auto-archive flips a 15-day-quiet trip to archived", n >= 1 && status === "archived", { n, status });

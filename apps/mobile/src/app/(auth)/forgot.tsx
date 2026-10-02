@@ -23,13 +23,26 @@ export default function ForgotScreen() {
     const who = parseIdentifier(id);
     if (!who) { setError("Enter the email or phone number on your account."); return; }
     setBusy(true); setError(null);
-    const { data: phone, error: e1 } = await supabase.rpc("request_password_reset", { p_identifier: "email" in who ? who.email : who.phone });
-    if (e1) { setBusy(false); setError(friendlyAuthError(e1.message)); return; }
+    const identifier = "email" in who ? who.email : who.phone;
+    // v2 answers { masked, ticket }: the number stays server-side until the one-shot ticket is redeemed
+    let phone: string | null = null; let masked: string | null = null;
+    const v2 = await supabase.rpc("request_password_reset_v2", { p_identifier: identifier });
+    if (!v2.error) {
+      const d = (v2.data ?? null) as { masked?: string; ticket?: string } | null;
+      masked = d?.masked ?? null;
+      if (d?.ticket) { const t = await supabase.rpc("reset_phone_for_ticket", { p_ticket: d.ticket }); if (!t.error && typeof t.data === "string") phone = t.data; }
+    } else if (!/does not exist|could not find|schema cache/i.test(v2.error.message)) {
+      setBusy(false); setError(friendlyAuthError(v2.error.message)); return;
+    } else {
+      const { data: legacy, error: e1 } = await supabase.rpc("request_password_reset", { p_identifier: identifier });
+      if (e1) { setBusy(false); setError(friendlyAuthError(e1.message)); return; }
+      phone = typeof legacy === "string" ? legacy : null;
+    }
     if (!phone) { setBusy(false); setError("We don't have an account with that " + ("email" in who ? "email." : "number.")); return; }
     const { error: e2 } = await supabase.auth.signInWithOtp({ phone, options: { shouldCreateUser: false } });
     setBusy(false);
     if (e2) { setError(friendlyAuthError(e2.message)); return; }
-    router.push({ pathname: "/(auth)/code", params: { phone, mode: "reset" } });
+    router.push({ pathname: "/(auth)/code", params: { phone, mode: "reset", masked: masked ?? "" } });
   }
 
   return (

@@ -152,3 +152,38 @@ Login codes go through **Twilio Verify** (service `VAf406e76f8503f527b61d0f38f81
   true, `mailer_secure_email_change_enabled` false, `site_url`
   https://www.check-m8.io, redirect allow-list `checkm8://**, exp://**,
   https://www.check-m8.io/**`, Apple provider on, Google provider on.
+
+## Settlement rules (2026-10-01, QA round 1)
+
+- `generate_settlements` keeps every payment that is already `marked_paid`
+  or `confirmed` exactly as it is. It subtracts those payments from the
+  current nets and re-plans only the residual, replacing the `pending` rows.
+  The same payer→recipient pair can therefore appear twice (one paid, one
+  pending); uniqueness applies to pending rows only.
+- A late expense is allowed on a settled trip: `save_expense` reopens it
+  (status `open`), the Done badges reset as usual, and close-out re-plans
+  once everyone has tapped Done again. `mark_settlement('unmark')` also
+  reopens a settled trip.
+- Only the expense's creator or the trip owner can delete it. A member can
+  only log expenses they paid for; the owner may name another member as the
+  payer. Edits by someone else keep the original payer.
+- Base-currency amounts are computed server-side from the rate
+  (`fx_rate > 0`; forced to 1 when the expense is in the trip's currency);
+  client-supplied `base_*` values are ignored. Currencies: USD, EUR, GBP, MXN.
+- `trips.status`, `settled_at`, `closeout_override_*`, `last_activity_at`
+  and `created_by` change only through the RPCs/triggers (they set the
+  transaction-local flag `checkm8.internal`); direct updates are refused.
+
+## Password reset (v2)
+
+`request_password_reset_v2(identifier)` returns `{ masked, ticket }` (or null
+for an unknown identifier), limited to 5 lookups per identifier per hour;
+`reset_phone_for_ticket(ticket)` returns the full E.164 phone once, within an
+hour, for the client's `signInWithOtp`. The old `request_password_reset`
+now returns the masked number only.
+
+## Media purge
+
+`purge-trip-media` (shared secret) is called by the `trips` delete trigger
+and removes `covers/<trip>/*` and `receipts/<trip>/*`. `send-invite` refuses
+to resend a text within 24 h of a successful send for the same invite.

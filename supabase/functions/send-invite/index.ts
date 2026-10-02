@@ -29,6 +29,13 @@ Deno.serve(async (req) => {
   if (callerId && inv.invited_by !== callerId) return json({ error: "forbidden" }, 403);
   if (inv.status !== "pending") return json({ skipped: inv.status });
 
+  // one text per invite per day: a successful send is recorded under this dedupe key
+  const { data: prior } = await admin.from("notification_log").select("id, sent_at, payload").eq("dedupe_key", `invite.sms:${inv.id}`).maybeSingle();
+  const priorSid = (prior?.payload as { sid?: string } | null)?.sid;
+  if (priorSid && prior?.sent_at && Date.now() - new Date(prior.sent_at).getTime() < 24 * 3600 * 1000) {
+    return json({ skipped: "already sent", sid: priorSid, sent_at: prior.sent_at });
+  }
+
   // already on the app? the insert trigger attached them and marked the invite accepted (handled above).
   // A phone-only account with no display name (never finished sign-up) still gets the text.
   const { data: existing } = await admin.from("users").select("id, display_name").eq("phone", inv.phone).maybeSingle();
@@ -60,6 +67,6 @@ Deno.serve(async (req) => {
     await admin.from("notification_log").insert({ user_id: existing.id, trip_id: inv.trip_id, kind: "invite.push", payload: { title: trip?.title ?? "Checkm8", body: `${who} added you to this trip.` } });
     await admin.rpc("notify", { p_user: existing.id, p_kind: "trip.invited", p_title: trip?.title ?? "Checkm8", p_body: `${who} added you to this trip.`, p_data: {}, p_trip: inv.trip_id, p_dedupe: `invite:${inv.id}` }).then(() => undefined, () => undefined);
   }
-  await admin.from("notification_log").insert({ user_id: inv.invited_by, trip_id: inv.trip_id, kind: "invite.sms", dedupe_key: `invite.sms:${inv.id}`, payload: { to, text, ...result } });
+  await admin.from("notification_log").upsert({ user_id: inv.invited_by, trip_id: inv.trip_id, kind: "invite.sms", dedupe_key: `invite.sms:${inv.id}`, payload: { to, text, ...result }, sent_at: new Date().toISOString() }, { onConflict: "dedupe_key" });
   return json({ ok: !("error" in result), ...result });
 });

@@ -2,7 +2,7 @@ import { clampMonth, compareMonth, formatDateLong, monthGrid, monthLabel, monthO
 import { theme } from "@checkm8/theme";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Modal, Pressable, View } from "react-native";
+import { Keyboard, Modal, Pressable, View } from "react-native";
 import { FieldSurface, Text } from "./ui";
 
 /**
@@ -18,12 +18,12 @@ import { FieldSurface, Text } from "./ui";
  */
 export function DateField({ label, value, onChange, min, placeholder = "Pick a date", devOpen = false, devJump = false }: { label: string; value: string; onChange: (iso: string) => void; min?: string; placeholder?: string; devOpen?: boolean; devJump?: boolean }) {
   const [open, setOpen] = useState(devOpen); // devOpen/devJump: DEV-only, for screenshots and tests
-  useEffect(() => { if (devOpen) setOpen(true); }, [devOpen]);
+  useEffect(() => { if (devOpen) { Keyboard.dismiss(); setOpen(true); } }, [devOpen]);
   useFocusEffect(useCallback(() => () => setOpen(false), [])); // never leave the sheet up over another screen
   return (
     <View style={{ gap: 6 }}>
       <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>{label}</Text>
-      <Pressable onPress={() => setOpen(true)} accessibilityRole="button" accessibilityLabel={`${label}: ${value ? formatDateLong(value) : placeholder}`}>
+      <Pressable onPress={() => { Keyboard.dismiss(); setOpen(true); }} accessibilityRole="button" accessibilityLabel={`${label}: ${value ? formatDateLong(value) : placeholder}`}>
         <FieldSurface focused={open} style={{ height: 48, paddingHorizontal: 12 }}>
           <Text variant="body" color={value ? theme.colors.text.onBackground.primary : theme.colors.text.onBackground.tertiary} numberOfLines={1}>{value ? formatDateLong(value) : placeholder}</Text>
         </FieldSurface>
@@ -60,7 +60,7 @@ export function CalendarSheet({ visible, title, value, min, initialJump = false,
         {/* header: ‹  Month Year  › */}
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Chevron dir="‹" enabled={canPrev} onPress={() => setYm((m) => clampMonth(shiftMonth(m, -1), anchor))} label="Previous month" />
-          <Pressable onPress={() => setJump((v) => !v)} accessibilityRole="button" accessibilityState={{ expanded: jump }} accessibilityLabel="Choose month" hitSlop={8}
+          <Pressable onPress={() => { Keyboard.dismiss(); setJump((v) => !v); }} accessibilityRole="button" accessibilityState={{ expanded: jump }} accessibilityLabel="Choose month" hitSlop={8}
             style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: theme.radius.pill, backgroundColor: jump ? theme.colors.fill.secondary : "transparent" }}>
             <Text variant="title2">{monthLabel(ym)}</Text>
             <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>{jump ? "▴" : "▾"}</Text>
