@@ -21,6 +21,7 @@
 
 export const palette = {
   light: "#F5F5F7",
+  lightDeep: "#ECEDF2",
   white: "#FFFFFF",
   gray: "#E5E5E5",
   grayDeep: "#CFCFD4",
@@ -49,7 +50,13 @@ export function alpha(hex: string, a: number): string {
 
 /** Kit roles → values. Role names are stable across re-skins. */
 export const colors = {
-  background: { main: palette.light, surface: palette.white, elevated: palette.white },
+  background: {
+    main: palette.light,
+    surface: palette.white,
+    elevated: palette.white,
+    /** Canvas: a whisper of a gradient, white at the top settling into the light gray. */
+    gradient: [palette.white, palette.light, palette.lightDeep] as readonly [string, string, string],
+  },
   fill: {
     primary: palette.gold,
     primaryDisabled: alpha(palette.gold, 0.4),

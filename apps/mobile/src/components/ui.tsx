@@ -32,9 +32,12 @@ const { colors, type, spacing, radius, screenPadding, elevation, palette } = the
 
 export function Screen({ children, style, padded = true }: { children: ReactNode; style?: StyleProp<ViewStyle>; padded?: boolean }) {
   return (
-    <SafeAreaView style={[styles.screen, style]} edges={["top", "left", "right"]}>
-      <View style={[styles.screenInner, padded && { paddingHorizontal: screenPadding }]}>{children}</View>
-    </SafeAreaView>
+    <View style={[styles.screen, style]}>
+      <LinearGradient colors={[...colors.background.gradient]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      <SafeAreaView style={styles.screenSafe} edges={["top", "left", "right"]}>
+        <View style={[styles.screenInner, padded && { paddingHorizontal: screenPadding }]}>{children}</View>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -238,6 +241,7 @@ export function EmptyState({ title, body, action }: { title: string; body: strin
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background.main },
+  screenSafe: { flex: 1 },
   screenInner: { flex: 1 },
   card: { backgroundColor: colors.background.surface, borderRadius: radius.card, borderWidth: 1, borderColor: colors.border.soft, padding: spacing.lg, ...elevation.xs },
   heroShadow: { borderRadius: radius.hero, ...elevation.sm },
