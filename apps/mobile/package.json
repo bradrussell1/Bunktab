@@ -3,8 +3,8 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
-    "@checkm8/core": "*",
-    "@checkm8/theme": "*",
+    "@bunktab/core": "*",
+    "@bunktab/theme": "*",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo/ui": "~57.0.21",
     "@react-native-async-storage/async-storage": "2.2.0",

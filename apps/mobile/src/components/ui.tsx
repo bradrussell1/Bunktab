@@ -1,4 +1,4 @@
-import { theme } from "@checkm8/theme";
+import { theme } from "@bunktab/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -20,7 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 /**
  * Base components (spec: Components mapped to screens), styled from
- * @checkm8/theme and nothing else. Gold & Navy: a light canvas, white
+ * @bunktab/theme and nothing else. Gold & Navy: a light canvas, white
  * `Tile`s with a gray hairline, exactly one navy `Hero` per screen for the
  * number that matters, gold only on actions (black text, never white) and
  * on "owed to you" figures, red = you owe / destructive, navy = links,

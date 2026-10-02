@@ -1,5 +1,5 @@
 "use client";
-import { CATEGORIES, categoryLabel, closeoutUnlocked, formatCents, formatDateRange } from "@checkm8/core";
+import { CATEGORIES, categoryLabel, closeoutUnlocked, formatCents, formatDateRange } from "@bunktab/core";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Avatar } from "./Avatar";
@@ -9,7 +9,7 @@ import { activeMembers, memberName, membersWithNoExpenses, nets, paidBy, preview
 /**
  * Guest trip view (spec: Web guest view): view the trip, add and edit
  * expenses, tap Done. Close-out is read-only here; Venmo payments happen in
- * the app. Figures come from @checkm8/core, the same code the app runs.
+ * the app. Figures come from @bunktab/core, the same code the app runs.
  */
 type Tab = "expenses" | "people" | "summary";
 
@@ -146,7 +146,7 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
                 </div>
               ))}
             </div>
-            <p className="help">Payments happen in the Checkm8 app, which opens Venmo pre-filled for each one.</p>
+            <p className="help">Payments happen in the Bunktab app, which opens Venmo pre-filled for each one.</p>
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-# Checkm8 server jobs
+# Bunktab server jobs
 
 Postgres decides who is told what; Edge Functions do the sending. Every
 outbound message is first a row in `notification_log`, which is also the
@@ -28,7 +28,7 @@ are stored in the repo or in `public`.
 | Function | Trigger | Auth | Secrets |
 | --- | --- | --- | --- |
 | `push` | `public.notify` (pg_net) | shared secret | `EXPO_ACCESS_TOKEN` (optional, only if Expo push security is enabled) |
-| `send-invite` | `invites` insert trigger (pg_net), or the app with a user JWT | shared secret, or JWT (only the inviter) | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (all set; `TWILIO_FROM` is Messaging Service `MG017e294d00a0daa9ae26697f5bbb8e26` holding toll-free +1 833 612 7553, which US carriers block until toll-free verification is approved), `INVITE_BASE_URL` (set to the Vercel URL until checkm8.app exists) |
+| `send-invite` | `invites` insert trigger (pg_net), or the app with a user JWT | shared secret, or JWT (only the inviter) | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (all set; `TWILIO_FROM` is Messaging Service `MG017e294d00a0daa9ae26697f5bbb8e26` holding toll-free +1 833 612 7553, which US carriers block until toll-free verification is approved), `INVITE_BASE_URL` (set to the Vercel URL until bunktab.app exists) |
 | `read-receipt` | the app, after uploading to `receipts/<trip_id>/<name>.jpg` | user JWT; membership enforced through RLS | `ANTHROPIC_API_KEY` (**needed**; model `claude-sonnet-5`) |
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are
@@ -57,9 +57,9 @@ configured","missing":[…]}` on the `invite.sms` row; `read-receipt` returns
 
 | Job | Schedule (UTC) | Does |
 | --- | --- | --- |
-| `checkm8_nudges` | `15 * * * *` | `run_nudges()`: open, started trips with expenses; members not Done and quiet for 24h |
-| `checkm8_auto_archive` | `30 9 * * *` | `run_auto_archive()`: open trips quiet for 14 days → `archived` (activity flips them back) |
-| `checkm8_invite_expiry` | `45 9 * * *` | `run_invite_expiry()`: pending invites past `expires_at` → `expired` |
+| `bunktab_nudges` | `15 * * * *` | `run_nudges()`: open, started trips with expenses; members not Done and quiet for 24h |
+| `bunktab_auto_archive` | `30 9 * * *` | `run_auto_archive()`: open trips quiet for 14 days → `archived` (activity flips them back) |
+| `bunktab_invite_expiry` | `45 9 * * *` | `run_invite_expiry()`: pending invites past `expires_at` → `expired` |
 
 Also enforced in the database: 50 invites per user per day
 (`guard_invite_rate`), phone numbers normalised to digits.
@@ -136,22 +136,22 @@ Login codes go through **Twilio Verify** (service `VAf406e76f8503f527b61d0f38f81
   Change Password as `/(auth)/reset-password?mode=change` (no code, no
   sign-out, back to Profile).
 - **Google**: web OAuth through Supabase (`signInWithOAuth`, redirect
-  `checkm8://callback`; Expo Go uses `exp://…/--/callback`; both allow-listed).
+  `bunktab://callback`; Expo Go uses `exp://…/--/callback`; both allow-listed).
   The Google Cloud OAuth client MUST list
   `https://qywowvkkkxldgxoatdsh.supabase.co/auth/v1/callback` under
   Authorized redirect URIs, or Google answers `redirect_uri_mismatch`.
 - **Apple**: native Sign in with Apple (`expo-apple-authentication`,
   `ios.usesAppleSignIn`), identity token → `signInWithIdToken({ provider:
   "apple", nonce })`. Supabase: `external_apple_enabled` with client id
-  `com.check-m8.app` (the bundle id); no Services ID or secret is needed for
+  `com.bunktab.app` (the bundle id); no Services ID or secret is needed for
   the native path. Requires a native build (not Expo Go); the App ID must
   have the Sign in with Apple capability.
 - **Transport retries**: auth requests (`/auth/v1/*`) get one automatic
   retry on a transport failure; data calls never do.
 - Auth config set 2026-09-28/30: `password_min_length` 8, `mailer_autoconfirm`
   true, `mailer_secure_email_change_enabled` false, `site_url`
-  https://www.check-m8.io, redirect allow-list `checkm8://**, exp://**,
-  https://www.check-m8.io/**`, Apple provider on, Google provider on.
+  https://www.bunktab.com, redirect allow-list `bunktab://**, exp://**,
+  https://www.bunktab.com/**`, Apple provider on, Google provider on.
 
 ## Settlement rules (2026-10-01, QA round 1)
 

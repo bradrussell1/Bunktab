@@ -1,5 +1,5 @@
-import { formatCents, formatDateRange } from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+import { formatCents, formatDateRange } from "@bunktab/core";
+import { theme } from "@bunktab/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { FlatList, Image, Pressable, RefreshControl, View } from "react-native";

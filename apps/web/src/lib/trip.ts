@@ -1,5 +1,5 @@
 "use client";
-import { computeNets, settle, type LedgerExpense, type Payment } from "@checkm8/core";
+import { computeNets, settle, type LedgerExpense, type Payment } from "@bunktab/core";
 import { useCallback, useEffect, useState } from "react";
 import { supabaseBrowser } from "./supabase/browser";
 

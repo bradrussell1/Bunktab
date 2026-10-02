@@ -4,7 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import { supabase } from "@/lib/supabase";
 
 /**
- * OAuth landing (`checkm8://callback`). The browser sheet normally hands
+ * OAuth landing (`bunktab://callback`). The browser sheet normally hands
  * the tokens straight to oauth.ts, so this only runs if the system opened
  * the app with the URL instead: set the session from whatever arrived,
  * then go home.

@@ -42,15 +42,15 @@ Deno.serve(async (req) => {
   const trip = (inv as unknown as { trips: { title: string } | null }).trips;
   const inviter = (inv as unknown as { users: { display_name: string | null } | null }).users;
   const who = inviter?.display_name?.split(" ")[0] || "A friend";
-  const base = Deno.env.get("INVITE_BASE_URL") ?? "https://checkm8.app/i/";
+  const base = Deno.env.get("INVITE_BASE_URL") ?? "https://www.bunktab.com/i/";
   // one-time invitation; the Messaging Service handles STOP/HELP automatically
-  const text = `Checkm8: ${who} added you to '${trip?.title ?? "a trip"}' to split trip expenses. Open it: ${base}${inv.token}\nReply STOP to opt out.`;
+  const text = `Bunktab: ${who} added you to '${trip?.title ?? "a trip"}' to split trip expenses. Open it: ${base}${inv.token}\nReply STOP to opt out.`;
   const to = inv.phone.startsWith("+") ? inv.phone : `+${inv.phone}`;
 
   const sid = Deno.env.get("TWILIO_ACCOUNT_SID"), tok = Deno.env.get("TWILIO_AUTH_TOKEN"), from = Deno.env.get("TWILIO_FROM");
   let result: Record<string, unknown>;
   if (existing?.display_name) {
-    result = { skipped: "has account" };  // no text to people who already use Checkm8 (user decision 2026-09-30)
+    result = { skipped: "has account" };  // no text to people who already use Bunktab (user decision 2026-09-30)
   } else if (!sid || !tok || !from) {
     result = { error: "twilio not configured", missing: [!sid && "TWILIO_ACCOUNT_SID", !tok && "TWILIO_AUTH_TOKEN", !from && "TWILIO_FROM"].filter(Boolean) };
   } else {
@@ -64,8 +64,8 @@ Deno.serve(async (req) => {
   }
   if (existing?.id) {
     // they have the app: also push
-    await admin.from("notification_log").insert({ user_id: existing.id, trip_id: inv.trip_id, kind: "invite.push", payload: { title: trip?.title ?? "Checkm8", body: `${who} added you to this trip.` } });
-    await admin.rpc("notify", { p_user: existing.id, p_kind: "trip.invited", p_title: trip?.title ?? "Checkm8", p_body: `${who} added you to this trip.`, p_data: {}, p_trip: inv.trip_id, p_dedupe: `invite:${inv.id}` }).then(() => undefined, () => undefined);
+    await admin.from("notification_log").insert({ user_id: existing.id, trip_id: inv.trip_id, kind: "invite.push", payload: { title: trip?.title ?? "Bunktab", body: `${who} added you to this trip.` } });
+    await admin.rpc("notify", { p_user: existing.id, p_kind: "trip.invited", p_title: trip?.title ?? "Bunktab", p_body: `${who} added you to this trip.`, p_data: {}, p_trip: inv.trip_id, p_dedupe: `invite:${inv.id}` }).then(() => undefined, () => undefined);
   }
   await admin.from("notification_log").upsert({ user_id: inv.invited_by, trip_id: inv.trip_id, kind: "invite.sms", dedupe_key: `invite.sms:${inv.id}`, payload: { to, text, ...result }, sent_at: new Date().toISOString() }, { onConflict: "dedupe_key" });
   return json({ ok: !("error" in result), ...result });

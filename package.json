@@ -1,21 +1,21 @@
 {
-  "name": "checkm8",
+  "name": "bunktab",
   "private": true,
   "version": "0.1.0",
-  "description": "Checkm8 — split trip expenses, settle up in Venmo",
+  "description": "Bunktab — split trip expenses, settle up in Venmo",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "test": "npm run test --workspace=@checkm8/core",
+    "test": "npm run test --workspace=@bunktab/core",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "mobile": "npm run start --workspace=mobile",
     "db:diff": "supabase db diff",
     "db:push": "supabase db push",
     "smoke": "node scripts/smoke.mjs",
     "smoke:server": "node scripts/smoke-server.mjs",
-    "web": "npm run dev --workspace=@checkm8/web"
+    "web": "npm run dev --workspace=@bunktab/web"
   },
   "engines": {
     "node": ">=20"

@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 
 /**
- * A person you can invite: a phone contact or a Checkm8 friend. Friends are
+ * A person you can invite: a phone contact or a Bunktab friend. Friends are
  * people you have shared a trip with who have an account (users visible
  * under row-level security through shared trips); random numbers you once
  * invited don't count.
@@ -29,7 +29,7 @@ export async function fetchFriends(me: string): Promise<Person[]> {
       id: r.user_id,
       name: r.users.display_name,
       phone: r.users.phone ? `+${r.users.phone.replace(/^\+/, "")}` : null,
-      subtitle: r.users.venmo_username ? `On Checkm8 · @${r.users.venmo_username}` : "On Checkm8",
+      subtitle: r.users.venmo_username ? `On Bunktab · @${r.users.venmo_username}` : "On Bunktab",
       photo: r.users.photo_url,
       kind: "friend",
     });

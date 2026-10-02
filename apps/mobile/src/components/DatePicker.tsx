@@ -1,5 +1,5 @@
-import { clampMonth, compareMonth, formatDateLong, monthGrid, monthLabel, monthOf, monthRange, shiftMonth, todayIso, WEEKDAYS_SHORT, type YearMonth } from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+import { clampMonth, compareMonth, formatDateLong, monthGrid, monthLabel, monthOf, monthRange, shiftMonth, todayIso, WEEKDAYS_SHORT, type YearMonth } from "@bunktab/core";
+import { theme } from "@bunktab/theme";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Keyboard, Modal, Pressable, View } from "react-native";
@@ -13,7 +13,7 @@ import { FieldSurface, Text } from "./ui";
  * jumps to any month within six back and six forward of today (the
  * chevrons stop at the same bounds). Days outside the month are dimmed and
  * disabled; `min` disables earlier days (the end date can't precede the
- * start). All arithmetic is on civil dates through @checkm8/core, so a
+ * start). All arithmetic is on civil dates through @bunktab/core, so a
  * date never shifts with the device timezone.
  */
 export function DateField({ label, value, onChange, min, placeholder = "Pick a date", devOpen = false, devJump = false }: { label: string; value: string; onChange: (iso: string) => void; min?: string; placeholder?: string; devOpen?: boolean; devJump?: boolean }) {

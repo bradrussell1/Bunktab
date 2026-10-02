@@ -12,11 +12,11 @@ import { centsToDecimalString, type Cents } from "./money";
  */
 
 export const VENMO_NOTE_MAX = 280;
-export const APP_NAME = "Checkm8";
+export const APP_NAME = "Bunktab";
 
 export type VenmoLink = { app: string; web: string; note: string };
 
-/** "<trip title> - settled via Checkm8", trimmed to Venmo's 280-character limit. */
+/** "<trip title> - settled via Bunktab", trimmed to Venmo's 280-character limit. */
 export function venmoNote(tripTitle: string): string {
   const suffix = ` - settled via ${APP_NAME}`;
   const room = VENMO_NOTE_MAX - suffix.length;

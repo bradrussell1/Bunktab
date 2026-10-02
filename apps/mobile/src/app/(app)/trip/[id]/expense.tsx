@@ -14,8 +14,8 @@ import {
   parseToCents,
   toBaseCents,
   type SplitType,
-} from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+} from "@bunktab/core";
+import { theme } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActionSheetIOS, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, View } from "react-native";
@@ -33,7 +33,7 @@ import { currencyLabel } from "@/lib/currencyLabels";
  * currency; the payer is always you (an edit keeps the original payer);
  * who's involved (everyone by default); the split type; description; category and
  * subcategory from the fixed list; tip as its own field; "Pro-rate lodging
- * by nights", offered only for hotels and rentals, switches to nights. Shares are computed by @checkm8/core and saved
+ * by nights", offered only for hotels and rentals, switches to nights. Shares are computed by @bunktab/core and saved
  * through save_expense in one transaction; the server re-checks the sums.
  * A receipt photo uploads to the private receipts bucket and the total is
  * read server-side to pre-fill the amount (tip stays separate); a non-base

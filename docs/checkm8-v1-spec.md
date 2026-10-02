@@ -1,3 +1,5 @@
+> **Product renamed Bunktab on 2026-10-01; references to Checkm8 below are historical.**
+
 # Checkm8 — V1 Product Spec
 
 Sep 28, 2026 · @Apollo

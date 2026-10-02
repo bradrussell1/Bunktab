@@ -1,4 +1,4 @@
-# Checkm8 — split trip expenses, settle up in Venmo
+# Bunktab — split trip expenses, settle up in Venmo
 
 A group logs shared trip expenses, everyone taps **Done**, and close-out
 opens Venmo with each payment pre-filled, using the fewest payments possible.

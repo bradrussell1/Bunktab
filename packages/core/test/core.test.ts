@@ -144,8 +144,8 @@ describe("settlement", () => {
 describe("venmo links", () => {
   it("builds the app link and the web fallback with the same fields", () => {
     const l = venmoPayLink("mike-r", 8450, "Tahoe 2026");
-    expect(l.app).toBe("venmo://paycharge?txn=pay&recipients=mike-r&amount=84.50&note=Tahoe+2026+-+settled+via+Checkm8");
-    expect(l.web).toBe("https://venmo.com/?txn=pay&recipients=mike-r&amount=84.50&note=Tahoe+2026+-+settled+via+Checkm8");
+    expect(l.app).toBe("venmo://paycharge?txn=pay&recipients=mike-r&amount=84.50&note=Tahoe+2026+-+settled+via+Bunktab");
+    expect(l.web).toBe("https://venmo.com/?txn=pay&recipients=mike-r&amount=84.50&note=Tahoe+2026+-+settled+via+Bunktab");
     expect(venmoPayLink("@mike-r", 100, "t").app).toContain("recipients=mike-r");
   });
   it("charge from everyone lists several recipients", () => {
@@ -153,7 +153,7 @@ describe("venmo links", () => {
   });
   it("keeps the note within 280 characters and validates usernames", () => {
     expect(venmoNote("x".repeat(300)).length).toBe(280);
-    expect(venmoNote("Tahoe")).toBe("Tahoe - settled via Checkm8");
+    expect(venmoNote("Tahoe")).toBe("Tahoe - settled via Bunktab");
     expect(isValidVenmoUsername("mike-r_1")).toBe(true);
     expect(isValidVenmoUsername("ab")).toBe(false);
     expect(venmoProfileUrl("@Mike R")).toBe("https://venmo.com/u/Mike%20R");

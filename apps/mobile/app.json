@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "Checkm8",
-    "slug": "checkm8",
-    "version": "1.0.1",
+    "name": "Bunktab",
+    "slug": "bunktab",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "checkm8",
+    "scheme": "bunktab",
     "userInterfaceStyle": "light",
     "ios": {
-      "bundleIdentifier": "com.check-m8.app",
+      "bundleIdentifier": "com.bunktab.app",
       "supportsTablet": false,
       "icon": "./assets/expo.icon",
       "infoPlist": {
-        "NSContactsUsageDescription": "Checkm8 reads your contacts on this device so you can pick who to invite. Only the numbers you choose are sent.",
-        "NSCameraUsageDescription": "Checkm8 uses the camera to photograph receipts.",
-        "NSPhotoLibraryUsageDescription": "Checkm8 uses your photos for receipts and trip covers.",
+        "NSContactsUsageDescription": "Bunktab reads your contacts on this device so you can pick who to invite. Only the numbers you choose are sent.",
+        "NSCameraUsageDescription": "Bunktab uses the camera to photograph receipts.",
+        "NSPhotoLibraryUsageDescription": "Bunktab uses your photos for receipts and trip covers.",
         "LSApplicationQueriesSchemes": [
           "venmo"
         ]
@@ -26,7 +26,7 @@
       "usesAppleSignIn": true
     },
     "android": {
-      "package": "com.checkm8.app",
+      "package": "com.bunktab.app",
       "adaptiveIcon": {
         "backgroundColor": "#F5F5F7",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -69,14 +69,14 @@
       [
         "expo-contacts",
         {
-          "contactsPermission": "Checkm8 reads your contacts on this device so you can pick who to invite. Only the numbers you choose are sent."
+          "contactsPermission": "Bunktab reads your contacts on this device so you can pick who to invite. Only the numbers you choose are sent."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Checkm8 uses your photos for receipts and trip covers.",
-          "cameraPermission": "Checkm8 uses the camera to photograph receipts."
+          "photosPermission": "Bunktab uses your photos for receipts and trip covers.",
+          "cameraPermission": "Bunktab uses the camera to photograph receipts."
         }
       ],
       "expo-notifications",
@@ -96,12 +96,12 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "6aae70aa-4f50-401e-a864-c96a954c6a93"
+        "projectId": "652dbbb4-c619-44bb-80b2-df07159720cc"
       }
     },
     "updates": {
-      "url": "https://u.expo.dev/6aae70aa-4f50-401e-a864-c96a954c6a93",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/652dbbb4-c619-44bb-80b2-df07159720cc"
     }
   }
 }

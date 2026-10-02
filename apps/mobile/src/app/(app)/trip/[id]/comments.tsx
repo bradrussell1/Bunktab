@@ -1,5 +1,5 @@
-import { formatCents } from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+import { formatCents } from "@bunktab/core";
+import { theme } from "@bunktab/theme";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, View } from "react-native";

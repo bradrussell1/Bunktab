@@ -1,4 +1,4 @@
-import { cssVariables } from "@checkm8/theme";
+import { cssVariables } from "@bunktab/theme";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "Checkm8", template: "%s · Checkm8" },
+  title: { default: "Bunktab", template: "%s · Bunktab" },
   description: "Split the trip. Settle in Venmo.",
 };
 export const viewport: Viewport = { themeColor: "#F5F5F7", colorScheme: "light", width: "device-width", initialScale: 1, viewportFit: "cover" };

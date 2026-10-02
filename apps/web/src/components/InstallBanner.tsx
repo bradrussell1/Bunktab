@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const KEY = "checkm8.banner.dismissed";
+const KEY = "bunktab.banner.dismissed";
 
 /** Persistent recommendation to install the app (spec: Web guest view). Dismissal is per browser. */
 export function InstallBanner() {

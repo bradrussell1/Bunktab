@@ -38,7 +38,7 @@ Counts: P0 1 · P1 4 · P2 9 · P3 8.
 - Cause: `expenses_insert` permits direct inserts; validation lives on the child tables only.
 - Fix: remove the direct insert policy (the app only inserts via `save_expense`), or add an "every expense has ≥1 payer and ≥1 share" check in a deferred constraint trigger on `expenses`.
 
-### B-05 Any member can add any Checkm8 user to a trip, including people the owner removed
+### B-05 Any member can add any Bunktab user to a trip, including people the owner removed
 - Area: invites trigger `attach_known_user_invite` (migration 20260930000010)
 - Proof: owner removes Jen (`remove_member`), then Priya (member) `POST /rest/v1/invites {phone: jen}` → 201 and Jen's `removed_at` is back to null (`ESC.member.invite_readds_removed_member`). Likewise Priya invites Mike (never a member) → invite `accepted`, Mike is a member (`ESC.member.invite_adds_known_user`). `trip_members` inserts are otherwise owner-only (`members_insert`).
 - Impact: the owner's removal decision can be undone by anyone; membership is effectively member-controlled; combined with B-01 this is full takeover.

@@ -5,14 +5,14 @@ export default function Landing() {
   return (
     <main className="col">
       <header className="landing-top">
-        <span className="wordmark"><i />Checkm8</span>
+        <span className="wordmark"><i />Bunktab</span>
         <Link href="#get" className="t-cap-strong">Get the app</Link>
       </header>
 
       <section className="hero landing-hero" aria-labelledby="pitch">
         <span className="hero-art" aria-hidden="true" />
         <h1 id="pitch" className="pitch">Split the trip.<br />Settle in Venmo.</h1>
-        <p className="sub">Everyone logs what they covered, taps Done, and Checkm8 works out the fewest payments to make it even.</p>
+        <p className="sub">Everyone logs what they covered, taps Done, and Bunktab works out the fewest payments to make it even.</p>
         <a href="#how" className="hero-cta" aria-label="See how it works">↗</a>
       </section>
 
@@ -40,7 +40,7 @@ export default function Landing() {
       </section>
 
       <footer className="t-cap" style={{ paddingTop: 40, display: "flex", gap: 16 }}>
-        <span>© {new Date().getFullYear()} Checkm8</span><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/sms">Texting</Link>
+        <span>© {new Date().getFullYear()} Bunktab</span><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/sms">Texting</Link>
       </footer>
     </main>
   );

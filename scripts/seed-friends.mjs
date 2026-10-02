@@ -7,7 +7,7 @@ const REF = fs.readFileSync("supabase/.temp/project-ref", "utf8").trim();
 const PAT = process.env.SUPABASE_ACCESS_TOKEN; if (!PAT) throw new Error("SUPABASE_ACCESS_TOKEN not set");
 const OWNER_EMAIL = process.argv[2] ?? "brad.russell16@gmail.com";
 const BASE = `https://${REF}.supabase.co`;
-const PASSWORD = "Checkm8-Test-2026";
+const PASSWORD = "Bunktab-Test-2026";
 const FRIENDS = [
   { name: "Sam Rivera", phone: "15555550103", venmo: "sam-rivera-c8" },
   { name: "Priya Patel", phone: "15555550104", venmo: "priya-patel-c8" },

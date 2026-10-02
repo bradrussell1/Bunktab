@@ -1,4 +1,4 @@
-import { theme } from "@checkm8/theme";
+import { theme } from "@bunktab/theme";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Modal, PanResponder, Pressable, View, type LayoutChangeEvent, type ViewToken } from "react-native";
 import { Avatar, Button, Input, Text } from "@/components/ui";

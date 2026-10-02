@@ -1,8 +1,8 @@
-# Checkm8 mobile (Expo)
+# Bunktab mobile (Expo)
 
 - The spec is `docs/checkm8-v1-spec.md` at the repo root. Screens, copy and
-  arithmetic come from it; the arithmetic itself lives in `@checkm8/core`
-  (tested) and the tokens in `@checkm8/theme` - never restyle inline.
+  arithmetic come from it; the arithmetic itself lives in `@bunktab/core`
+  (tested) and the tokens in `@bunktab/theme` - never restyle inline.
 - Colour rule (Gold & Navy, light only): gold `fill.primary` ONLY on
   actions (primary buttons, selected chips/segments, switches on) and on
   "owed to you" figures, always with black text, never white. Exactly one

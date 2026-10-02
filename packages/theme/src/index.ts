@@ -1,5 +1,5 @@
 /**
- * Checkm8 design tokens - "Gold & Navy" light theme (2026-10-01).
+ * Bunktab design tokens - "Gold & Navy" light theme (2026-10-01).
  *
  * Palette from the brief: Light #F5F5F7, Gray #E5E5E5, Gold #FCA311,
  * Blue #14213D, Black #000000. Light canvas; white tiles with a gray

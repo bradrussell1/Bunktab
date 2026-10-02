@@ -1,5 +1,5 @@
-import { formatCents } from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+import { formatCents } from "@bunktab/core";
+import { theme } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, View } from "react-native";
@@ -46,7 +46,7 @@ export default function HistoryScreen() {
   }, [id, expense]);
 
   const who = (uid: string | null) => {
-    if (!uid) return { name: "Checkm8", full: "Checkm8", photo: null };
+    if (!uid) return { name: "Bunktab", full: "Bunktab", photo: null };
     const m = data?.members.find((x) => x.user_id === uid);
     const full = m ? (m.display_name ?? "Member") : (names[uid]?.name ?? "Someone");
     return { name: uid === me ? "You" : full, full, photo: m ? m.photo_url : (names[uid]?.photo ?? null) };

@@ -8,7 +8,7 @@ import fs from "node:fs";
 const env = Object.fromEntries(fs.readFileSync("apps/mobile/.env", "utf8").trim().split("\n").map((l) => l.split(/=(.*)/s).slice(0, 2)));
 const BASE = env.EXPO_PUBLIC_SUPABASE_URL, ANON = env.EXPO_PUBLIC_SUPABASE_ANON_KEY.trim();
 const H = (jwt) => ({ apikey: ANON, "Content-Type": "application/json", Authorization: `Bearer ${jwt}` });
-async function pw(phone) { const r = await fetch(`${BASE}/auth/v1/token?grant_type=password`, { method: "POST", headers: H(ANON), body: JSON.stringify({ phone, password: "Checkm8-Test-2026" }) }); const b = await r.json(); if (!b.access_token) throw new Error(`login ${phone}: ${JSON.stringify(b).slice(0, 120)}`); return { jwt: b.access_token, id: b.user.id }; }
+async function pw(phone) { const r = await fetch(`${BASE}/auth/v1/token?grant_type=password`, { method: "POST", headers: H(ANON), body: JSON.stringify({ phone, password: "Bunktab-Test-2026" }) }); const b = await r.json(); if (!b.access_token) throw new Error(`login ${phone}: ${JSON.stringify(b).slice(0, 120)}`); return { jwt: b.access_token, id: b.user.id }; }
 async function otp(phone) {
   for (let i = 0; i < 5; i++) {
     await fetch(`${BASE}/auth/v1/otp`, { method: "POST", headers: H(ANON), body: JSON.stringify({ phone }) });

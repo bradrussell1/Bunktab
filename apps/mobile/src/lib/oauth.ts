@@ -9,7 +9,7 @@ import { supabase } from "./supabase";
 /**
  * Google: Supabase's OAuth flow in a system browser sheet; Supabase hands
  * back a URL on our scheme carrying the tokens and we set the session from
- * it. Redirect is `checkm8://callback` in a real build and `exp://…/--/callback`
+ * it. Redirect is `bunktab://callback` in a real build and `exp://…/--/callback`
  * in Expo Go (Linking.createURL picks the right one); both are on the
  * project's redirect allow-list. The Google Cloud client must list
  * `https://<ref>.supabase.co/auth/v1/callback` as an authorised redirect URI.

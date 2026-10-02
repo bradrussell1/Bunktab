@@ -1,5 +1,5 @@
-import { CATEGORIES, categoryLabel, closeoutUnlocked, formatCents, formatDateRange } from "@checkm8/core";
-import { alpha, theme } from "@checkm8/theme";
+import { CATEGORIES, categoryLabel, closeoutUnlocked, formatCents, formatDateRange } from "@bunktab/core";
+import { alpha, theme } from "@bunktab/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";

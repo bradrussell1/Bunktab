@@ -1,4 +1,4 @@
-# Checkm8 mobile — QA report A (black-box product test)
+# Bunktab mobile — QA report A (black-box product test)
 
 Date: 2026-10-01 · Build under test: working tree at commit `06fd335` + uncommitted canvas gradient / Inter (Expo Go, iOS 27 simulator, iPhone 18 Pro) · Backend: Supabase project `qywowvkkkxldgxoatdsh` (live) · Tester: QA agent A (independent; no code changes made).
 

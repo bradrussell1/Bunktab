@@ -1,4 +1,4 @@
-import { theme } from "@checkm8/theme";
+import { theme } from "@bunktab/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
@@ -17,7 +17,7 @@ export default function LandingScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background.main }} edges={["top", "bottom"]}>
       <View style={{ flex: 1 }}>
         <View style={{ flex: 1, paddingHorizontal: theme.screenPadding, paddingTop: theme.spacing.xxl * 2, gap: theme.spacing.sm }}>
-          <Text variant="captionCaps2" color={theme.colors.text.onBackground.accent}>Checkm8</Text>
+          <Text variant="captionCaps2" color={theme.colors.text.onBackground.accent}>Bunktab</Text>
           <Text variant="largeTitle" style={{ fontSize: 40, lineHeight: 46 }}>Split the trip.{"\n"}Settle in Venmo.</Text>
           <Text variant="body" color={theme.colors.text.onBackground.secondary}>Everyone logs what they paid. Close out with the fewest payments.</Text>
         </View>

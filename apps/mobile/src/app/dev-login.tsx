@@ -4,7 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import { supabase } from "@/lib/supabase";
 
 /**
- * DEV ONLY: checkm8://dev-login?phone=15555550100 signs a test number in
+ * DEV ONLY: bunktab://dev-login?phone=15555550100 signs a test number in
  * with the fixed test code; ?signout=1 signs out. Lets the app be driven
  * from the command line (xcrun simctl openurl). Compiled out of release
  * builds by the __DEV__ guard; the test numbers only exist in the

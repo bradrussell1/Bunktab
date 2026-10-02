@@ -1,8 +1,8 @@
 {
-  "name": "@checkm8/theme",
+  "name": "@bunktab/theme",
   "version": "0.1.0",
   "private": true,
-  "description": "Checkm8 design tokens: the Pretty Good kit's roles re-coloured with Basalt & Spore. One file every component reads.",
+  "description": "Bunktab design tokens: the Pretty Good kit's roles re-coloured with Basalt & Spore. One file every component reads.",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",

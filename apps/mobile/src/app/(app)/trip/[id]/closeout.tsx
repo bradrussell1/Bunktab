@@ -1,5 +1,5 @@
-import { closeoutUnlocked, formatCents, venmoChargeLink, venmoPayLink } from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+import { closeoutUnlocked, formatCents, venmoChargeLink, venmoPayLink } from "@bunktab/core";
+import { theme } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, Switch, View } from "react-native";

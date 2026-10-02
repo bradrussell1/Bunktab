@@ -1,4 +1,4 @@
-import { theme } from "@checkm8/theme";
+import { theme } from "@bunktab/theme";
 import { useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 import { Button, Card, Screen, Text } from "@/components/ui";

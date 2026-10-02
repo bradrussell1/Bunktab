@@ -1,4 +1,4 @@
-import { CATEGORIES, categoryLabel, formatCents } from "@checkm8/core";
+import { CATEGORIES, categoryLabel, formatCents } from "@bunktab/core";
 import { activeMembers, paidBy, type Expense, type TripData } from "./trips";
 
 /**

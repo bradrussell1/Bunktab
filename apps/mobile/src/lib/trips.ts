@@ -1,4 +1,4 @@
-import { computeNets, settle, type LedgerExpense, type Payment } from "@checkm8/core";
+import { computeNets, settle, type LedgerExpense, type Payment } from "@bunktab/core";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase";
 
@@ -62,7 +62,7 @@ export function useTrip(tripId: string | undefined) {
   return { data, loading, error, reload };
 }
 
-/* ---------- derived figures (all base cents, all through @checkm8/core) ---------- */
+/* ---------- derived figures (all base cents, all through @bunktab/core) ---------- */
 
 /** One ordering everywhere (Home cards, trip page, members): owner first, then by join time. */
 export function sortMembers<T extends { role?: "owner" | "member"; joined_at?: string | null; user_id: string }>(ms: T[]): T[] {

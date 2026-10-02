@@ -1,5 +1,5 @@
-import { isValidVenmoUsername, venmoProfileUrl } from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+import { isValidVenmoUsername, venmoProfileUrl } from "@bunktab/core";
+import { theme } from "@bunktab/theme";
 import { useRouter } from "expo-router";
 import { openBrowserAsync } from "expo-web-browser";
 import { useState } from "react";
@@ -75,7 +75,7 @@ export default function SignupScreen() {
           </View>
           {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
           <Button title="Next" onPress={next} loading={busy} />
-          <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>By continuing you agree to the Terms and Privacy Policy at check-m8.io.</Text>
+          <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>By continuing you agree to the Terms and Privacy Policy at bunktab.com.</Text>
         </ScrollView>
     </Screen>
   );

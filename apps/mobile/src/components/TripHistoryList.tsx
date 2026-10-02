@@ -1,5 +1,5 @@
-import { formatCents, formatDateRange } from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+import { formatCents, formatDateRange } from "@bunktab/core";
+import { theme } from "@bunktab/theme";
 import { useRouter } from "expo-router";
 import { View } from "react-native";
 import { Card, Divider, EmptyState, ListItem, Text } from "@/components/ui";

@@ -1,5 +1,5 @@
-import { CATEGORIES, formatCents, isValidVenmoUsername, venmoProfileUrl } from "@checkm8/core";
-import { theme } from "@checkm8/theme";
+import { CATEGORIES, formatCents, isValidVenmoUsername, venmoProfileUrl } from "@bunktab/core";
+import { theme } from "@bunktab/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { openBrowserAsync } from "expo-web-browser";
 import { useCallback, useMemo, useState } from "react";
@@ -146,7 +146,7 @@ export default function ProfileScreen() {
             <Card style={{ gap: theme.spacing.md }}>
               <StatRow k="Trips" v={loading ? "…" : `${stats.trips}${stats.settledTrips ? ` · ${stats.settledTrips} settled` : ""}`} />
               <StatRow k="You've paid" v={loading ? "…" : formatCents(stats.totalPaid)} sub={loading ? undefined : `${stats.logged} ${stats.logged === 1 ? "expense" : "expenses"} logged`} />
-              <StatRow k="Settled through Checkm8" v={loading ? "…" : formatCents(settledCents)} />
+              <StatRow k="Settled through Bunktab" v={loading ? "…" : formatCents(settledCents)} />
               <StatRow k="Biggest expense you paid" v={loading ? "…" : stats.biggest ? `${stats.biggest.r.description} · ${formatCents(stats.biggest.paid)}` : "—"} />
               <StatRow k="Most frequent category" v={loading ? "…" : stats.top ?? "—"} />
             </Card>

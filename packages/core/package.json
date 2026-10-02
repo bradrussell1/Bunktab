@@ -1,8 +1,8 @@
 {
-  "name": "@checkm8/core",
+  "name": "@bunktab/core",
   "version": "0.1.0",
   "private": true,
-  "description": "Checkm8 pure logic: money, splits, lodging nights, settlement, Venmo links, categories, currency. No I/O.",
+  "description": "Bunktab pure logic: money, splits, lodging nights, settlement, Venmo links, categories, currency. No I/O.",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",

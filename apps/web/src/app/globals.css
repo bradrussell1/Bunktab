@@ -1,4 +1,4 @@
-/* Base styles. Colour tokens are injected on :root from @checkm8/theme (cssVariables()).
+/* Base styles. Colour tokens are injected on :root from @bunktab/theme (cssVariables()).
    Gold & Navy (light): light canvas, white tiles with a gray hairline, one navy hero per page,
    gold only on actions (always black text) and on "owed to you" figures, red for "you owe",
    navy for links, badges and large titles, black body text. */

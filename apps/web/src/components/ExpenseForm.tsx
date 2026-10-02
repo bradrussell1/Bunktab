@@ -1,5 +1,5 @@
 "use client";
-import { CATEGORIES, COMMON_CURRENCIES, SplitError, computeNightsShares, computeShares, formatCents, fullPresence, isLodgingCategory, nightsBetween, parseToCents, toBaseCents, type SplitType } from "@checkm8/core";
+import { CATEGORIES, COMMON_CURRENCIES, SplitError, computeNightsShares, computeShares, formatCents, fullPresence, isLodgingCategory, nightsBetween, parseToCents, toBaseCents, type SplitType } from "@bunktab/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Avatar } from "./Avatar";
@@ -8,7 +8,7 @@ import { activeMembers, useTrip, type Expense } from "@/lib/trip";
 
 /**
  * Add or edit an expense on the web (spec: Add or edit expense). Same
- * fields and the same @checkm8/core arithmetic as the app; saved through
+ * fields and the same @bunktab/core arithmetic as the app; saved through
  * save_expense in one transaction, re-checked on the server.
  */
 const SPLITS: { key: SplitType; label: string }[] = [{ key: "equal", label: "Equal" }, { key: "exact", label: "Exact" }, { key: "percent", label: "%" }, { key: "shares", label: "Shares" }];
