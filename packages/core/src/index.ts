@@ -7,3 +7,4 @@ export * from "./categories";
 export * from "./currency";
 export * from "./dates";
 export * from "./phone";
+export * from "./zebra";

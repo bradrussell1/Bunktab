@@ -14,7 +14,7 @@ export function text(style: TypeStyle, overrides?: { color?: string }) {
 }
 
 /** `fontVariant: ['tabular-nums']` for every number that shows money. */
-export const tabular = { fontVariant: ["tabular-nums"] as const } as const;
+export const tabular: { fontVariant: ("tabular-nums")[] } = { fontVariant: ["tabular-nums"] };
 
 /** Hook form of the theme; the theme is static, so this is a plain accessor. */
 export function useTheme(): Theme {
