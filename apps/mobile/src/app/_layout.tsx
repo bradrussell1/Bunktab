@@ -45,14 +45,16 @@ function Routes() {
         <Stack.Screen name="(auth)/add-phone" />
         <Stack.Screen name="(auth)/code" />
       </Stack.Protected>
-      <Stack.Protected guard={signedIn}>
-        <Stack.Screen name="(auth)/reset-password" />
-      </Stack.Protected>
       <Stack.Protected guard={needsProfile}>
         <Stack.Screen name="(auth)/profile" />
       </Stack.Protected>
       <Stack.Protected guard={signedIn && !needsPhone && !needsPassword && !needsProfile}>
         <Stack.Screen name="(app)" />
+      </Stack.Protected>
+      {/* declared after (app): when a sign-in flips the guards, expo-router falls back to the first
+          allowed screen, which must be the app, not the reset-password form (reachable by explicit navigation) */}
+      <Stack.Protected guard={signedIn}>
+        <Stack.Screen name="(auth)/reset-password" />
       </Stack.Protected>
       <Stack.Screen name="(auth)/callback" />
       {__DEV__ && <Stack.Screen name="dev-login" />}
