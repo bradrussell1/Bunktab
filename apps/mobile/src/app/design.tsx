@@ -4,8 +4,8 @@
  * Open with exp://<lan-ip>:8081/--/design. Not registered in production builds.
  */
 import { color, layout, palette, space } from "@bunktab/theme";
-import { Redirect } from "expo-router";
-import { useState } from "react";
+import { Redirect, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
@@ -15,9 +15,11 @@ import {
 const MOODS = ["hi", "happy", "wink", "sleepy", "starry", "love", "worried"] as const;
 const ICONS: IconName[] = ["chevronLeft", "chevronRight", "chevronDown", "chevronUp", "plus", "search", "person", "more", "camera", "check", "close", "link", "moon", "send", "share", "bell"];
 
+const sectionYs: Record<string, number> = {};
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <View style={styles.section}>
+    <View style={styles.section} onLayout={(e) => { sectionYs[title] = e.nativeEvent.layout.y; }}>
       <ZText variant="overline" color={color.textMuted}>{title}</ZText>
       <View style={styles.sectionBody}>{children}</View>
     </View>
@@ -36,6 +38,17 @@ export default function DesignSheet() {
 function Sheet() {
   const insets = useSafeAreaInsets();
   const { show } = useToast();
+  // ?at=<section title prefix> scrolls there on open (used for screenshots).
+  const { at } = useLocalSearchParams<{ at?: string }>();
+  const scroll = useRef<ScrollView>(null);
+  useEffect(() => {
+    if (!at) return;
+    const t = setTimeout(() => {
+      const key = Object.keys(sectionYs).find((k) => k.toLowerCase().startsWith(String(at).toLowerCase()));
+      if (key != null) scroll.current?.scrollTo({ y: sectionYs[key] - 8, animated: false });
+    }, 600);
+    return () => clearTimeout(t);
+  }, [at]);
   const [seg, setSeg] = useState<"open" | "past">("open");
   const [tabs, setTabs] = useState<"expenses" | "people" | "summary">("expenses");
   const [on, setOn] = useState(false);
@@ -54,7 +67,7 @@ function Sheet() {
     <View style={styles.screen}>
       <ScreenBackground />
       <TopBar wordmark right={<><IconButton name="search" label="Search" /><IconButton name="person" label="Profile" /></>} />
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 80 }]}>
+      <ScrollView ref={scroll} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 80 }]}>
         <ZText variant="title1">Design sheet</ZText>
         <ZText variant="caption" color={color.textMuted}>Zebrasplit design system v1.0 · every primitive, every state · DEV only</ZText>
 
