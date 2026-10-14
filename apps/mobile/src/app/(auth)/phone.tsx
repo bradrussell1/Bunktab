@@ -1,15 +1,14 @@
-import { legacyTheme as theme } from "@bunktab/theme";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
-import { Button, Input, Screen, Text } from "@/components/ui";
+import { AuthScreen, FormError } from "@/components/AuthScreen";
+import { Button, Input } from "@/ui";
 import { friendlyAuthError, toE164 } from "@/lib/auth";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 /**
  * "Text me a code instead": the password-free login for accounts created
- * before passwords existed. Forgot-password has its own screen (forgot.tsx)
- * that also takes an email.
+ * before passwords existed. Phone number as a white pill Input; "Send code"
+ * as the volt action.
  */
 export default function PhoneScreen() {
   const router = useRouter();
@@ -29,19 +28,14 @@ export default function PhoneScreen() {
   }
 
   return (
-    <Screen>
-      <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: theme.spacing.sm }}>
-        <Button title="‹ Back" kind="text" size="small" onPress={() => router.back()} />
-      </View>
-      <ScrollView contentContainerStyle={{ gap: theme.spacing.xl, paddingBottom: 48 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentInsetAdjustmentBehavior="automatic">
-        <View style={{ gap: theme.spacing.sm }}>
-          <Text variant="largeTitle">Text me a code</Text>
-          <Text variant="body" color={theme.colors.text.onBackground.secondary}>No password needed. We'll text a 6-digit code to your number.</Text>
-        </View>
-        <Input label="Phone number" keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" placeholder="(555) 555-0100" value={raw} onChangeText={setRaw} error={error} helper="Standard message rates apply." onSubmitEditing={send} returnKeyType="done" autoFocus />
-        <Button title="Continue" onPress={send} loading={busy} />
-        {!supabaseConfigured && <Text variant="caption1" color={theme.colors.text.warning}>Supabase isn't configured: add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to apps/mobile/.env.</Text>}
-      </ScrollView>
-    </Screen>
+    <AuthScreen
+      onBack={() => router.back()}
+      title="Text me a code"
+      lead="No password needed. We'll text a 6-digit code to your number."
+      footer={<Button label="Send code" onPress={send} loading={busy} />}
+    >
+      <Input label="Phone number" keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" placeholder="(555) 555-0100" value={raw} onChangeText={setRaw} error={error} helper="Standard message rates apply." onSubmitEditing={send} returnKeyType="done" autoFocus />
+      {!supabaseConfigured ? <FormError>Supabase isn't configured: add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to apps/mobile/.env.</FormError> : null}
+    </AuthScreen>
   );
 }

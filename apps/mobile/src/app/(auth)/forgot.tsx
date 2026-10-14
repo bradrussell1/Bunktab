@@ -1,17 +1,15 @@
-import { legacyTheme as theme } from "@bunktab/theme";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
-import { Button, Input, Screen, Text } from "@/components/ui";
+import { AuthScreen } from "@/components/AuthScreen";
+import { Button, Input } from "@/ui";
 import { friendlyAuthError, parseIdentifier } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 /**
- * Forgot password (user feedback #4): same shape as the login page with a
- * single "Email or phone" field and Continue. The reset code always goes by
- * text, so an email is resolved to the phone on that account by the
- * request_password_reset RPC (anon-callable; it answers null for anything
- * it doesn't know). Then → "Enter your code" → "Reset password".
+ * Forgot password: a single "Email or phone" field and Continue. The reset
+ * code always goes by text, so an email is resolved to the phone on that
+ * account by the request_password_reset RPC (anon-callable; it answers null
+ * for anything it doesn't know). Then → "Enter your code" → "Reset password".
  */
 export default function ForgotScreen() {
   const router = useRouter();
@@ -46,18 +44,13 @@ export default function ForgotScreen() {
   }
 
   return (
-    <Screen>
-      <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: theme.spacing.sm }}>
-        <Button title="‹ Back" kind="text" size="small" onPress={() => router.back()} />
-      </View>
-      <ScrollView contentContainerStyle={{ gap: theme.spacing.xl, paddingBottom: 48 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentInsetAdjustmentBehavior="automatic">
-        <View style={{ gap: theme.spacing.xs }}>
-          <Text variant="largeTitle">Forgot your password?</Text>
-          <Text variant="body" color={theme.colors.text.onBackground.secondary}>Enter the email or phone number on your account. We'll text a code to the number we have for you.</Text>
-        </View>
-        <Input label="Email or phone" placeholder="you@example.com or (555) 555-0100" value={id} onChangeText={setId} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="username" autoComplete="username" onSubmitEditing={next} returnKeyType="done" error={error} autoFocus />
-        <Button title="Continue" onPress={next} loading={busy} />
-      </ScrollView>
-    </Screen>
+    <AuthScreen
+      onBack={() => router.back()}
+      title="Forgot your password?"
+      lead="Enter the email or phone number on your account. We'll text a code to the number we have for you."
+      footer={<Button label="Continue" onPress={next} loading={busy} />}
+    >
+      <Input label="Email or phone" placeholder="you@example.com or (555) 555-0100" value={id} onChangeText={setId} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="username" autoComplete="username" onSubmitEditing={next} returnKeyType="done" error={error} autoFocus />
+    </AuthScreen>
   );
 }

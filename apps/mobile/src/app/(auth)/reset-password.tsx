@@ -1,14 +1,13 @@
-import { legacyTheme as theme } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
-import { Button, Input, Screen, Text } from "@/components/ui";
+import { AuthScreen } from "@/components/AuthScreen";
+import { Button, Input, TextLink } from "@/ui";
 import { friendlyAuthError, useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 /**
- * Reset password (user feedback #5): the identifier (read-only), New
- * password, Confirm password, Confirm.
+ * Reset password: the identifier (read-only), New password, Confirm password,
+ * Confirm.
  *  - mode=reset (default, after the forgot-password code): saving signs the
  *    user out and returns them to the landing → login with a success line.
  *  - mode=change (from Profile → "Change Password", while signed in): no
@@ -40,21 +39,20 @@ export default function ResetPasswordScreen() {
   }
 
   return (
-    <Screen>
-      <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: theme.spacing.sm }}>
-        {change ? <Button title="‹ Profile" kind="text" size="small" onPress={() => router.back()} /> : <View style={{ height: 36 }} />}
-      </View>
-      <ScrollView contentContainerStyle={{ gap: theme.spacing.xl, paddingBottom: 48 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentInsetAdjustmentBehavior="automatic">
-        <View style={{ gap: theme.spacing.xs }}>
-          <Text variant="largeTitle">{change ? "Change password" : "Reset password"}</Text>
-          <Text variant="body" color={theme.colors.text.onBackground.secondary}>{change ? "Pick a new password for your account." : "Your number is confirmed. Pick a new password, then log in with it."}</Text>
-        </View>
-        <Input label="Email or phone" value={who} editable={false} selectTextOnFocus={false} style={{ opacity: 0.6 }} />
-        <Input label="New password" placeholder="At least 8 characters" value={p1} onChangeText={setP1} secureTextEntry textContentType="newPassword" autoComplete="new-password" autoFocus returnKeyType="next" />
-        <Input label="Confirm password" placeholder="Same again" value={p2} onChangeText={setP2} secureTextEntry textContentType="newPassword" autoComplete="new-password" error={error} onSubmitEditing={confirm} returnKeyType="done" />
-        <Button title="Confirm" onPress={confirm} loading={busy} disabled={p1.length < 8 || p2.length < 8} />
-        {!change && <Button title="Skip for now" kind="text" size="small" style={{ alignSelf: "center" }} onPress={() => setPendingPasswordReset(false)} />}
-      </ScrollView>
-    </Screen>
+    <AuthScreen
+      onBack={change ? () => router.back() : undefined}
+      title={change ? "Change password" : "Reset password"}
+      lead={change ? "Pick a new password for your account." : "Your number is confirmed. Pick a new password, then log in with it."}
+      footer={
+        <>
+          <Button label="Confirm" onPress={confirm} loading={busy} disabled={p1.length < 8 || p2.length < 8} />
+          {!change ? <TextLink label="Skip for now" muted style={{ alignSelf: "center" }} onPress={() => setPendingPasswordReset(false)} /> : null}
+        </>
+      }
+    >
+      <Input label="Email or phone" value={who} editable={false} selectTextOnFocus={false} />
+      <Input label="New password" placeholder="At least 8 characters" value={p1} onChangeText={setP1} secureTextEntry textContentType="newPassword" autoComplete="new-password" autoFocus returnKeyType="next" />
+      <Input label="Confirm password" placeholder="Same again" value={p2} onChangeText={setP2} secureTextEntry textContentType="newPassword" autoComplete="new-password" error={error} onSubmitEditing={confirm} returnKeyType="done" />
+    </AuthScreen>
   );
 }

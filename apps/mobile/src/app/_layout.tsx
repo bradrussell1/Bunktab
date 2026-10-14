@@ -1,4 +1,4 @@
-import { legacyTheme as theme } from "@bunktab/theme";
+import { palette } from "@bunktab/theme";
 import { Stack } from "expo-router";
 import { Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, useFonts } from "@expo-google-fonts/inter";
 import { Figtree_400Regular, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold } from "@expo-google-fonts/figtree";
@@ -32,7 +32,7 @@ function Routes() {
   const needsPassword = signedIn && !needsPhone && pendingPasswordReset;
   const needsProfile = signedIn && !needsPhone && !needsPassword && !profile?.display_name;
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background.main } }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bgMid } }}>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="(auth)/landing" />
         <Stack.Screen name="(auth)/login" />

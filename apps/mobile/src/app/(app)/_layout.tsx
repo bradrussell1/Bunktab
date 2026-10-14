@@ -1,6 +1,6 @@
-import { legacyTheme as theme } from "@bunktab/theme";
+import { palette } from "@bunktab/theme";
 import { Stack } from "expo-router";
 
 export default function AppLayout() {
-  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background.main } }} />;
+  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bgMid } }} />;
 }

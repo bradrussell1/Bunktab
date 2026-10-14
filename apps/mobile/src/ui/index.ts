@@ -8,7 +8,7 @@ export { Icon, type IconName } from "./icons";
 export { Button, IconButton } from "./Button";
 export { HeroCard, Card, RowCard, InsetPanel } from "./Cards";
 export { AmountPill, StatusPill, ContextPill, Chip } from "./Pills";
-export { SegmentedControl, Toggle, Input, TextArea } from "./Controls";
+export { SegmentedControl, Toggle, Input, TextArea, CodeCells, TextLink } from "./Controls";
 export { Stripe, StripeMeter, NightCell, Avatar, AvatarRow, PersonPill } from "./Stripes";
 export { ToastProvider, ToastView, useToast, BottomSheet, ActionSheet, SpeechBubble, Banner } from "./Overlays";
 export { TopBar, Wordmark } from "./TopBar";

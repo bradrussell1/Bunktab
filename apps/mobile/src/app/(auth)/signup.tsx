@@ -1,23 +1,21 @@
 import { isValidVenmoUsername, venmoProfileUrl } from "@bunktab/core";
-import { legacyTheme as theme } from "@bunktab/theme";
+import { color, space } from "@bunktab/theme";
 import { useRouter } from "expo-router";
 import { openBrowserAsync } from "expo-web-browser";
 import { useState } from "react";
-import { ScrollView, View } from "react-native";
-import { Button, Input, Screen, Text } from "@/components/ui";
+import { View } from "react-native";
+import { AuthScreen, FormError } from "@/components/AuthScreen";
+import { Button, Input, TextLink, ZText } from "@/ui";
 import { friendlyAuthError, isValidEmail, toE164 } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 /**
- * Sign up (user brief #24): name, email, password, phone, Venmo (optional),
- * Next, then "Enter the code we just sent you". Order under the hood:
- * the account is created on email + password (email is auto-confirmed:
- * no SMTP yet), the phone is attached, and the texted code confirms it as
- * a phone change. Supabase can't add an email to a phone-created account
- * without a mailer, which is why it isn't the other way round. Name and
- * Venmo ride along as user metadata so the users row is complete even if
- * the follow-up write fails. The root layout keeps an account without a
- * confirmed phone on the code step.
+ * Sign up: name, email, password, phone, Venmo (optional, with "Check it"),
+ * Next, then "Enter the code we just sent you". Order under the hood: the
+ * account is created on email + password (email is auto-confirmed: no SMTP
+ * yet), the phone is attached, and the texted code confirms it as a phone
+ * change. Name and Venmo ride along as user metadata so the users row is
+ * complete even if the follow-up write fails.
  */
 export default function SignupScreen() {
   const router = useRouter();
@@ -56,27 +54,26 @@ export default function SignupScreen() {
   }
 
   return (
-    <Screen>
-        <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: theme.spacing.sm }}>
-          <Button title="‹ Back" kind="text" size="small" onPress={() => router.back()} />
-        </View>
-        <ScrollView contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: 48 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentInsetAdjustmentBehavior="automatic">
-          <View style={{ gap: theme.spacing.xs }}>
-            <Text variant="largeTitle">Create your account</Text>
-            <Text variant="body" color={theme.colors.text.onBackground.secondary}>We'll text a code to confirm your number.</Text>
-          </View>
-          <Input label="Name" placeholder="Bradley" value={name} onChangeText={setName} autoCapitalize="words" textContentType="name" autoComplete="name" />
-          <Input label="Email" placeholder="you@example.com" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="emailAddress" autoComplete="email" />
-          <Input label="Password" placeholder="At least 8 characters" value={password} onChangeText={setPassword} secureTextEntry textContentType="newPassword" autoComplete="new-password" />
-          <Input label="Phone number" placeholder="(555) 555-0100" value={phone} onChangeText={setPhone} keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" helper="Your login and how friends' invites find you." />
-          <View style={{ gap: theme.spacing.xs }}>
-            <Input label="Venmo Handle (optional)" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} helper="You can add it later in Profile. Needed before close-out so friends can pay you in Venmo." />
-            {venmo.trim().length >= 5 && <Button title="Check it on venmo.com ↗" kind="text" size="small" style={{ alignSelf: "flex-start" }} onPress={() => openBrowserAsync(venmoProfileUrl(venmo))} />}
-          </View>
-          {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
-          <Button title="Next" onPress={next} loading={busy} />
-          <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>By continuing you agree to the Terms and Privacy Policy at zebrasplit.com.</Text>
-        </ScrollView>
-    </Screen>
+    <AuthScreen
+      onBack={() => router.back()}
+      title="Create your account"
+      lead="We'll text a code to confirm your number."
+      footer={
+        <>
+          <FormError>{error}</FormError>
+          <Button label="Next" onPress={next} loading={busy} />
+          <ZText variant="small" color={color.textMuted} style={{ textAlign: "center" }}>By continuing you agree to the Terms and Privacy Policy at zebrasplit.com.</ZText>
+        </>
+      }
+    >
+      <Input label="Name" placeholder="Bradley" value={name} onChangeText={setName} autoCapitalize="words" textContentType="name" autoComplete="name" />
+      <Input label="Email" placeholder="you@example.com" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="emailAddress" autoComplete="email" />
+      <Input label="Password" placeholder="At least 8 characters" value={password} onChangeText={setPassword} secureTextEntry textContentType="newPassword" autoComplete="new-password" />
+      <Input label="Phone number" placeholder="(555) 555-0100" value={phone} onChangeText={setPhone} keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" helper="Your login and how friends' invites find you." />
+      <View style={{ gap: space[4] }}>
+        <Input label="Venmo username (optional)" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} helper="Needed before close-out so friends can pay you in Venmo." />
+        {venmo.trim().length >= 5 ? <TextLink label="Check it" onPress={() => openBrowserAsync(venmoProfileUrl(venmo))} /> : null}
+      </View>
+    </AuthScreen>
   );
 }
