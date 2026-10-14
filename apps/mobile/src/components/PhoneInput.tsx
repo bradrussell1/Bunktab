@@ -1,6 +1,6 @@
 import { formatUsPhoneInput, toE164 } from "@bunktab/core";
 import { useState } from "react";
-import { Input } from "@/components/ui";
+import { Input } from "@/ui";
 
 /**
  * Phone field that formats as you type: "(555) 555-0100" for US numbers,
