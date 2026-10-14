@@ -1,4 +1,4 @@
-# Bunktab server jobs
+# Zebrasplit server jobs
 
 Postgres decides who is told what; Edge Functions do the sending. Every
 outbound message is first a row in `notification_log`, which is also the
@@ -136,7 +136,7 @@ Login codes go through **Twilio Verify** (service `VAf406e76f8503f527b61d0f38f81
   Change Password as `/(auth)/reset-password?mode=change` (no code, no
   sign-out, back to Profile).
 - **Google**: web OAuth through Supabase (`signInWithOAuth`, redirect
-  `bunktab://callback`; Expo Go uses `exp://…/--/callback`; both allow-listed).
+  `zebrasplit://callback`; Expo Go uses `exp://…/--/callback`; both allow-listed).
   The Google Cloud OAuth client MUST list
   `https://qywowvkkkxldgxoatdsh.supabase.co/auth/v1/callback` under
   Authorized redirect URIs, or Google answers `redirect_uri_mismatch`.
@@ -150,8 +150,8 @@ Login codes go through **Twilio Verify** (service `VAf406e76f8503f527b61d0f38f81
   retry on a transport failure; data calls never do.
 - Auth config set 2026-09-28/30: `password_min_length` 8, `mailer_autoconfirm`
   true, `mailer_secure_email_change_enabled` false, `site_url`
-  https://www.bunktab.com, redirect allow-list `bunktab://**, exp://**,
-  https://www.bunktab.com/**`, Apple provider on, Google provider on.
+  https://www.zebrasplit.com, redirect allow-list `zebrasplit://**, bunktab://**, exp://**,
+  https://www.zebrasplit.com/**`, Apple provider on, Google provider on.
 
 ## Settlement rules (2026-10-01, QA round 1)
 

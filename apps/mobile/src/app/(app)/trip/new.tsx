@@ -18,16 +18,16 @@ import { supabase } from "@/lib/supabase";
  * Create trip, two steps (spec: Screens → Create trip). 1 · Details: title,
  * description (250, with counter), start and end dates, base currency.
  * 2 · Invite: type a number (formatted as you go), "Invite your friends"
- * (people you've shared a Bunktab trip with) or "Select from contacts"
+ * (people you've shared a Zebrasplit trip with) or "Select from contacts"
  * (read on the device only; only the numbers picked are sent). People who
- * already use Bunktab are added straight to the trip; everyone else gets one
+ * already use Zebrasplit are added straight to the trip; everyone else gets one
  * text with a link. Both steps scroll with the keyboard so the button is
  * never hidden.
  */
 type Pick = { phone: string; name: string };
 
-const TERMS = "https://www.bunktab.com/terms";
-const SMS_INFO = "https://www.bunktab.com/sms";
+const TERMS = "https://www.zebrasplit.com/terms";
+const SMS_INFO = "https://www.zebrasplit.com/sms";
 
 export default function NewTripScreen() {
   const router = useRouter();
@@ -77,7 +77,7 @@ export default function NewTripScreen() {
     try {
       const { status, canAskAgain } = await Contacts.requestPermissionsAsync();
       if (status !== "granted") {
-        setSheetError(canAskAgain ? "Contacts permission was declined. You can still type a number." : "Contacts access is off. Turn it on in Settings › Bunktab › Contacts, or type a number.");
+        setSheetError(canAskAgain ? "Contacts permission was declined. You can still type a number." : "Contacts access is off. Turn it on in Settings › Zebrasplit › Contacts, or type a number.");
         setContacts([]); setSheetLoading(false); return;
       }
       const byPhone = new Map<string, Person>();
@@ -215,12 +215,12 @@ export default function NewTripScreen() {
                     <Text variant="body" style={{ flex: 1 }}>I agree to the <Text variant="text" color={theme.colors.text.onBackground.accent} onPress={() => openBrowserAsync(TERMS)}>Terms &amp; Conditions</Text></Text>
                   </Pressable>
                   <Pressable onPress={() => openBrowserAsync(SMS_INFO)} accessibilityRole="link" style={{ paddingLeft: 34 }}>
-                    <Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>How Bunktab texts work ↗</Text>
+                    <Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>How Zebrasplit texts work ↗</Text>
                   </Pressable>
                 </View>
               )}
               <Button title={picks.length ? `Create trip and invite ${picks.length}` : "Create trip"} onPress={finish} loading={busy} disabled={picks.length > 0 && !agreed} />
-              <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Friends already on Bunktab are added straight away. Everyone else gets one text with a link. You can add more people later.</Text>
+              <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Friends already on Zebrasplit are added straight away. Everyone else gets one text with a link. You can add more people later.</Text>
             </View>
           </>
         )}
@@ -231,7 +231,7 @@ export default function NewTripScreen() {
         title={sheet === "friends" ? "Invite your friends" : "Select from contacts"}
         people={sheetPeople}
         loading={sheetLoading}
-        emptyText={sheetError ?? (sheet === "friends" ? "No friends yet. People you've shared a Bunktab trip with will show up here." : "No contacts with phone numbers.")}
+        emptyText={sheetError ?? (sheet === "friends" ? "No friends yet. People you've shared a Zebrasplit trip with will show up here." : "No contacts with phone numbers.")}
         initialSelected={sheetSelected}
         onClose={() => setSheet(null)}
         onConfirm={addPeople}

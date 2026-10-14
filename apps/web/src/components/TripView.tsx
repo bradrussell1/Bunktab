@@ -146,7 +146,7 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
                 </div>
               ))}
             </div>
-            <p className="help">Payments happen in the Bunktab app, which opens Venmo pre-filled for each one.</p>
+            <p className="help">Payments happen in the Zebrasplit app, which opens Venmo pre-filled for each one.</p>
           </div>
         )}
       </div>

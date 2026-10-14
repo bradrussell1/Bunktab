@@ -42,7 +42,7 @@ export default function RecapScreen() {
     try {
       const uri = await shot.current?.capture?.();
       if (uri && (await Sharing.isAvailableAsync())) await Sharing.shareAsync(uri, { mimeType: "image/png", dialogTitle: `${trip.title} recap` });
-      else await Share.share({ message: `${trip.title} (${formatDateRange(trip.start_date, trip.end_date)}): ${formatCents(total, cur)} total across ${members.length} people. Settled with Bunktab.` });
+      else await Share.share({ message: `${trip.title} (${formatDateRange(trip.start_date, trip.end_date)}): ${formatCents(total, cur)} total across ${members.length} people. Settled with Zebrasplit.` });
     } catch { /* user dismissed the sheet */ }
     setSharing(false);
   }
@@ -59,7 +59,7 @@ export default function RecapScreen() {
           <Hero style={{ padding: 0 }}>
             {coverUrl
               ? <Image source={{ uri: coverUrl }} style={{ width: "100%", height: 180 }} resizeMode="cover" accessibilityIgnoresInvertColors />
-              : <View style={{ paddingHorizontal: theme.spacing.xl, paddingTop: theme.spacing.xl }}><HeroText variant="captionCaps2" tone="mint">Bunktab</HeroText></View>}
+              : <View style={{ paddingHorizontal: theme.spacing.xl, paddingTop: theme.spacing.xl }}><HeroText variant="captionCaps2" tone="mint">Zebrasplit</HeroText></View>}
             <View style={{ padding: theme.spacing.xl, gap: theme.spacing.md }}>
               <View style={{ gap: 2 }}>
                 <HeroText variant="largeTitle">{trip.title}</HeroText>
@@ -70,7 +70,7 @@ export default function RecapScreen() {
               <Stat label="Biggest expense" value={big ? `${big.description} · ${formatCents(big.base_amount_cents, cur)}` : "—"} />
               <Stat label="Top category" value={top ? `${top.label} · ${formatCents(top.cents, cur)}` : "—"} />
               <Stat label="Fronted the most" value={fronted ? `${nameOf(fronted.user_id)} · ${formatCents(fronted.cents, cur)}` : "—"} dusk />
-              <HeroText variant="caption3" tone="mid">{trip.status === "settled" ? "Settled · " : trip.status === "archived" ? "Archived · " : ""}split with Bunktab</HeroText>
+              <HeroText variant="caption3" tone="mid">{trip.status === "settled" ? "Settled · " : trip.status === "archived" ? "Archived · " : ""}split with Zebrasplit</HeroText>
             </View>
           </Hero>
         </ViewShot>

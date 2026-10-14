@@ -2,7 +2,7 @@
   "name": "@bunktab/web",
   "private": true,
   "version": "0.1.0",
-  "description": "Bunktab web: landing page and the no-install guest view that invite links open.",
+  "description": "Zebrasplit web: landing page and the no-install guest view that invite links open.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -46,7 +46,7 @@ export default function HistoryScreen() {
   }, [id, expense]);
 
   const who = (uid: string | null) => {
-    if (!uid) return { name: "Bunktab", full: "Bunktab", photo: null };
+    if (!uid) return { name: "Zebrasplit", full: "Zebrasplit", photo: null };
     const m = data?.members.find((x) => x.user_id === uid);
     const full = m ? (m.display_name ?? "Member") : (names[uid]?.name ?? "Someone");
     return { name: uid === me ? "You" : full, full, photo: m ? m.photo_url : (names[uid]?.photo ?? null) };

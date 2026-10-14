@@ -1,4 +1,4 @@
-# Supabase CLI config for Bunktab. `supabase link --project-ref qywowvkkkxldgxoatdsh`
+# Supabase CLI config for Zebrasplit. `supabase link --project-ref qywowvkkkxldgxoatdsh`
 # then `supabase db push` applies supabase/migrations to the hosted project.
 project_id = "bunktab"
 
@@ -16,7 +16,7 @@ major_version = 17
 [auth]
 enabled = true
 site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["bunktab://", "exp://"]
+additional_redirect_urls = ["zebrasplit://", "bunktab://", "exp://"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
@@ -25,7 +25,7 @@ enable_signup = true
 [auth.sms]
 enable_signup = true
 enable_confirmations = true
-template = "Your Bunktab code is {{ .Code }}"
+template = "Your Zebrasplit code is {{ .Code }}"
 max_frequency = "60s"
 
 # Local dev / test numbers so no SMS is needed: phone -> fixed code.

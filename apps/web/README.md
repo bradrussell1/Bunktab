@@ -1,4 +1,4 @@
-# Bunktab web (`@bunktab/web`)
+# Zebrasplit web (`@bunktab/web`)
 
 Next.js 15 app: the landing page and the no-install **guest view** that invite
 texts link to (spec §8). Guests verify their phone, see the trip, add and edit
@@ -27,7 +27,7 @@ Test sign-in: +1 555 555 0100 / 0101 with code 123456 (Supabase test numbers).
 
 ## Deploy
 
-Vercel project `bunktab-web` (scope `bradrussell16-2042s-projects`), root
+Vercel project `zebrasplit-web` (scope `bradrussell16-2042s-projects`), root
 directory `apps/web`, installed from the monorepo root. From the repo root:
 
 ```

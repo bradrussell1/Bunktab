@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
 export const metadata: Metadata = {
-  title: { default: "Bunktab", template: "%s · Bunktab" },
+  title: { default: "Zebrasplit", template: "%s · Zebrasplit" },
   description: "Split the trip. Settle in Venmo.",
 };
 export const viewport: Viewport = { themeColor: "#F5F5F7", colorScheme: "light", width: "device-width", initialScale: 1, viewportFit: "cover" };

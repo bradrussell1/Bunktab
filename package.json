@@ -1,8 +1,8 @@
 {
-  "name": "bunktab",
+  "name": "zebrasplit",
   "private": true,
   "version": "0.1.0",
-  "description": "Bunktab — split trip expenses, settle up in Venmo",
+  "description": "Zebrasplit — split trip expenses, settle up in Venmo",
   "workspaces": [
     "apps/*",
     "packages/*"

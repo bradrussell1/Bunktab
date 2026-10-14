@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "Bunktab",
+    "name": "Zebrasplit",
     "slug": "bunktab",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "bunktab",
+    "scheme": ["zebrasplit", "bunktab", "checkm8"],
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.bunktab.app",
       "supportsTablet": false,
       "icon": "./assets/expo.icon",
       "infoPlist": {
-        "NSContactsUsageDescription": "Bunktab reads your contacts on this device so you can pick who to invite. Only the numbers you choose are sent.",
-        "NSCameraUsageDescription": "Bunktab uses the camera to photograph receipts.",
-        "NSPhotoLibraryUsageDescription": "Bunktab uses your photos for receipts and trip covers.",
+        "NSContactsUsageDescription": "Zebrasplit reads your contacts on this device so you can pick who to invite. Only the numbers you choose are sent.",
+        "NSCameraUsageDescription": "Zebrasplit uses the camera to photograph receipts.",
+        "NSPhotoLibraryUsageDescription": "Zebrasplit uses your photos for receipts and trip covers.",
         "LSApplicationQueriesSchemes": [
           "venmo"
         ]
@@ -69,14 +69,14 @@
       [
         "expo-contacts",
         {
-          "contactsPermission": "Bunktab reads your contacts on this device so you can pick who to invite. Only the numbers you choose are sent."
+          "contactsPermission": "Zebrasplit reads your contacts on this device so you can pick who to invite. Only the numbers you choose are sent."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Bunktab uses your photos for receipts and trip covers.",
-          "cameraPermission": "Bunktab uses the camera to photograph receipts."
+          "photosPermission": "Zebrasplit uses your photos for receipts and trip covers.",
+          "cameraPermission": "Zebrasplit uses the camera to photograph receipts."
         }
       ],
       "expo-notifications",

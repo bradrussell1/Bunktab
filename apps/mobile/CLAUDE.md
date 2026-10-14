@@ -1,4 +1,4 @@
-# Bunktab mobile (Expo)
+# Zebrasplit mobile (Expo)
 
 - The spec is `docs/checkm8-v1-spec.md` at the repo root. Screens, copy and
   arithmetic come from it; the arithmetic itself lives in `@bunktab/core`

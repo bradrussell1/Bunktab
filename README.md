@@ -1,4 +1,6 @@
-# Bunktab — split trip expenses, settle up in Venmo
+# Zebrasplit — split trip expenses, settle up in Venmo
+
+> **Identifiers that keep the old names on purpose.** The product is Zebrasplit (zebrasplit.com, scheme `zebrasplit://`, since 2026-10-13; Bunktab before that, Checkm8 before that). The iOS/Android bundle id `com.bunktab.app`, the Expo slug `bunktab`, the EAS project `@brad.russell1/bunktab`, the npm workspaces `@bunktab/*`, the App Store Connect record and the push key are internal and stay as they are, like the `checkm8.internal` setting, Vault secret and `x-checkm8-secret` header. Old schemes and domains keep working: `bunktab://` and `checkm8://` are still accepted, and bunktab.com / check-m8.io redirect to zebrasplit.com.
 
 A group logs shared trip expenses, everyone taps **Done**, and close-out
 opens Venmo with each payment pre-filled, using the fewest payments possible.
