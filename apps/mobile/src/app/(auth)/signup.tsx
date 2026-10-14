@@ -75,7 +75,7 @@ export default function SignupScreen() {
           </View>
           {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
           <Button title="Next" onPress={next} loading={busy} />
-          <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>By continuing you agree to the Terms and Privacy Policy at bunktab.com.</Text>
+          <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>By continuing you agree to the Terms and Privacy Policy at zebrasplit.com.</Text>
         </ScrollView>
     </Screen>
   );
