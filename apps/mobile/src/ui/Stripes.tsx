@@ -19,7 +19,7 @@ export function Stripe({ done, width, height, angleDeg, onColor = color.stripeOn
   const fill = useAnimatedStyle(() => ({ transform: [{ scaleY: Math.max(0, Math.min(1.08, grow.value)) }] }));
   return (
     <View style={[{ width, height, borderRadius: width / 2, backgroundColor: offColor, overflow: "hidden", transform: [{ rotate: `${angleDeg}deg` }] }, style]}>
-      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: onColor, borderRadius: width / 2, transformOrigin: "top" }, fill]} />
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: onColor, borderRadius: width / 2, transformOrigin: "50% 0%" }, fill]} />
     </View>
   );
 }
@@ -86,9 +86,9 @@ export function Avatar({ name, uri, size: s = size.avatar, done, notDone, style,
       accessibilityLabel={done ? `${name}, done` : notDone ? `${name}, still adding` : name}
       style={[styles.avatar, { width: s, height: s, borderRadius: s / 2, backgroundColor: done ? palette.ink : uri ? "transparent" : color.surfaceTile }, notDone && !done ? styles.avatarDashed : null, onHero ? styles.avatarRing : null, style]}
     >
+      {done ? <Animated.View pointerEvents="none" style={[styles.avatarStripe, { width: Math.round(s * 0.22), height: s * 1.4, top: -s * 0.2, left: s * 0.6, borderRadius: s * 0.11 }, stripe]} /> : null}
       {uri && !done ? <Image source={{ uri }} style={{ width: s, height: s, borderRadius: s / 2 }} accessibilityIgnoresInvertColors /> : null}
       {!uri || done ? <ZText variant="captionStrong" color={done ? color.textOnInk : color.text} style={{ fontSize: Math.round(s * 0.33) }}>{initials(name)}</ZText> : null}
-      {done ? <Animated.View pointerEvents="none" style={[styles.avatarStripe, { width: Math.round(s * 0.22), height: s * 1.4, top: -s * 0.2, left: s * 0.6, borderRadius: s * 0.11 }, stripe]} /> : null}
     </View>
   );
 }

@@ -59,7 +59,7 @@ export function Zebra({ variant = "full", mood = "hi", members = 6, done = 0, si
     blink.value = withRepeat(withSequence(withTiming(1, { duration: p * motion.blink.closeAt }), withTiming(motion.blink.closedScaleY, { duration: p * 0.03 }), withTiming(1, { duration: p * 0.03 })), -1, false);
     return () => cancelAnimation(blink);
   }, [blinks, blink]);
-  const blinkProps = useAnimatedProps(() => ({ transform: `translate(0 ${EYE_CY}) scale(1 ${blink.value}) translate(0 ${-EYE_CY})` }));
+  const blinkProps = useAnimatedProps(() => ({ scaleY: blink.value }));
 
   // ── tail swish: rotate −8° ↔ 14° about the tail root, 2.2 s ──
   const swish = useSharedValue<number>(motion.swish.fromDeg);
@@ -69,7 +69,7 @@ export function Zebra({ variant = "full", mood = "hi", members = 6, done = 0, si
     swish.value = withRepeat(withSequence(withTiming(motion.swish.toDeg, { duration: motion.swish.period / 2, easing: Easing.inOut(Easing.ease) }), withTiming(motion.swish.fromDeg, { duration: motion.swish.period / 2, easing: Easing.inOut(Easing.ease) })), -1, false);
     return () => cancelAnimation(swish);
   }, [swishes, swish]);
-  const tailProps = useAnimatedProps(() => ({ transform: `rotate(${swish.value} ${TAIL_ROOT.x} ${TAIL_ROOT.y})` }));
+  const tailProps = useAnimatedProps(() => ({ rotation: swish.value }));
 
   // ── bob: translateY 0 → −5 → 0, rotate −2° ↔ 2°, 3.4 s, origin bottom centre ──
   const bob = useSharedValue(0);
@@ -108,7 +108,7 @@ export function Zebra({ variant = "full", mood = "hi", members = 6, done = 0, si
     zz.value = withRepeat(withSequence(withTiming(1, { duration: motion.zz.period / 2, easing: Easing.inOut(Easing.ease) }), withTiming(0, { duration: motion.zz.period / 2, easing: Easing.inOut(Easing.ease) })), -1, false);
     return () => cancelAnimation(zz);
   }, [floats, zz]);
-  const zzProps = useAnimatedProps(() => ({ transform: `translate(0 ${zz.value * motion.zz.travelY})`, opacity: 1 - zz.value * 0.5 }));
+  const zzProps = useAnimatedProps(() => ({ translateY: zz.value * motion.zz.travelY, opacity: 1 - zz.value * 0.5 }));
 
   const label = accessibilityLabel ?? zebraLabel(mood, variant === "full" ? members : undefined, variant === "full" ? done : undefined);
 
@@ -126,7 +126,7 @@ export function Zebra({ variant = "full", mood = "hi", members = 6, done = 0, si
         {variant === "full" ? (
           <>
             <Shadow />
-            <AG animatedProps={tailProps}><Tail up={up} sw={sw} /></AG>
+            <AG animatedProps={tailProps} originX={TAIL_ROOT.x} originY={TAIL_ROOT.y}><Tail up={up} sw={sw} /></AG>
             <Legs sw={sw} />
           </>
         ) : null}
@@ -159,7 +159,7 @@ function MoodEyes({ mood, opacity, blinkProps, sw }: { mood: ZebraMood; opacity:
   const inner = <Eyes mood={mood} sw={sw} />;
   return (
     <AG animatedProps={fade}>
-      {blinkProps ? <AG animatedProps={blinkProps}>{inner}</AG> : inner}
+      {blinkProps ? <AG animatedProps={blinkProps} originX={120} originY={EYE_CY}>{inner}</AG> : inner}
       {mood === "worried" ? <SweatDrop sw={sw} /> : null}
     </AG>
   );
@@ -175,12 +175,13 @@ function BodyStripe({ cx, width, done, index, reduced }: { cx: number; width: nu
   }, [done, index, reduced, grow]);
   const x = cx - width / 2;
   const top = ZEBRA_STRIPE.top;
-  const fillProps = useAnimatedProps(() => ({ transform: `rotate(${ZEBRA_STRIPE.angleDeg} ${cx} ${ZEBRA_STRIPE.pivotY}) translate(0 ${top}) scale(1 ${Math.max(0, grow.value)}) translate(0 ${-top})` }));
+  const fillProps = useAnimatedProps(() => ({ scaleY: Math.max(0, grow.value) }));
+  // The 10° rotation is static on the wrapping G; only scaleY (from the top edge) animates.
   return (
-    <>
-      <Rect x={x} y={top} width={width} height={ZEBRA_STRIPE.height} rx={width / 2} transform={`rotate(${ZEBRA_STRIPE.angleDeg} ${cx} ${ZEBRA_STRIPE.pivotY})`} fill={z.ghostStripe} />
-      <ARect x={x} y={top} width={width} height={ZEBRA_STRIPE.height} rx={width / 2} animatedProps={fillProps} fill={z.ink} />
-    </>
+    <G transform={`rotate(${ZEBRA_STRIPE.angleDeg} ${cx} ${ZEBRA_STRIPE.pivotY})`}>
+      <Rect x={x} y={top} width={width} height={ZEBRA_STRIPE.height} rx={width / 2} fill={z.ghostStripe} />
+      <ARect x={x} y={top} width={width} height={ZEBRA_STRIPE.height} rx={width / 2} originX={cx} originY={top} animatedProps={fillProps} fill={z.ink} />
+    </G>
   );
 }
 

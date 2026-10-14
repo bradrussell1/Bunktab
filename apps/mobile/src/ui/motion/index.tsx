@@ -72,7 +72,7 @@ export function StripeGrow({ on, children, style, haptics = true }: { on: boolea
     if (on && haptics) haptic.light();
   }, [on, reduced, haptics, s]);
   const a = useAnimatedStyle(() => ({ transform: [{ scaleY: Math.max(0, s.value) }] }));
-  return <Animated.View style={[{ transformOrigin: "top" }, a, style]}>{children}</Animated.View>;
+  return <Animated.View style={[{ transformOrigin: "50% 0%" }, a, style]}>{children}</Animated.View>;
 }
 
 /** DoneSwipe: a volt stripe swipes across (translateX −100 % → 0, 460 ms spring). */
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   piece: { position: "absolute", width: 8, height: 22, borderRadius: 4 },
   clip: { overflow: "hidden" },
   countUp: { alignSelf: "flex-start" },
-  underline: { height: 6, borderRadius: 3, backgroundColor: palette.volt, marginTop: 4, transformOrigin: "left" },
+  underline: { height: 6, borderRadius: 3, backgroundColor: palette.volt, marginTop: 4, transformOrigin: "0% 50%" },
   zip: { height: size.ctaHeight, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", overflow: "hidden", alignSelf: "stretch" },
   zipStripes: { position: "absolute", top: -20, bottom: -20, left: 0, right: -200, flexDirection: "row" },
   zipStripe: { position: "absolute", top: 0, bottom: 0, width: 14, backgroundColor: "rgba(255,255,255,0.18)", transform: [{ rotate: "25deg" }] },
