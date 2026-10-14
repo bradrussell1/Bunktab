@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { ToastProvider } from "@/ui";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -55,6 +56,7 @@ function Routes() {
       </Stack.Protected>
       <Stack.Screen name="(auth)/callback" />
       {__DEV__ && <Stack.Screen name="dev-login" />}
+      {__DEV__ && <Stack.Screen name="design" />}
     </Stack>
   );
 }
@@ -74,8 +76,10 @@ export default function RootLayout() {
   if (!fontsReady && !fontError && !waited) return null; // hold the splash for the fonts; never block the app on them
   return (
     <AuthProvider>
-      <StatusBar style="dark" />
-      <Routes />
+      <ToastProvider>
+        <StatusBar style="dark" />
+        <Routes />
+      </ToastProvider>
     </AuthProvider>
   );
 }
