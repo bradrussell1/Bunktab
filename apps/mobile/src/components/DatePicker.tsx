@@ -1,5 +1,5 @@
 import { clampMonth, compareMonth, formatDateLong, monthGrid, monthLabel, monthOf, monthRange, shiftMonth, todayIso, WEEKDAYS_SHORT, type YearMonth } from "@bunktab/core";
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Keyboard, Modal, Pressable, View } from "react-native";

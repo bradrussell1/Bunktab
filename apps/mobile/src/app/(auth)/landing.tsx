@@ -1,4 +1,4 @@
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";

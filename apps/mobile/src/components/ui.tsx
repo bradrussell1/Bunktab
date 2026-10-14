@@ -1,4 +1,4 @@
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {

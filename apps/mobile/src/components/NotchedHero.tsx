@@ -1,4 +1,4 @@
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import { useState, type ReactNode } from "react";
 import { View, type LayoutChangeEvent, type StyleProp, type ViewStyle } from "react-native";
 import Svg, { ClipPath, Defs, LinearGradient, Path, Rect, Stop } from "react-native-svg";

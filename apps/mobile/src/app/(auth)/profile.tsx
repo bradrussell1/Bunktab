@@ -1,5 +1,5 @@
 import { isValidVenmoUsername, venmoProfileUrl } from "@bunktab/core";
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import { openBrowserAsync } from "expo-web-browser";
 import { useState } from "react";
 import { ScrollView, View } from "react-native";

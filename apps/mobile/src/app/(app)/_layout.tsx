@@ -1,4 +1,4 @@
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import { Stack } from "expo-router";
 
 export default function AppLayout() {

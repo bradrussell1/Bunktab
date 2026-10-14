@@ -1,5 +1,5 @@
 import { COMMON_CURRENCIES, formatPhoneDisplay, formatUsPhoneInput, toE164 } from "@bunktab/core";
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import * as Contacts from "expo-contacts/legacy";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { openBrowserAsync } from "expo-web-browser";

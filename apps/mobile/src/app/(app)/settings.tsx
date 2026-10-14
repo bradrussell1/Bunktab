@@ -1,5 +1,5 @@
 import { CATEGORIES, formatCents, isValidVenmoUsername, venmoProfileUrl } from "@bunktab/core";
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { openBrowserAsync } from "expo-web-browser";
 import { useCallback, useMemo, useState } from "react";

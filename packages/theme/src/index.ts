@@ -1,5 +1,19 @@
 /**
- * Zebrasplit design tokens - "Gold & Navy" light theme (2026-10-01).
+ * @bunktab/theme
+ *
+ * The Zebrasplit design system (2026-10-14) lives in ./tokens — `theme`, `palette`,
+ * `color`, `zebra`, `fonts`, `type`, `space`, `layout`, `radius`, `shadow`, `size`,
+ * `motion`, plus `text()` and `useTheme()`. That is the system every new component reads.
+ *
+ * Everything below the tokens re-export is the LEGACY "Gold & Navy" theme, renamed
+ * `legacy*` and kept only until Part B of the reskin has moved every screen. Do not
+ * use it in new code; it is deleted in the last reskin commit.
+ */
+export * from "./tokens";
+export * from "./text";
+
+/**
+ * LEGACY Gold & Navy light theme (2026-10-01) - deprecated, see header.
  *
  * Palette from the brief: Light #F5F5F7, Gray #E5E5E5, Gold #FCA311,
  * Blue #14213D, Black #000000. Light canvas; white tiles with a gray
@@ -19,7 +33,7 @@
  * - Red = you owe / destructive only.
  */
 
-export const palette = {
+export const legacyPalette = {
   light: "#F5F5F7",
   lightDeep: "#ECEDF2",
   white: "#FFFFFF",
@@ -49,57 +63,57 @@ export function alpha(hex: string, a: number): string {
 }
 
 /** Kit roles → values. Role names are stable across re-skins. */
-export const colors = {
+export const legacyColors = {
   background: {
-    main: palette.light,
-    surface: palette.white,
-    elevated: palette.white,
+    main: legacyPalette.light,
+    surface: legacyPalette.white,
+    elevated: legacyPalette.white,
     /** Canvas: a whisper of a gradient, white at the top settling into the light gray. */
-    gradient: [palette.white, palette.light, palette.lightDeep] as readonly [string, string, string],
+    gradient: [legacyPalette.white, legacyPalette.light, legacyPalette.lightDeep] as readonly [string, string, string],
   },
   fill: {
-    primary: palette.gold,
-    primaryDisabled: alpha(palette.gold, 0.4),
-    secondary: palette.gray,
-    field: palette.white,
-    warning: palette.gold,
-    destructive: palette.red,
-    success: palette.gold,
+    primary: legacyPalette.gold,
+    primaryDisabled: alpha(legacyPalette.gold, 0.4),
+    secondary: legacyPalette.gray,
+    field: legacyPalette.white,
+    warning: legacyPalette.gold,
+    destructive: legacyPalette.red,
+    success: legacyPalette.gold,
   },
   text: {
     onBackground: {
-      primary: palette.ink,
-      secondary: palette.inkMid,
-      tertiary: palette.inkLow,
-      accent: palette.navy,
-      title: palette.navy,
+      primary: legacyPalette.ink,
+      secondary: legacyPalette.inkMid,
+      tertiary: legacyPalette.inkLow,
+      accent: legacyPalette.navy,
+      title: legacyPalette.navy,
     },
-    onFill: { onPrimary: palette.black, onSecondary: palette.ink, onDark: palette.white, onSuccess: palette.black },
-    warning: palette.goldDeep,
-    destructive: palette.red,
-    success: palette.gold,
-    successDeep: palette.goldDeep,
+    onFill: { onPrimary: legacyPalette.black, onSecondary: legacyPalette.ink, onDark: legacyPalette.white, onSuccess: legacyPalette.black },
+    warning: legacyPalette.goldDeep,
+    destructive: legacyPalette.red,
+    success: legacyPalette.gold,
+    successDeep: legacyPalette.goldDeep,
   },
-  border: { primary: palette.navy, neutral: palette.gray, soft: palette.gray, focus: palette.gold },
-  divider: { default: palette.gray },
-  icons: { accentOnLight: palette.navy, accentOnDark: palette.gold, outline: palette.inkMid },
-  system: { cursor: palette.navy, dimming40: alpha(palette.black, 0.4) },
+  border: { primary: legacyPalette.navy, neutral: legacyPalette.gray, soft: legacyPalette.gray, focus: legacyPalette.gold },
+  divider: { default: legacyPalette.gray },
+  icons: { accentOnLight: legacyPalette.navy, accentOnDark: legacyPalette.gold, outline: legacyPalette.inkMid },
+  system: { cursor: legacyPalette.navy, dimming40: alpha(legacyPalette.black, 0.4) },
   /** The one navy card per screen. Gradient is a subtle navy lift, top-left → bottom-right. */
   hero: {
-    gradient: [palette.navy, palette.navyRaised, palette.navy] as readonly [string, string, string],
-    ink: palette.white,
-    inkMid: palette.onNavyMid,
-    dusk: palette.red,
-    mint: palette.gold,
-    cta: palette.gold,
-    onCta: palette.black,
-    divider: alpha(palette.white, 0.14),
-    chip: alpha(palette.white, 0.12),
+    gradient: [legacyPalette.navy, legacyPalette.navyRaised, legacyPalette.navy] as readonly [string, string, string],
+    ink: legacyPalette.white,
+    inkMid: legacyPalette.onNavyMid,
+    dusk: legacyPalette.red,
+    mint: legacyPalette.gold,
+    cta: legacyPalette.gold,
+    onCta: legacyPalette.black,
+    divider: alpha(legacyPalette.white, 0.14),
+    chip: alpha(legacyPalette.white, 0.12),
   },
 } as const;
 
 /** Typography (Inter). size / lineHeight / weight. */
-export const type = {
+export const legacyType = {
   largeTitle: { fontSize: 32, lineHeight: 40, fontWeight: "700" as const },
   title2: { fontSize: 17, lineHeight: 24, fontWeight: "600" as const },
   title2Medium: { fontSize: 17, lineHeight: 24, fontWeight: "500" as const },
@@ -113,65 +127,65 @@ export const type = {
   caption3: { fontSize: 11, lineHeight: 16, fontWeight: "600" as const },
 } as const;
 
-export const spacing = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24 } as const;
+export const legacySpacing = { xxs: 2, xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24 } as const;
 /** Screen side padding. */
-export const screenPadding = 16;
+export const legacyScreenPadding = 16;
 
-export const radius = { tag: 4, control: 8, sheet: 12, card: 16, hero: 22, pill: 24 } as const;
+export const legacyRadius = { tag: 4, control: 8, sheet: 12, card: 16, hero: 22, pill: 24 } as const;
 
 /** Soft shadows on a light canvas: tiles get a whisper, the hero a lift. */
-export const elevation = {
-  xs: { shadowColor: palette.navy, shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
-  sm: { shadowColor: palette.navy, shadowOpacity: 0.22, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 5 },
+export const legacyElevation = {
+  xs: { shadowColor: legacyPalette.navy, shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  sm: { shadowColor: legacyPalette.navy, shadowOpacity: 0.22, shadowRadius: 18, shadowOffset: { width: 0, height: 10 }, elevation: 5 },
 } as const;
 
-export const theme = { palette, colors, type, spacing, screenPadding, radius, elevation } as const;
-export type Theme = typeof theme;
+export const legacyTheme = { palette: legacyPalette, colors: legacyColors, type: legacyType, spacing: legacySpacing, screenPadding: legacyScreenPadding, radius: legacyRadius, elevation: legacyElevation } as const;
+export type LegacyTheme = typeof legacyTheme;
 
 /** CSS for the hero background (web). */
-export const heroGradientCss = `linear-gradient(135deg, ${palette.navy} 0%, ${palette.navyRaised} 50%, ${palette.navy} 100%)`;
+export const heroGradientCss = `linear-gradient(135deg, ${legacyPalette.navy} 0%, ${legacyPalette.navyRaised} 50%, ${legacyPalette.navy} 100%)`;
 
 /** The same tokens as CSS custom properties, for the Next.js web guest view. */
 export function cssVariables(): string {
   return [
-    `--bg-main: ${colors.background.main}`,
-    `--bg-surface: ${colors.background.surface}`,
-    `--bg-elevated: ${colors.background.elevated}`,
-    `--fill-primary: ${colors.fill.primary}`,
-    `--fill-primary-disabled: ${colors.fill.primaryDisabled}`,
-    `--fill-secondary: ${colors.fill.secondary}`,
-    `--fill-field: ${colors.fill.field}`,
-    `--fill-warning: ${colors.fill.warning}`,
-    `--fill-destructive: ${colors.fill.destructive}`,
-    `--fill-success: ${colors.fill.success}`,
-    `--text-primary: ${colors.text.onBackground.primary}`,
-    `--text-secondary: ${colors.text.onBackground.secondary}`,
-    `--text-tertiary: ${colors.text.onBackground.tertiary}`,
-    `--text-accent: ${colors.text.onBackground.accent}`,
-    `--text-title: ${colors.text.onBackground.title}`,
-    `--text-success: ${colors.text.success}`,
-    `--text-success-deep: ${colors.text.successDeep}`,
-    `--text-destructive: ${colors.text.destructive}`,
-    `--text-on-primary: ${colors.text.onFill.onPrimary}`,
-    `--text-on-success: ${colors.text.onFill.onSuccess}`,
-    `--border-primary: ${colors.border.primary}`,
-    `--border-neutral: ${colors.border.neutral}`,
-    `--border-soft: ${colors.border.soft}`,
-    `--border-focus: ${colors.border.focus}`,
-    `--divider: ${colors.divider.default}`,
-    `--dimming-40: ${colors.system.dimming40}`,
+    `--bg-main: ${legacyColors.background.main}`,
+    `--bg-surface: ${legacyColors.background.surface}`,
+    `--bg-elevated: ${legacyColors.background.elevated}`,
+    `--fill-primary: ${legacyColors.fill.primary}`,
+    `--fill-primary-disabled: ${legacyColors.fill.primaryDisabled}`,
+    `--fill-secondary: ${legacyColors.fill.secondary}`,
+    `--fill-field: ${legacyColors.fill.field}`,
+    `--fill-warning: ${legacyColors.fill.warning}`,
+    `--fill-destructive: ${legacyColors.fill.destructive}`,
+    `--fill-success: ${legacyColors.fill.success}`,
+    `--text-primary: ${legacyColors.text.onBackground.primary}`,
+    `--text-secondary: ${legacyColors.text.onBackground.secondary}`,
+    `--text-tertiary: ${legacyColors.text.onBackground.tertiary}`,
+    `--text-accent: ${legacyColors.text.onBackground.accent}`,
+    `--text-title: ${legacyColors.text.onBackground.title}`,
+    `--text-success: ${legacyColors.text.success}`,
+    `--text-success-deep: ${legacyColors.text.successDeep}`,
+    `--text-destructive: ${legacyColors.text.destructive}`,
+    `--text-on-primary: ${legacyColors.text.onFill.onPrimary}`,
+    `--text-on-success: ${legacyColors.text.onFill.onSuccess}`,
+    `--border-primary: ${legacyColors.border.primary}`,
+    `--border-neutral: ${legacyColors.border.neutral}`,
+    `--border-soft: ${legacyColors.border.soft}`,
+    `--border-focus: ${legacyColors.border.focus}`,
+    `--divider: ${legacyColors.divider.default}`,
+    `--dimming-40: ${legacyColors.system.dimming40}`,
     `--hero-gradient: ${heroGradientCss}`,
-    `--hero-ink: ${colors.hero.ink}`,
-    `--hero-ink-mid: ${colors.hero.inkMid}`,
-    `--hero-dusk: ${colors.hero.dusk}`,
-    `--hero-mint: ${colors.hero.mint}`,
-    `--hero-divider: ${colors.hero.divider}`,
-    `--hero-chip: ${colors.hero.chip}`,
-    `--radius-tag: ${radius.tag}px`,
-    `--radius-control: ${radius.control}px`,
-    `--radius-sheet: ${radius.sheet}px`,
-    `--radius-card: ${radius.card}px`,
-    `--radius-hero: ${radius.hero}px`,
-    `--radius-pill: ${radius.pill}px`,
+    `--hero-ink: ${legacyColors.hero.ink}`,
+    `--hero-ink-mid: ${legacyColors.hero.inkMid}`,
+    `--hero-dusk: ${legacyColors.hero.dusk}`,
+    `--hero-mint: ${legacyColors.hero.mint}`,
+    `--hero-divider: ${legacyColors.hero.divider}`,
+    `--hero-chip: ${legacyColors.hero.chip}`,
+    `--radius-tag: ${legacyRadius.tag}px`,
+    `--radius-control: ${legacyRadius.control}px`,
+    `--radius-sheet: ${legacyRadius.sheet}px`,
+    `--radius-card: ${legacyRadius.card}px`,
+    `--radius-hero: ${legacyRadius.hero}px`,
+    `--radius-pill: ${legacyRadius.pill}px`,
   ].join(";\n");
 }

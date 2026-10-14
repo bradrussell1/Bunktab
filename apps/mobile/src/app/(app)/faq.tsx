@@ -1,4 +1,4 @@
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import { useRouter } from "expo-router";
 import { ScrollView, View } from "react-native";
 import { Button, Card, Screen, Text } from "@/components/ui";

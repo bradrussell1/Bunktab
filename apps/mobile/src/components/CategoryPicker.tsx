@@ -1,5 +1,5 @@
 import { CATEGORIES } from "@bunktab/core";
-import { theme } from "@bunktab/theme";
+import { legacyTheme as theme } from "@bunktab/theme";
 import { Pressable, View } from "react-native";
 import { RotaryCarousel } from "./RotaryCarousel";
 import { Text } from "./ui";
