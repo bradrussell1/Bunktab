@@ -1,4 +1,4 @@
-import { color, motion, palette, radius, shadow, space, type } from "@bunktab/theme";
+import { color, fonts, motion, palette, radius, shadow, space, type } from "@bunktab/theme";
 import { useEffect, useState } from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
@@ -47,9 +47,9 @@ export function Receipt({ merchant, lines, totalCents, print = true, width = 280
           ))}
           <ZText style={[mono, styles.center]} color={color.textMuted}>· · · · · · · · · · · · · ·</ZText>
           <View style={styles.line}>
-            <ZText style={[mono, { fontFamily: "IBMPlexMono_700Bold" }]}>TOTAL</ZText>
+            <ZText style={[mono, { fontFamily: fonts.monoBold }]}>TOTAL</ZText>
             <View style={styles.total}>
-              <ZText style={[mono, { fontFamily: "IBMPlexMono_700Bold" }]} tabular>{formatMoney(shown, { sign: "never" })}</ZText>
+              <ZText style={[mono, { fontFamily: fonts.monoBold }]} tabular>{formatMoney(shown, { sign: "never" })}</ZText>
             </View>
           </View>
           <Svg width="100%" height={10} viewBox="0 0 100 10" preserveAspectRatio="none" style={styles.tear}>

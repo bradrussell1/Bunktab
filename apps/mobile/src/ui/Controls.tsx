@@ -1,4 +1,4 @@
-import { color, motion, palette, radius, shadow, size, space } from "@bunktab/theme";
+import { color, motion, palette, radius, shadow, size, space, type } from "@bunktab/theme";
 import { useEffect, useState, type ReactNode } from "react";
 import { StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   field: { backgroundColor: palette.white, borderWidth: 1.5, flexDirection: "row", alignItems: "center", gap: space[8], paddingHorizontal: 16 },
   fieldPill: { borderRadius: radius.pill, minHeight: size.buttonHeight },
   fieldMulti: { borderRadius: radius.row, minHeight: 112, alignItems: "flex-start", paddingVertical: 12 },
-  inputText: { flex: 1, paddingVertical: 12, color: color.text, fontFamily: "Figtree_400Regular", fontSize: 15, lineHeight: 21 },
+  inputText: { flex: 1, paddingVertical: 12, color: color.text, ...type.body },
   inputMulti: { textAlignVertical: "top", minHeight: 88, paddingVertical: 0 },
   inputMeta: { marginTop: 6, marginLeft: 4 },
   inputMetaRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 6, marginHorizontal: 4 },
