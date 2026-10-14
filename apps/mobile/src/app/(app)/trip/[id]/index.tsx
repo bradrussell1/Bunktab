@@ -1,81 +1,114 @@
-import { CATEGORIES, categoryLabel, closeoutUnlocked, formatCents, formatDateRange } from "@bunktab/core";
-import { alpha, legacyTheme as theme } from "@bunktab/theme";
-import { LinearGradient } from "expo-linear-gradient";
+import { CATEGORIES, categoryLabel, closeoutUnlocked, formatCents, formatDateRange, nightsBetween, zebraMoodFor } from "@bunktab/core";
+import { color, layout, palette, radius, shadow, size, space } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import { ActionSheetIOS, ActivityIndicator, Alert, Image, Platform, Pressable, ScrollView, Switch, View } from "react-native";
-import { NotchedHero, notchInset } from "@/components/NotchedHero";
-import { Avatar, Button, DoneBadge, Divider, Hero, HeroLink, HeroPill, HeroText, Screen, Segmented, Text, Tile } from "@/components/ui";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Image, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ActionSheet, AmountPill, Avatar, AvatarRow, Button, Card, CountUp, Icon, IconButton, InsetPanel, HeroCard, LiveDot, Money, Press, Rise, RowCard, ScreenBackground, SegmentedControl, Toggle, TopBar, Zebra, ZText, useToast, type SheetAction } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { uploadPrivateImage, useSignedUrl } from "@/lib/media";
 import { pickImage } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { biggestExpense, CATEGORY_GLYPH, frontedMost, topCategory } from "@/lib/tripExtras";
-import { activeMembers, memberName, membersWithNoExpenses, myDelta, myExpenses, nets, paidBy, previewPayments, shareOf, tripTotal, useTrip, type Expense, type Member, type TripData } from "@/lib/trips";
+import { activeMembers, memberName, membersWithNoExpenses, myDelta, nets, paidBy, previewPayments, shareOf, tripTotal, useTrip, type Expense, type TripData } from "@/lib/trips";
 
 /**
- * The trip page (spec: Screens → Trip page): header with cover photo (tap to
- * add or change), an "Attendees:" pill with a scrolling row of member chips and Done badges; the
- * "Your Check" hero with the settlement preview behind a HeroLink; who
- * hasn't logged yet; Expenses (yours) · All Expenses · Summary on a second
- * pastel card (mint = owed to you, dusk = you owe); the sticky footer with
- * Add expense, the Done toggle and Close out. "Settled up" (close-out
- * switch) greys the expenses and relabels the check. The ⋯ menu holds
- * Profile, Trip history and, for the owner, Close out anyway / Delete.
- * `?readonly=1` (opened from Profile → History) shows the same page with
- * nothing tappable, no footer and a "‹ History" back button.
+ * The dazzle page (RESKIN_PROMPT B4, board `Trip`): TopBar with back and the ⋯ menu;
+ * title + "Oct 9 – 14, 2026 · 5 nights · 6 in the dazzle"; the member avatar row
+ * (done = ink with a volt stripe; tap opens member details); the balance HeroCard
+ * with the full zebra (progress rule; tap → Earn your stripes) and the stripes
+ * InsetPanel with Nudge; "Jordan hasn't added anything yet" with a live dot; the
+ * "See who pays who" settlement preview; Expenses · People · Summary; and the white
+ * sheet footer with the Done toggle, Add expense and Close out (locked until
+ * everyone's done). `?readonly=1` (from Profile → History) shows the page with
+ * nothing tappable and no footer. Every read, RPC and navigation target is the
+ * same as before the reskin.
  */
-type Tab = "mine" | "all" | "summary";
+type Tab = "expenses" | "people" | "summary";
 
 export default function TripScreen() {
-  const { id, tab: tabParam, readonly: roParam } = useLocalSearchParams<{ id: string; tab?: string; readonly?: string }>();
+  const { id, tab: tabParam, readonly: roParam, scrollTo } = useLocalSearchParams<{ id: string; tab?: string; readonly?: string; scrollTo?: string }>();
   const readonly = roParam === "1";
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { show } = useToast();
   const { session } = useAuth();
   const me = session!.user.id;
   const { data, loading, error, reload } = useTrip(id);
-  // DEV-only `?tab=all|summary` opens a tab directly (screenshots)
-  const [tab, setTab] = useState<Tab>(__DEV__ && (tabParam === "all" || tabParam === "summary") ? tabParam : "mine");
-  useEffect(() => { if (__DEV__ && (tabParam === "all" || tabParam === "summary" || tabParam === "mine")) setTab(tabParam); }, [tabParam]);
+  // DEV-only `?tab=people|summary` opens a tab directly (screenshots)
+  const asTab = (v?: string): Tab | null => (v === "people" || v === "summary" ? v : v === "expenses" || v === "mine" || v === "all" ? "expenses" : null);
+  const [tab, setTab] = useState<Tab>((__DEV__ && asTab(tabParam)) || "expenses");
+  useEffect(() => { const t = __DEV__ ? asTab(tabParam) : null; if (t) setTab(t); }, [tabParam]);
   const [showPlan, setShowPlan] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [confirm, setConfirm] = useState<{ title: string; label: string; run: () => void } | null>(null);
   const [busy, setBusy] = useState(false);
   const [coverBusy, setCoverBusy] = useState(false);
+  const [footerH, setFooterH] = useState(160);
+  // DEV-only `?scrollTo=tabs` scrolls the tab strip to the top (screenshots)
+  const scrollRef = useRef<ScrollView>(null);
+  const tabsY = useRef(0);
+  useEffect(() => { if (__DEV__ && scrollTo === "tabs" && data) setTimeout(() => scrollRef.current?.scrollTo({ y: Math.max(0, tabsY.current - space[8]), animated: false }), 400); }, [scrollTo, data, tab]);
   const coverUrl = useSignedUrl("covers", data?.trip.cover_photo_url);
 
   const figures = useMemo(() => {
     if (!data) return null;
     const n = nets(data);
-    return { nets: n, mine: n[me] ?? 0, plan: previewPayments(data), total: tripTotal(data), members: activeMembers(data), quiet: membersWithNoExpenses(data), myExpenses: myExpenses(data, me) };
+    return { nets: n, mine: n[me] ?? 0, plan: previewPayments(data), total: tripTotal(data), members: activeMembers(data), quiet: membersWithNoExpenses(data) };
   }, [data, me]);
 
-  if (loading || !data || !figures) return <Screen><View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>{error ? <Text>{error}</Text> : <ActivityIndicator />}</View></Screen>;
+  // a late expense clears everyone's Done on the server (spec rule): say why when it was yours
+  const meMember = data?.members.find((m) => m.user_id === me);
+  const myDone = !!meMember?.done_at;
+  const prevDone = useRef<boolean | null>(null);
+  const toggling = useRef(false);
+  useEffect(() => {
+    if (!data) return;
+    if (prevDone.current === true && !myDone && !toggling.current) show({ message: "A new expense came in, so your stripe is back to ghost. Tap Done again when you're set.", duration: 4500 });
+    prevDone.current = myDone;
+  }, [myDone, data, show]);
+
+  if (loading || !data || !figures) {
+    return (
+      <View style={styles.screen}>
+        <ScreenBackground />
+        <TopBar onBack={() => router.back()} />
+        <View style={styles.center}>{error ? <ZText color={color.error}>{error}</ZText> : <ActivityIndicator color={color.text} />}</View>
+      </View>
+    );
+  }
 
   const { trip, members } = data;
-  const meMember = members.find((m) => m.user_id === me);
   const isOwner = meMember?.role === "owner";
   const settledUp = !!meMember?.settled_up_at;
+  const doneCount = figures.members.filter((m) => m.done_at).length;
+  const toGo = figures.members.length - doneCount;
   const unlocked = closeoutUnlocked(figures.members.map((m) => ({ doneAt: m.done_at, removedAt: m.removed_at }))) || !!trip.closeout_override_at;
   const closed = trip.status !== "open";
   const cur = trip.base_currency;
-  const checkLine = settledUp ? "Settled up" : data.expenses.length === 0 ? "No expenses yet" : figures.mine === 0 ? "All square" : figures.mine > 0 ? `You're owed ${formatCents(figures.mine, cur)}` : `You owe ${formatCents(-figures.mine, cur)}`;
-  const checkTone = settledUp || data.expenses.length === 0 || figures.mine === 0 ? "ink" : figures.mine > 0 ? "mint" : "dusk";
+  const nights = nightsBetween(trip.start_date, trip.end_date);
+  const mood = zebraMoodFor({ place: "dazzle-hero", members: figures.members.length, done: doneCount }) ?? "hi";
+  const stillAdding = figures.members.filter((m) => !m.done_at).map((m) => (m.user_id === me ? "you" : (m.display_name ?? "someone").split(/\s+/)[0]!));
 
   async function toggleDone(v: boolean) {
-    setBusy(true);
+    setBusy(true); toggling.current = true;
     await supabase.rpc("set_done", { p_trip: trip.id, p_done: v });
-    setBusy(false); reload();
+    await reload();
+    toggling.current = false; setBusy(false);
   }
   function closeOutAnyway() {
-    Alert.alert("Close out anyway?", "Not everyone has tapped Done. Everyone will be notified, the override is logged, and expenses already logged still count.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Close out", style: "destructive", onPress: async () => { await supabase.rpc("owner_closeout", { p_trip: trip.id }); reload(); router.push(`/(app)/trip/${trip.id}/closeout`); } },
-    ]);
+    setConfirm({
+      title: "Close out anyway? Not everyone has tapped Done. Everyone will be notified, the override is logged, and expenses already logged still count.",
+      label: "Close out",
+      run: async () => { await supabase.rpc("owner_closeout", { p_trip: trip.id }); reload(); router.push(`/(app)/trip/${trip.id}/closeout`); },
+    });
   }
   function deleteTrip() {
-    Alert.alert("Delete this trip?", "It has no expenses. Members lose access and this can't be undone.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: async () => { const { error: e } = await supabase.from("trips").delete().eq("id", trip.id); if (e) Alert.alert("Couldn't delete", e.message); else router.replace("/(app)/home"); } },
-    ]);
+    setConfirm({
+      title: "Delete this dazzle? It has no expenses. Members lose access and this can't be undone.",
+      label: "Delete",
+      run: async () => { const { error: e } = await supabase.from("trips").delete().eq("id", trip.id); if (e) show({ message: `Couldn't delete: ${e.message}` }); else router.replace("/(app)/home"); },
+    });
   }
   async function changeCover() {
     const uri = await pickImage([16, 9]);
@@ -86,233 +119,257 @@ export default function TripScreen() {
       const { error: e } = await supabase.from("trips").update({ cover_photo_url: path }).eq("id", trip.id);
       if (e) throw e;
       await reload();
-    } catch (e) { Alert.alert("Couldn't save the cover photo", e instanceof Error ? e.message : String(e)); }
+    } catch (e) { show({ message: `Couldn't save the cover photo: ${e instanceof Error ? e.message : String(e)}` }); }
     setCoverBusy(false);
   }
-  function openMenu() {
-    const items: { label: string; destructive?: boolean; run: () => void }[] = [
-      { label: "Profile", run: () => router.push("/(app)/settings") },
-      { label: "Trip history", run: () => router.push(`/(app)/trip/${trip.id}/history`) },
-    ];
-    if (closed) items.push({ label: "View recap", run: () => router.push(`/(app)/trip/${trip.id}/recap`) });
-    if (isOwner && !unlocked && !closed) items.push({ label: "Close out anyway", destructive: true, run: closeOutAnyway });
-    if (isOwner && !closed && data!.expenses.length === 0) items.push({ label: "Delete trip", destructive: true, run: deleteTrip });
-    if (Platform.OS === "ios") {
-      ActionSheetIOS.showActionSheetWithOptions(
-        { options: [...items.map((i) => i.label), "Cancel"], cancelButtonIndex: items.length, destructiveButtonIndex: items.map((i, k) => (i.destructive ? k : -1)).filter((k) => k >= 0) },
-        (k) => { items[k]?.run(); },
-      );
-    } else {
-      Alert.alert(trip.title, undefined, [...items.map((i) => ({ text: i.label, style: i.destructive ? ("destructive" as const) : ("default" as const), onPress: i.run })), { text: "Cancel", style: "cancel" as const }]);
-    }
-  }
+  const menuActions: SheetAction[] = [
+    { label: coverUrl ? "Change the cover photo" : "Add a cover photo", onPress: changeCover },
+    { label: "Members", onPress: () => router.push(`/(app)/trip/${trip.id}/members`) },
+    { label: "Dazzle history", onPress: () => router.push(`/(app)/trip/${trip.id}/history`) },
+    { label: "Profile", onPress: () => router.push("/(app)/settings") },
+  ];
+  if (closed) menuActions.push({ label: "View recap", onPress: () => router.push(`/(app)/trip/${trip.id}/recap`) });
+  if (isOwner && !unlocked && !closed) menuActions.push({ label: "Close out anyway", destructive: true, onPress: closeOutAnyway });
+  if (isOwner && !closed && data.expenses.length === 0) menuActions.push({ label: "Delete dazzle", destructive: true, onPress: deleteTrip });
 
-  const compactChips = figures.members.length > 6;
-  const shownExpenses = tab === "mine" ? figures.myExpenses : data.expenses;
+  const openStripes = readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/closeout`);
+  const balanceState = settledUp ? "settled" : data.expenses.length === 0 ? "none" : figures.mine === 0 ? "square" : "amount";
 
   return (
-    <Screen padded={false}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 200, gap: theme.spacing.lg }}>
-        {/* header */}
-        <View style={{ paddingTop: theme.spacing.sm, gap: theme.spacing.sm, paddingHorizontal: theme.screenPadding }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            {readonly
-              ? <Button title="‹ History" kind="text" size="small" onPress={() => router.back()} />
-              : <Button title="‹ Trips" kind="text" size="small" onPress={() => router.replace("/(app)/home")} />}
-            {!readonly && <Button title="⋯" kind="text" size="small" onPress={openMenu} accessibilityLabel="Trip menu" />}
+    <View style={styles.screen}>
+      <ScreenBackground />
+      <TopBar
+        onBack={() => (readonly ? router.back() : router.replace("/(app)/home"))}
+        right={!readonly ? <IconButton name="more" label="Dazzle menu" onPress={() => setMenu(true)} /> : null}
+      />
+      <ScrollView ref={scrollRef} contentContainerStyle={[styles.content, { paddingBottom: footerH + space[16] }]} showsVerticalScrollIndicator={false}>
+        <View style={styles.head}>
+          <View style={styles.titleRow}>
+            {coverUrl ? (
+              <Press onPress={changeCover} disabled={coverBusy || readonly} scaleTo={0.97} accessibilityRole="button" accessibilityLabel="Change the cover photo" style={styles.coverWrap}>
+                <Image source={{ uri: coverUrl }} style={styles.cover} accessibilityIgnoresInvertColors />
+              </Press>
+            ) : null}
+            <ZText variant="title1" accessibilityRole="header" style={styles.flex}>{trip.title}</ZText>
           </View>
-          <Pressable onPress={changeCover} disabled={coverBusy || readonly} accessibilityRole="button" accessibilityLabel={coverUrl ? "Change cover photo" : "Add cover photo"}
-            style={{ height: coverUrl ? 160 : 44, borderRadius: theme.radius.card, overflow: "hidden", backgroundColor: theme.colors.background.elevated, borderWidth: 1, borderColor: theme.colors.border.soft, alignItems: "center", justifyContent: "center" }}>
-            {coverUrl
-              ? <Image source={{ uri: coverUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
-              : <Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>{coverBusy ? "Uploading…" : "+ Add a cover photo"}</Text>}
-            {coverUrl && coverBusy && <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: theme.colors.system.dimming40, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={theme.colors.text.onBackground.primary} /></View>}
-          </Pressable>
-          <Text variant="largeTitle" numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8}>{trip.title}</Text>
-          <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{formatDateRange(trip.start_date, trip.end_date)} · {cur}{closed ? ` · ${trip.status}` : ""}</Text>
+          <ZText variant="caption" color={color.textMuted}>
+            {formatDateRange(trip.start_date, trip.end_date)} · {nights} {nights === 1 ? "night" : "nights"} · {figures.members.length} in the dazzle{closed ? ` · ${trip.status}` : ""}
+          </ZText>
         </View>
 
-        {/* attendees: pastel pill + one scrolling row of chips, 2–20 people */}
-        <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm, paddingLeft: theme.screenPadding }}>
-          <HeroPill>{`Attendees: ${figures.members.filter((m) => m.done_at).length}/${figures.members.length} done`}</HeroPill>
-          <View style={{ flex: 1 }}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm, paddingRight: theme.screenPadding + 24 }}>
-              {figures.members.map((m) => <MemberChip key={m.user_id} m={m} me={me} compact={compactChips} onPress={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} />)}
-              {figures.members.length > 3 && <View style={{ justifyContent: "center" }}><Text variant="caption1Semibold" color={theme.colors.text.onBackground.tertiary}>{`${figures.members.length} people`}</Text></View>}
-            </ScrollView>
-            {figures.members.length > 3 && <LinearGradient pointerEvents="none" colors={[alpha(theme.palette.light, 0), theme.palette.light]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 28 }} />}
-          </View>
-        </View>
+        {/* member avatar row: done = ink with a volt stripe; tap opens member details */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.avatars} accessibilityLabel={`${doneCount} of ${figures.members.length} members done`}>
+          <AvatarRow>
+            {figures.members.map((m) => (
+              <Press key={m.user_id} disabled={readonly} onPress={() => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} scaleTo={0.97} accessibilityRole="button" accessibilityLabel={`${memberName(data, m.user_id, me)}${m.done_at ? ", done" : ", still adding"}`}>
+                <Avatar name={m.display_name ?? "?"} uri={m.photo_url} done={!!m.done_at} notDone={!m.done_at} onHero />
+              </Press>
+            ))}
+          </AvatarRow>
+        </ScrollView>
 
-        <View style={{ paddingHorizontal: theme.screenPadding, gap: theme.spacing.lg }}>
-          {/* Your Check + settlement preview */}
-          {data.expenses.length > 0 && !settledUp && !readonly ? (
-            // the Settlement preview pill sits in a bottom-left notch; the plan expands above it
-            <NotchedHero corner="bl" slotWidth={156} slotHeight={34} contentStyle={{ paddingBottom: notchInset(156, 34).height + 4 }}
-              renderSlot={() => <HeroLink title="Settlement preview" expanded={showPlan} onPress={() => setShowPlan((v) => !v)} />}>
-              <View style={{ gap: 4 }}>
-                <HeroText variant="captionCaps2" tone="mid">Your Check</HeroText>
-                <HeroText variant="largeTitle" tone={checkTone} numberOfLines={1} adjustsFontSizeToFit>{checkLine}</HeroText>
-              </View>
-              {showPlan && (
-                <View style={{ gap: 6, marginTop: theme.spacing.md, paddingTop: theme.spacing.sm, borderTopWidth: 1, borderTopColor: theme.colors.hero.divider }}>
-                  {figures.plan.length === 0 && <HeroText variant="caption1" tone="mid">Nothing to settle yet.</HeroText>}
-                  {figures.plan.map((p, i) => (
-                    <HeroText key={i} variant="body">{memberName(data, p.from, me)} {p.from === me ? "pay" : "pays"} {memberName(data, p.to, me).toLowerCase() === "you" ? "you" : memberName(data, p.to, me)} <HeroText variant="text" tone={p.to === me ? "mint" : p.from === me ? "dusk" : "ink"}>{formatCents(p.cents, cur)}</HeroText></HeroText>
-                  ))}
-                </View>
-              )}
-            </NotchedHero>
-          ) : (
-            <Hero>
-              <View style={{ gap: 4 }}>
-                <HeroText variant="captionCaps2" tone="mid">Your Check</HeroText>
-                <HeroText variant="largeTitle" tone={checkTone} numberOfLines={1} adjustsFontSizeToFit>{checkLine}</HeroText>
-              </View>
-            </Hero>
-          )}
-          {figures.quiet.length > 0 && (
-            <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>
+        {/* balance card */}
+        <HeroCard>
+          <View style={styles.heroRow}>
+            <View style={[styles.flex, styles.heroText]}>
+              <ZText variant="caption" color={color.textMuted}>Your balance</ZText>
+              {balanceState === "amount" ? <CountUp cents={Math.abs(figures.mine)} variant="amountL" /> : <ZText variant="amountL">{balanceState === "settled" ? "Settled up" : balanceState === "none" ? "Nothing yet" : "All square"}</ZText>}
+              {balanceState === "amount" ? <LabelPill tone={figures.mine > 0 ? "volt" : "blush"} label={figures.mine > 0 ? "owed to you" : "you owe"} /> : null}
+            </View>
+            <Press onPress={openStripes} disabled={!openStripes} scaleTo={0.97} accessibilityRole="button" accessibilityLabel={`Zebra with ${doneCount} of ${figures.members.length} stripes, ${mood}. Opens Earn your stripes`}>
+              <Zebra variant="full" mood={mood} members={figures.members.length} done={doneCount} size={128} animate={{ blink: true, swish: true }} decorative />
+            </Press>
+          </View>
+          <InsetPanel style={styles.stripesPanel}>
+            <View style={styles.stripesRow}>
+              <ZText variant="caption" style={styles.flex}>
+                <ZText variant="captionStrong">{doneCount === figures.members.length ? `All ${figures.members.length} stripes.` : `${doneCount} of ${figures.members.length} stripes.`}</ZText>
+                {" "}{toGo === 0 ? "Everyone's done." : `${listNames(stillAdding)} still adding.`}
+              </ZText>
+              {toGo > 0 && !readonly && !closed ? <Button kind="nudge" label="Nudge" onPress={openStripes} /> : null}
+            </View>
+          </InsetPanel>
+        </HeroCard>
+
+        {figures.quiet.length > 0 ? (
+          <View style={styles.quiet}>
+            <LiveDot />
+            <ZText variant="caption" color={color.textMuted} style={styles.flex}>
               {figures.quiet.map((m) => (m.user_id === me ? "You haven't" : `${m.display_name ?? "A member"} hasn't`)).join(", ")} added anything yet.
-            </Text>
-          )}
+            </ZText>
+          </View>
+        ) : null}
 
-          <Segmented options={[{ key: "mine", label: "Expenses" }, { key: "all", label: "All Expenses" }, { key: "summary", label: "Summary" }]} value={tab} onChange={setTab} />
-
-          {tab !== "summary" && (
-            <Tile style={{ padding: 0, overflow: "hidden" }}>
-              {shownExpenses.length === 0 && (
-                <CardText variant="caption1" tone="mid" style={{ padding: 16 }}>{tab === "mine" ? "You haven't added an expense yet. Tap Add expense to log what you paid." : "No expenses yet. Add the first one."}</CardText>
-              )}
-              {shownExpenses.map((e, i) => (
-                <View key={e.id} style={settledUp ? { opacity: 0.45 } : undefined}>
-                  {i > 0 && <Divider />}
-                  <ExpenseRow e={e} me={me} data={data} onOpen={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/expense?expense=${e.id}`)} onHistory={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/history?expense=${e.id}`)} />
-                </View>
-              ))}
-            </Tile>
-          )}
-
-          {tab === "summary" && (
-            <Tile style={{ gap: theme.spacing.lg }}>
-              <View style={{ gap: 2 }}>
-                <CardText variant="captionCaps2" tone="mid">Trip total</CardText>
-                <CardText variant="largeTitle">{formatCents(figures.total, cur)}</CardText>
-                <CardText variant="caption1" tone="mid">{data.expenses.length} {data.expenses.length === 1 ? "expense" : "expenses"} · {figures.members.length} people</CardText>
-              </View>
-              {figures.total > 0 && (
-                <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
-                  {CATEGORIES.map((c) => {
-                    const cents = data.expenses.filter((e) => e.category === c.key).reduce((s, e) => s + e.base_amount_cents, 0);
-                    if (!cents) return null;
-                    const pct = cents / figures.total;
-                    return (
-                      <View key={c.key} style={{ gap: 4 }}>
-                        <View style={{ flexDirection: "row", justifyContent: "space-between" }}><CardText variant="caption1Semibold">{c.label}</CardText><CardText variant="caption1Semibold" tone="mid">{formatCents(cents, cur)} · {Math.round(pct * 100)}%</CardText></View>
-                        <View style={{ height: 8, borderRadius: 4, backgroundColor: theme.colors.divider.default }}><View style={{ width: `${Math.max(2, Math.round(pct * 100))}%`, height: 8, borderRadius: 4, backgroundColor: theme.colors.fill.primary }} /></View>
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-              {figures.total > 0 && <FunFacts data={data} me={me} />}
-              <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
-                <CardText variant="captionCaps2" tone="mid">Paid so far</CardText>
-                <CardText variant="caption1" tone="mid">What each person has fronted before settlement, and their share of the total.</CardText>
-                {[...figures.members].map((m) => ({ m, paid: paidBy(data, m.user_id), share: shareOf(data, m.user_id), net: figures.nets[m.user_id] ?? 0 })).sort((a, b) => b.paid - a.paid).map(({ m, paid, share, net }) => (
-                  <Pressable key={m.user_id} disabled={readonly} onPress={() => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)} accessibilityRole="button" style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md, paddingVertical: 6 }}>
-                    <Avatar name={m.display_name ?? "?"} uri={m.photo_url} />
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <CardText variant="headline">{m.user_id === me ? "You" : (m.display_name ?? "Member")}</CardText>
-                      <CardText variant="caption1" tone="mid">Paid {formatCents(paid, cur)} · share {formatCents(share, cur)}</CardText>
-                    </View>
-                    <CardText variant="text" tone={net > 0 ? "mint" : net < 0 ? "dusk" : "mid"}>{net === 0 ? "even" : net > 0 ? `+${formatCents(net, cur)}` : `−${formatCents(-net, cur)}`}</CardText>
-                  </Pressable>
+        {/* settlement preview */}
+        {data.expenses.length > 0 && !settledUp ? (
+          <InsetPanel style={styles.plan}>
+            <Press onPress={() => setShowPlan((v) => !v)} scaleTo={0.98} accessibilityRole="button" accessibilityState={{ expanded: showPlan }} accessibilityLabel="See who pays who" style={styles.planRow}>
+              <ZText variant="bodyStrong" style={styles.flex}>See who pays who</ZText>
+              <Icon name={showPlan ? "chevronUp" : "chevronDown"} size={18} color={color.textMuted} />
+            </Press>
+            {showPlan ? (
+              <Rise style={styles.planLines}>
+                {figures.plan.length === 0 ? <ZText variant="caption" color={color.textMuted}>Nothing to settle yet.</ZText> : null}
+                {figures.plan.map((p, i) => (
+                  <View key={i} style={styles.planLine}>
+                    <ZText variant="body" style={styles.flex}>{p.from === me ? `Pay ${memberName(data, p.to)}` : p.to === me ? `${memberName(data, p.from)} pays you` : `${memberName(data, p.from)} pays ${memberName(data, p.to)}`}</ZText>
+                    <Money cents={p.cents} currency={cur === "USD" ? undefined : `${cur} `} color={p.to === me ? color.text : p.from === me ? color.youOweText : color.textMuted} />
+                  </View>
                 ))}
-              </View>
-              {closed && !readonly && <Button title="View recap" kind="secondary" size="medium" onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} />}
-            </Tile>
-          )}
+              </Rise>
+            ) : null}
+          </InsetPanel>
+        ) : null}
+
+        <View onLayout={(e) => { tabsY.current = e.nativeEvent.layout.y; }}>
+          <SegmentedControl options={[{ key: "expenses", label: "Expenses" }, { key: "people", label: "People" }, { key: "summary", label: "Summary" }]} value={tab} onChange={setTab} />
         </View>
+
+        {tab === "expenses" ? (
+          <View style={styles.rows}>
+            {data.expenses.length === 0 ? <ZText variant="body" color={color.textMuted} style={styles.note}>No expenses yet. Add the first one.</ZText> : null}
+            {data.expenses.map((e) => (
+              <View key={e.id} style={settledUp ? styles.faded : null}>
+                <ExpenseRow e={e} me={me} data={data} settled={settledUp} onOpen={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/expense?expense=${e.id}`)} onHistory={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/history?expense=${e.id}`)} />
+              </View>
+            ))}
+          </View>
+        ) : null}
+
+        {tab === "people" ? (
+          <View style={styles.rows}>
+            {[...figures.members].sort((a, b) => (a.user_id === me ? -1 : b.user_id === me ? 1 : 0)).map((m) => {
+              const net = figures.nets[m.user_id] ?? 0;
+              const name = m.user_id === me ? "You" : (m.display_name ?? m.phone ?? "Invited");
+              return (
+                <RowCard
+                  key={m.user_id}
+                  tile={<Avatar name={m.display_name ?? "?"} uri={m.photo_url} size={size.iconTile} done={!!m.done_at} notDone={!m.done_at} />}
+                  title={name}
+                  caption={`Paid ${formatCents(paidBy(data, m.user_id), cur)} · share ${formatCents(shareOf(data, m.user_id), cur)}`}
+                  right={settledUp || net === 0 ? <ZText variant="small" color={color.textMuted}>{settledUp ? "Settled" : "even"}</ZText> : <AmountPill cents={net} />}
+                  onPress={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/members?user=${m.user_id}`)}
+                  accessibilityLabel={`${name}, paid ${formatCents(paidBy(data, m.user_id), cur)}, share ${formatCents(shareOf(data, m.user_id), cur)}, ${net > 0 ? `owed ${formatCents(net, cur)}` : net < 0 ? `owes ${formatCents(-net, cur)}` : "even"}${m.done_at ? ", done" : ""}`}
+                />
+              );
+            })}
+          </View>
+        ) : null}
+
+        {tab === "summary" ? (
+          <Card style={styles.summary}>
+            <View style={styles.summaryHead}>
+              <ZText variant="caption" color={color.textMuted}>Dazzle total</ZText>
+              <Money cents={figures.total} variant="amountL" currency={cur === "USD" ? undefined : `${cur} `} />
+              <ZText variant="caption" color={color.textMuted}>
+                {data.expenses.length} {data.expenses.length === 1 ? "expense" : "expenses"} · {figures.members.length} people{figures.members.length > 0 ? ` · ${formatCents(Math.round(figures.total / figures.members.length), cur)} each` : ""}
+              </ZText>
+            </View>
+            {figures.total > 0 ? (
+              <View style={styles.bars}>
+                {CATEGORIES.map((c) => ({ c, cents: data.expenses.filter((e) => e.category === c.key).reduce((s, e) => s + e.base_amount_cents, 0) })).filter((x) => x.cents > 0).sort((a, b) => b.cents - a.cents).map(({ c, cents }) => {
+                  const pct = cents / figures.total;
+                  return (
+                    <View key={c.key} style={styles.bar} accessibilityLabel={`${c.label}, ${formatCents(cents, cur)}, ${Math.round(pct * 100)} percent`}>
+                      <View style={styles.barLabel}>
+                        <ZText variant="captionStrong">{c.label}</ZText>
+                        <ZText variant="caption" color={color.textMuted} tabular>{formatCents(cents, cur)} · {Math.round(pct * 100)}%</ZText>
+                      </View>
+                      <View style={styles.track}><View style={[styles.fill, { width: `${Math.max(2, Math.round(pct * 100))}%` }]} /></View>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : null}
+            {figures.total > 0 ? <FunFacts data={data} me={me} /> : null}
+            {closed && !readonly ? <Button kind="secondary" onWhite height={size.pillButton} label="View recap" onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} /> : null}
+          </Card>
+        ) : null}
       </ScrollView>
 
-      {/* sticky footer (none in read-only) */}
-      {!readonly && trip.status === "open" && (
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: theme.screenPadding, paddingBottom: 28, gap: theme.spacing.sm, backgroundColor: theme.colors.background.surface, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <Text variant="text">Done adding expenses</Text>
-            <Switch value={!!meMember?.done_at} onValueChange={toggleDone} disabled={busy} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.grayDeep }} />
+      {/* sheet footer (none in read-only) */}
+      {!readonly && !closed ? (
+        <View onLayout={(e) => setFooterH(e.nativeEvent.layout.height)} style={[styles.footer, { paddingBottom: insets.bottom + space[16] }]}>
+          <View style={styles.doneRow}>
+            <ZText variant="bodyStrong" style={styles.flex}>I'm done adding expenses</ZText>
+            <Toggle value={myDone} onChange={toggleDone} disabled={busy} label="I'm done adding expenses" />
           </View>
-          <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
-            <Button title="Add expense" kind="secondary" size="medium" style={{ flex: 1 }} onPress={() => router.push(`/(app)/trip/${trip.id}/expense`)} />
-            <Button title="Close out" size="medium" style={{ flex: 1 }} disabled={!unlocked} onPress={() => router.push(`/(app)/trip/${trip.id}/closeout`)} />
+          <View style={styles.footerButtons}>
+            <Button label="Add expense" height={size.buttonHeight} style={styles.footerButton} onPress={() => router.push(`/(app)/trip/${trip.id}/expense`)} />
+            {unlocked
+              ? <Button kind="ink" label="Close out" height={size.buttonHeight} style={styles.footerButton} onPress={() => router.push(`/(app)/trip/${trip.id}/closeout`)} />
+              : <Button kind="locked" label={`Close out · ${toGo} to go`} height={size.buttonHeight} style={[styles.footerButton, styles.footerWide]} accessibilityLabel={`Close out, locked, ${toGo} still adding`} />}
           </View>
-          {!unlocked && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Close out unlocks when everyone has tapped Done.</Text>}
         </View>
-      )}
-      {!readonly && closed && (
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: theme.screenPadding, paddingBottom: 28, flexDirection: "row", gap: theme.spacing.sm, backgroundColor: theme.colors.background.surface, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
-          <Button title="View recap" size="medium" style={{ flex: 1 }} onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} />
-          <Button title="Payments" kind="secondary" size="medium" style={{ flex: 1 }} onPress={() => router.push(`/(app)/trip/${trip.id}/closeout`)} />
+      ) : null}
+      {!readonly && closed ? (
+        <View onLayout={(e) => setFooterH(e.nativeEvent.layout.height)} style={[styles.footer, { paddingBottom: insets.bottom + space[16] }]}>
+          <View style={styles.footerButtons}>
+            <Button kind="ink" label="View recap" height={size.buttonHeight} style={styles.flex} onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} />
+            <Button kind="secondary" onWhite label="Payments" height={size.buttonHeight} style={styles.flex} onPress={() => router.push(`/(app)/trip/${trip.id}/closeout`)} />
+          </View>
         </View>
-      )}
-    </Screen>
+      ) : null}
+
+      <ActionSheet open={menu} onClose={() => setMenu(false)} title={trip.title} actions={menuActions} />
+      <ActionSheet open={!!confirm} onClose={() => setConfirm(null)} title={confirm?.title} actions={confirm ? [{ label: confirm.label, destructive: true, onPress: confirm.run }] : []} />
+    </View>
   );
 }
 
-/** Text on a white tile using the hero tone names: ink = black, mid = secondary, mint = gold (dark gold at caption size), dusk = red. */
-function CardText({ tone = "ink", color, variant, ...rest }: { tone?: "ink" | "mid" | "dusk" | "mint" } & React.ComponentProps<typeof Text>) {
-  const small = variant === "caption1" || variant === "caption1Semibold" || variant === "caption3" || variant === "captionCaps2";
-  const c = color ?? (tone === "mid" ? theme.colors.text.onBackground.secondary : tone === "dusk" ? theme.colors.text.destructive : tone === "mint" ? (small ? theme.colors.text.successDeep : theme.colors.text.success) : theme.colors.text.onBackground.primary);
-  return <Text variant={variant} color={c} {...rest} />;
+/** "Jess, Jordan and Bradley" */
+function listNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? "";
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  if (names.length > 4) return `${names.slice(0, 3).join(", ")} and ${names.length - 3} more`;
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-/** Member chip for the rotary: avatar, name (first name when compact), Done badge. */
-function MemberChip({ m, me, compact, onPress }: { m: Member; me: string; compact: boolean; onPress?: () => void }) {
-  const full = m.user_id === me ? "You" : (m.display_name ?? m.phone ?? "Invited");
-  const label = compact ? full.split(/\s+/)[0]! : full;
+/** "owed to you" / "you owe" under the balance: volt or blush, 13/700. */
+function LabelPill({ tone, label }: { tone: "volt" | "blush"; label: string }) {
   return (
-    <Pressable onPress={onPress} disabled={!onPress} accessibilityRole="button" accessibilityLabel={`${full} details${m.done_at ? ", done" : ""}`}
-      style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: theme.colors.background.surface, borderWidth: 1, borderColor: theme.colors.border.neutral, borderRadius: theme.radius.pill, paddingRight: 10, paddingLeft: 3, paddingVertical: 3 }}>
-      <Avatar name={m.display_name ?? "?"} uri={m.photo_url} size={26} />
-      <Text variant="caption1Semibold" numberOfLines={1}>{label}</Text>
-      {m.done_at && <DoneBadge />}
-    </Pressable>
+    <View style={[styles.labelPill, { backgroundColor: tone === "volt" ? color.owedToYou : color.youOwe }]}>
+      <ZText variant="captionStrong" color={tone === "volt" ? color.textOnVolt : color.youOweText}>{label}</ZText>
+    </View>
   );
 }
 
-/** Feed row on the pastel card: receipt thumb or glyph, description, payer/people/category, amount, my delta (mint owed to me / dusk I owe), Edited tag → history. */
-function ExpenseRow({ e, me, data, onOpen, onHistory }: { e: Expense; me: string; data: TripData; onOpen?: () => void; onHistory?: () => void }) {
+/** Expense RowCard: category tile (receipt thumbnail when there is one), description, "You paid · split by nights stayed", amount, your share as an AmountPill. */
+function ExpenseRow({ e, me, data, settled, onOpen, onHistory }: { e: Expense; me: string; data: TripData; settled: boolean; onOpen?: () => void; onHistory?: () => void }) {
   const thumb = useSignedUrl("receipts", e.receipt_url);
   const edited = e.updated_at !== e.created_at;
   const cur = data.trip.base_currency;
   const delta = myDelta(e, me);
+  const payer = memberName(data, e.expense_payers[0]?.user_id ?? e.created_by, me);
+  const split = e.split_type === "nights" ? "split by nights stayed" : `${e.expense_shares.length} ${e.expense_shares.length === 1 ? "person" : "people"}`;
+  const caption = `${payer} paid${e.expense_payers.length > 1 ? ` +${e.expense_payers.length - 1}` : ""} · ${split}`;
+  const tile = thumb
+    ? <Image source={{ uri: thumb }} style={styles.thumb} accessibilityLabel="Receipt" accessibilityIgnoresInvertColors />
+    : e.split_type === "nights" ? <Icon name="moon" size={20} /> : <ZText variant="micro" color={color.textMuted}>{CATEGORY_GLYPH[e.category] ?? "OT"}</ZText>;
   return (
-    <Pressable onPress={onOpen} disabled={!onOpen} accessibilityRole="button" style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, opacity: pressed ? 0.7 : 1 })}>
-      {thumb
-        ? <Image source={{ uri: thumb }} style={{ width: 40, height: 40, borderRadius: theme.radius.control }} accessibilityLabel="Receipt" accessibilityIgnoresInvertColors />
-        : <View style={{ width: 40, height: 40, borderRadius: theme.radius.control, backgroundColor: theme.colors.divider.default, alignItems: "center", justifyContent: "center" }}><CardText variant="caption3" tone="mid">{CATEGORY_GLYPH[e.category] ?? "OT"}</CardText></View>}
-      <View style={{ flex: 1, gap: 2 }}>
-        <CardText variant="headline" numberOfLines={1}>{e.description}</CardText>
-        <CardText variant="caption1" tone="mid" numberOfLines={2}>
-          {memberName(data, e.expense_payers[0]?.user_id ?? e.created_by, me)} paid{e.expense_payers.length > 1 ? ` +${e.expense_payers.length - 1}` : ""} · {e.expense_shares.length} {e.expense_shares.length === 1 ? "person" : "people"} · {categoryLabel(e.category, e.subcategory)}
-        </CardText>
-      </View>
-      <View style={{ alignItems: "flex-end", gap: 2 }}>
-        <CardText variant="text">{formatCents(e.base_amount_cents, cur)}</CardText>
-        {delta !== 0 && <CardText variant="caption1Semibold" tone={delta > 0 ? "mint" : "dusk"}>{delta > 0 ? `+${formatCents(delta, cur)} owed to you` : `you owe ${formatCents(-delta, cur)}`}</CardText>}
-        {e.currency !== cur && <CardText variant="caption1" tone="mid">{formatCents(e.amount_cents + e.tip_cents, e.currency)}</CardText>}
-        {edited && (
-          <Pressable onPress={onHistory} disabled={!onHistory} hitSlop={8} accessibilityRole="button" accessibilityLabel="Edited, view history" style={{ paddingHorizontal: 6, paddingVertical: 1, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: theme.colors.divider.default }}>
-            <CardText variant="caption3" tone="mid">Edited</CardText>
-          </Pressable>
-        )}
-      </View>
-    </Pressable>
+    <RowCard
+      tile={tile}
+      title={e.description}
+      caption={caption}
+      onPress={onOpen}
+      accessibilityLabel={`${e.description}, ${caption}, ${formatCents(e.base_amount_cents, cur)}${delta > 0 ? `, ${formatCents(delta, cur)} owed to you` : delta < 0 ? `, you owe ${formatCents(-delta, cur)}` : ""}, ${categoryLabel(e.category, e.subcategory)}`}
+      right={
+        <>
+          <Money cents={e.base_amount_cents} currency={cur === "USD" ? undefined : `${cur} `} />
+          {!settled && delta !== 0 ? <AmountPill cents={delta} /> : null}
+          {e.currency !== cur ? <ZText variant="small" color={color.textMuted}>{formatCents(e.amount_cents + e.tip_cents, e.currency)}</ZText> : null}
+          {edited ? (
+            <Press onPress={onHistory} disabled={!onHistory} hitSlop={8} scaleTo={0.97} accessibilityRole="button" accessibilityLabel="Edited, view history" style={styles.edited}>
+              <ZText variant="micro" color={color.textMuted}>Edited</ZText>
+            </Press>
+          ) : null}
+        </>
+      }
+    />
   );
 }
 
-/** Summary fun facts: biggest expense, top category, who fronted the most, who logged the most. */
+/** Summary stats: biggest expense, top category, who fronted the most, who logged the most. */
 function FunFacts({ data, me }: { data: TripData; me: string }) {
   const cur = data.trip.base_currency;
   const big = biggestExpense(data), top = topCategory(data), front = frontedMost(data);
@@ -326,13 +383,54 @@ function FunFacts({ data, me }: { data: TripData; me: string }) {
   if (logger) facts.push({ k: "Most receipts logged", v: `${memberName(data, logger[0], me)} · ${logger[1]}` });
   if (!facts.length) return null;
   return (
-    <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.divider.default }}>
+    <View style={styles.facts}>
       {facts.map((f) => (
-        <View key={f.k} style={{ gap: 1 }}>
-          <CardText variant="captionCaps2" tone="mid">{f.k}</CardText>
-          <CardText variant="body">{f.v}</CardText>
-        </View>
+        <InsetPanel key={f.k}>
+          <ZText variant="small" color={color.textMuted}>{f.k}</ZText>
+          <ZText variant="bodyStrong">{f.v}</ZText>
+        </InsetPanel>
       ))}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  flex: { flex: 1 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  content: { paddingHorizontal: layout.screenGutter, gap: space[16] },
+  head: { gap: space[6], paddingHorizontal: layout.textGutter - layout.screenGutter },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: space[12] },
+  coverWrap: { borderRadius: radius.tile, overflow: "hidden" },
+  cover: { width: 40, height: 40, borderRadius: radius.tile, backgroundColor: color.surfaceTile },
+  avatars: { paddingHorizontal: layout.textGutter - layout.screenGutter, paddingVertical: space[2] },
+  heroRow: { flexDirection: "row", alignItems: "center", gap: space[12] },
+  heroText: { gap: space[8], alignItems: "flex-start" },
+  labelPill: { borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: 11 },
+  stripesPanel: { marginTop: space[12] },
+  stripesRow: { flexDirection: "row", alignItems: "center", gap: space[10] },
+  quiet: { flexDirection: "row", alignItems: "center", gap: space[8], paddingHorizontal: layout.textGutter - layout.screenGutter },
+  plan: { paddingVertical: space[4] },
+  planRow: { flexDirection: "row", alignItems: "center", gap: space[8], minHeight: layout.minTapTarget },
+  planLines: { gap: space[8], paddingBottom: space[8] },
+  planLine: { flexDirection: "row", alignItems: "center", gap: space[8] },
+  rows: { gap: space[8] },
+  note: { paddingHorizontal: space[4], paddingVertical: space[8] },
+  faded: { opacity: 0.45 },
+  thumb: { width: size.iconTile, height: size.iconTile },
+  edited: { marginTop: 2, minHeight: 20, justifyContent: "center" },
+  summary: { gap: space[16] },
+  summaryHead: { gap: space[4] },
+  bars: { gap: space[12] },
+  bar: { gap: space[6] },
+  barLabel: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space[8] },
+  track: { height: 8, borderRadius: radius.stripe, backgroundColor: color.stripeOff, overflow: "hidden" },
+  fill: { height: 8, borderRadius: radius.stripe, backgroundColor: color.stripeOn },
+  facts: { gap: space[8] },
+  footer: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: palette.white, borderTopLeftRadius: radius.hero, borderTopRightRadius: radius.hero, paddingHorizontal: layout.screenGutter, paddingTop: space[16], gap: space[14], ...shadow.sheet },
+  doneRow: { flexDirection: "row", alignItems: "center", gap: space[12], minHeight: layout.minTapTarget },
+  footerButtons: { flexDirection: "row", gap: space[10] },
+  footerButton: { flex: 1, paddingHorizontal: space[12] },
+  footerWide: { flex: 1.2 },
+});
+
