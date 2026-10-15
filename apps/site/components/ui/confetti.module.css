@@ -1,0 +1,15 @@
+.stage { position: absolute; left: 50%; top: 45%; width: 0; height: 0; pointer-events: none; z-index: 2; }
+.piece {
+  position: absolute; left: calc(var(--zs-size-meter-stripe-width) / -2); top: calc(var(--zs-size-meter-stripe-height) / -2);
+  width: var(--zs-size-meter-stripe-width); height: var(--zs-size-meter-stripe-height); border-radius: var(--zs-radius-tile);
+  opacity: 0; transform: translate(0, 0) rotate(0deg) scale(0.3);
+  animation: throw var(--zs-motion-confetti) var(--zs-ease-confetti) calc(var(--wave) * var(--zs-motion-confetti-second-wave-delay)) 1 forwards;
+}
+.ink { background: var(--zs-ink); }
+.volt { background: var(--zs-volt); }
+.pink { background: var(--zs-pink); }
+@keyframes throw {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(0.3); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1); }
+}

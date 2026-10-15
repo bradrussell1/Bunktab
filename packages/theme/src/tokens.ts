@@ -206,6 +206,38 @@ export const motion = {
   liveDot: { period: 1400, minOpacity: 0.35 },
 } as const;
 
-export const theme = { palette, color, zebra, fonts, type, space, layout, radius, shadow, size, motion };
+/**
+ * Web display scale for the marketing site (apps/site). The mobile scale above tops out
+ * at display 46; the approved site boards run headings fluidly (clamp) up to 84 px, so
+ * those sizes live here as tokens instead of as raw numbers in site components.
+ * Fluid = clamp(min px, vw, max px); lineHeight is unitless; tracking is em.
+ */
+export const siteType = {
+  hero:      { min: 44, vw: 6.4, max: 84, lineHeight: 0.98, tracking: -0.04 },  // homepage H1
+  page:      { min: 40, vw: 5.6, max: 72, lineHeight: 1,    tracking: -0.04 },  // FAQ H1
+  legal:     { min: 40, vw: 5.4, max: 68, lineHeight: 1,    tracking: -0.04 },  // Privacy / Terms H1
+  band:      { min: 36, vw: 5,   max: 64, lineHeight: 1,    tracking: -0.04 },  // volt band, final CTA
+  section:   { min: 32, vw: 4,   max: 52, lineHeight: 1.04, tracking: -0.03 },  // section H2
+  feature:   { min: 30, vw: 3.6, max: 46, lineHeight: 1.04, tracking: -0.03 },  // stripes demo H2, FAQ band
+  joinTitle: { min: 34, vw: 9,   max: 40, lineHeight: 1,    tracking: -0.035 }, // /join trip name
+} as const;
+
+/** Fixed web text sizes the boards use that the mobile scale doesn't have (px, unitless line height, em tracking). */
+export const siteText = {
+  lead:      { size: 20, lineHeight: 1.5,  tracking: 0 },       // hero sub-copy
+  bodyL:     { size: 18, lineHeight: 1.55, tracking: 0 },       // dark-band copy, FAQ question, volt-band list
+  body:      { size: 17, lineHeight: 1.65, tracking: 0 },       // legal reading column, demo copy (1.55)
+  bodyM:     { size: 16, lineHeight: 1.6,  tracking: 0 },       // card copy, FAQ answers
+  nav:       { size: 15, lineHeight: 1.4,  tracking: 0 },       // nav and footer links
+  h2:        { size: 28, lineHeight: 1.15, tracking: -0.025 },  // legal and FAQ section headings
+  h3:        { size: 24, lineHeight: 1.2,  tracking: -0.02 },   // how-it-works step titles
+  cardTitle: { size: 22, lineHeight: 1.2,  tracking: -0.02 },   // feature card titles
+  wordmark:  { size: 26, lineHeight: 1,    tracking: -0.03 },   // nav wordmark (footer: 22)
+  wordmarkS: { size: 22, lineHeight: 1,    tracking: -0.03 },
+  amount:    { size: 26, lineHeight: 1,    tracking: -0.02 },   // phone-mock balance
+  phoneTitle:{ size: 24, lineHeight: 1,    tracking: -0.03 },   // phone-mock screen title
+} as const;
+
+export const theme = { palette, color, zebra, fonts, type, space, layout, radius, shadow, size, motion, siteType, siteText };
 export type Theme = typeof theme;
 export default theme;

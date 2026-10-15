@@ -1,0 +1,1 @@
+Official store badges, unmodified: `app-store.svg` from Apple's App Store marketing badge service (black, en-US) and `google-play.png` from Google Play's badge generator (en, generic). Use them only at or above the required minimum heights (Apple 40 px, Google 40 px) with their built-in clear space; never recolour or restyle them.

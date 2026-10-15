@@ -2,7 +2,7 @@
   "name": "zebrasplit",
   "private": true,
   "version": "0.1.0",
-  "description": "Zebrasplit — split trip expenses, settle up in Venmo",
+  "description": "Zebrasplit \u2014 split trip expenses, settle up in Venmo",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -15,7 +15,8 @@
     "db:push": "supabase db push",
     "smoke": "node scripts/smoke.mjs",
     "smoke:server": "node scripts/smoke-server.mjs",
-    "web": "npm run dev --workspace=@bunktab/web"
+    "web": "npm run dev --workspace=@bunktab/web",
+    "site": "npm run dev --workspace=@bunktab/site"
   },
   "engines": {
     "node": ">=20"

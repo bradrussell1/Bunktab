@@ -1,0 +1,13 @@
+.pill { display: inline-flex; align-items: center; gap: var(--zs-space-8); border-radius: var(--zs-radius-pill); font-weight: 700; line-height: 1.2; white-space: nowrap; }
+.sm { padding: var(--zs-space-4) var(--zs-space-10); font-size: var(--zs-fs-caption-strong); }
+.md { padding: var(--zs-space-6) var(--zs-space-12); font-size: var(--zs-fs-label); }
+.lg { padding: var(--zs-space-8) var(--zs-space-14); font-size: var(--zs-fs-label); }
+.owed { background: var(--zs-color-owed-to-you); color: var(--zs-color-text-on-volt); font-weight: 800; }
+.owe { background: var(--zs-color-you-owe); color: var(--zs-color-you-owe-text); font-weight: 800; }
+.settled { padding-inline: 0; background: transparent; color: var(--zs-ink); font-weight: 800; }
+.white { background: var(--zs-white); color: var(--zs-ink); box-shadow: inset 0 0 0 1.5px var(--zs-color-outline); }
+.ink { background: var(--zs-ink); color: var(--zs-color-text-on-ink); }
+.volt { background: var(--zs-volt); color: var(--zs-color-text-on-volt); }
+.blush { background: var(--zs-blush); color: var(--zs-blush-text); }
+.sand { background: var(--zs-sand); color: var(--zs-ink); }
+.cream { background: var(--zs-cream); color: var(--zs-ink); box-shadow: inset 0 0 0 1.5px var(--zs-color-outline); }

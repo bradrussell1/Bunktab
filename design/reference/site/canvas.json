@@ -1,0 +1,17 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-10-15T06:05:00Z"},
+  "title": "Zebrasplit marketing site",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 5400, "title": "Homepage (zebrasplit.com)", "expand": "fill", "is_interactive": true},
+    "Join.dc.html": {"x": 1520, "y": 0, "w": 390, "h": 844, "title": "Invite landing (/join/[code])"},
+    "Preview.dc.html": {"x": 1990, "y": 0, "w": 1200, "h": 630, "title": "Invite link preview (OG image)"},
+    "FAQ.dc.html": {"x": 3270, "y": 0, "w": 1440, "h": 3800, "title": "FAQ page (/faq)", "expand": "fill", "is_interactive": true},
+    "Privacy.dc.html": {"x": 4790, "y": 0, "w": 1440, "h": 5200, "title": "Privacy Policy (/privacy)", "expand": "fill"},
+    "Terms.dc.html": {"x": 6310, "y": 0, "w": 1440, "h": 6000, "title": "Terms of Service (/terms)", "expand": "fill"}
+  },
+  "order": ["Main.dc.html", "Join.dc.html", "Preview.dc.html", "FAQ.dc.html", "Privacy.dc.html", "Terms.dc.html"],
+  "notes": {}
+}
