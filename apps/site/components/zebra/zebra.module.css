@@ -1,0 +1,58 @@
+/* Zebra motion (DESIGN_SYSTEM.md §9). Durations and curves are motion tokens. */
+.root { display: inline-block; line-height: 0; flex-shrink: 0; }
+.layer { display: block; width: 100%; height: 100%; transform-origin: 50% 100%; }
+.svg { display: block; overflow: visible; transform-origin: 50% 100%; }
+
+.fade { transition: opacity var(--zs-motion-mood-crossfade) ease; }
+
+/* Stripe earned: ink grows down from the stripe's top edge, 460 ms spring-pop, staggered 40 ms. */
+.stripeInk { transform-box: fill-box; transform-origin: 50% 0%; transition: transform var(--zs-motion-spring-pop) var(--zs-ease-spring-pop); }
+
+/* Blink: loop 3.8 s; eyes scaleY to 0.1 about their own centre at 94 % of the cycle. */
+.blink { transform-box: fill-box; transform-origin: 50% 50%; animation: blink var(--zs-motion-blink-period) linear infinite; }
+@keyframes blink {
+  0%, 94% { transform: scaleY(1); }
+  95.5% { transform: scaleY(var(--zs-motion-blink-closed-scale-y)); }
+  97%, 100% { transform: scaleY(1); }
+}
+
+/* Tail swish: −8° ↔ 14° about the tail root, a 2.2 s round trip. */
+.swish { transform-box: view-box; animation: swish calc(var(--zs-motion-swish-period) / 2) ease-in-out infinite alternate; }
+@keyframes swish {
+  from { transform: rotate(calc(var(--zs-motion-swish-from-deg) * 1deg)); }
+  to { transform: rotate(calc(var(--zs-motion-swish-to-deg) * 1deg)); }
+}
+
+/* Bob: 3.4 s; translateY 0 → −5 → 0 with rotate −2° ↔ 2°, origin bottom centre. */
+.bob { animation: bob var(--zs-motion-bob-period) ease-in-out infinite; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0) rotate(calc(var(--zs-motion-bob-rotate-deg) * -1deg)); }
+  50% { transform: translateY(calc(var(--zs-motion-bob-translate-y) * 1px)) rotate(calc(var(--zs-motion-bob-rotate-deg) * 1deg)); }
+}
+
+/* Dance: once, 1.5 s; hops −18, −11, −4 px with rotations −5°, 4°, −3°, 2°. */
+.dance { animation: dance var(--zs-motion-dance) var(--zs-ease-dance) 1 both; }
+@keyframes dance {
+  0% { transform: translateY(0) rotate(0deg); }
+  14.3% { transform: translateY(-18px) rotate(-5deg); }
+  28.6% { transform: translateY(0) rotate(-2deg); }
+  42.9% { transform: translateY(-11px) rotate(4deg); }
+  57.1% { transform: translateY(0) rotate(0deg); }
+  71.4% { transform: translateY(-4px) rotate(-3deg); }
+  85.7% { transform: translateY(0) rotate(2deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* Sleepy z's float. */
+.zz { animation: zz calc(var(--zs-motion-zz-period) / 2) ease-in-out infinite alternate; }
+@keyframes zz {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(calc(var(--zs-motion-zz-travel-y) * 1px)); opacity: 0.5; }
+}
+
+/* Reduce Motion: loops stop; the stripe becomes a 250 ms fade-length change. */
+.root[data-reduced] .blink, .root[data-reduced] .swish, .root[data-reduced] .bob, .root[data-reduced] .dance, .root[data-reduced] .zz { animation: none; }
+.root[data-reduced] .stripeInk { transition-duration: var(--zs-motion-mood-crossfade); transition-timing-function: ease; transition-delay: 0ms !important; }
+@media (prefers-reduced-motion: reduce) {
+  .blink, .swish, .bob, .dance, .zz { animation: none; }
+}

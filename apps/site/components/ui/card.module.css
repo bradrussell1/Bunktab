@@ -1,0 +1,8 @@
+.base { position: relative; }
+.card { background: var(--zs-white); border-radius: var(--zs-radius-card); box-shadow: var(--zs-shadow-card); padding: var(--zs-layout-card-padding); }
+.hero { background: var(--zs-white); border-radius: var(--zs-radius-hero); box-shadow: var(--zs-shadow-hero); padding: var(--zs-layout-hero-padding); overflow: hidden; }
+.row { background: var(--zs-white); border-radius: var(--zs-radius-row); box-shadow: var(--zs-shadow-hairline); padding: var(--zs-space-14); }
+.inset { background: var(--zs-cream); border-radius: var(--zs-radius-inset); padding: var(--zs-space-16); }
+.ink { background: var(--zs-ink); color: var(--zs-color-text-on-ink); border-radius: var(--zs-radius-hero); padding: clamp(32px, 5vw, 64px); }
+.volt { background: var(--zs-volt); color: var(--zs-color-text-on-volt); border-radius: var(--zs-radius-hero); padding: clamp(32px, 5vw, 64px); }
+.band { background: var(--zs-white); border-radius: var(--zs-radius-hero); box-shadow: var(--zs-shadow-hero); padding: clamp(28px, 5vw, 64px); }

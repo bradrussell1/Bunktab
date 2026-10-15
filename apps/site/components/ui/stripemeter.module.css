@@ -1,0 +1,8 @@
+.meter { display: inline-flex; align-items: center; gap: var(--zs-space-10); }
+.row { display: inline-flex; align-items: center; gap: var(--zs-size-meter-stripe-gap); padding-inline: var(--zs-space-2); }
+.stripe { display: block; width: var(--zs-size-meter-stripe-width); height: var(--zs-size-meter-stripe-height); border-radius: var(--zs-radius-stripe); background: var(--zs-color-stripe-off); transform: rotate(var(--zs-size-meter-stripe-angle-deg)); transition: background-color var(--zs-motion-color-change) ease; }
+.done { background: var(--zs-color-stripe-on); }
+.label { font-size: var(--zs-fs-small); font-weight: 600; color: var(--zs-color-text-muted); white-space: nowrap; }
+.lg .stripe { width: calc(var(--zs-size-meter-stripe-width) * 1.5); height: calc(var(--zs-size-meter-stripe-height) * 1.5); }
+.lg .row { gap: calc(var(--zs-size-meter-stripe-gap) * 1.4); }
+.lg .label { font-size: var(--zs-fs-caption-strong); font-weight: 700; color: var(--zs-ink); }

@@ -1,0 +1,1 @@
+Figtree (SIL Open Font License 1.1, Erik Kennedy), static TrueType builds from Google Fonts, used only as font data for the `next/og` preview images. The pages themselves load Figtree through `next/font/google`.

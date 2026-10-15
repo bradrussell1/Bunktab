@@ -1,0 +1,4 @@
+.mark { font-weight: 800; letter-spacing: var(--zs-tracking-wordmark); line-height: 1; color: var(--zs-ink); }
+.nav { font-size: var(--zs-fs-wordmark); }
+.footer { font-size: var(--zs-fs-wordmark-s); }
+.join { font-size: var(--zs-fs-wordmark-s); }
