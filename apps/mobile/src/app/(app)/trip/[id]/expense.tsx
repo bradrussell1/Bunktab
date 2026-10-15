@@ -3,7 +3,6 @@ import {
   COMMON_CURRENCIES,
   addDays,
   formatDayShort,
-  weekdayShort,
   SplitError,
   computeNightsShares,
   computeShares,
@@ -18,10 +17,11 @@ import {
 import { color, layout, palette, radius, shadow, size, space, text as textStyle } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FormError } from "@/components/AuthScreen";
-import { ActionSheet, Avatar, Button, Icon, Input, NightCell, Press, Receipt, RowCard, SegmentedControl, TextLink, Toggle, ZText } from "@/ui";
+import { WhoSleptWhere } from "@/components/WhoSleptWhere";
+import { ActionSheet, Avatar, Button, Icon, Input, Press, Receipt, RowCard, SegmentedControl, TextLink, Toggle, ZText } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { fetchRate, formatFetchedAt } from "@/lib/fx";
 import { pickReceipt, readReceipt, signReceipt, uploadReceipt, type ReceiptRead } from "@/lib/receipts";
@@ -37,7 +37,7 @@ import { currencyLabel } from "@/lib/currencyLabels";
  * involved as avatar chips (everyone by default, deselected = dashed); split type;
  * description; category and subcategory as pill dropdowns (the second hides when
  * there are none); tip; "Split by nights stayed" for hotels and rentals with a
- * NightCell row per person. Shares are computed by @bunktab/core and saved through
+ * "Who slept where?" row opening the B6 nights grid. Shares are computed by @bunktab/core and saved through
  * save_expense in one transaction; the server re-checks the sums. A receipt photo
  * uploads to the private receipts bucket and the total is read server-side to
  * pre-fill the amount (tip stays separate); a non-base currency fetches its rate
@@ -49,7 +49,7 @@ const SPLITS: { key: SplitType; label: string }[] = [
 type Sheet = "receipt" | "currency" | "category" | "subcategory" | "delete" | null;
 
 export default function ExpenseScreen() {
-  const { id, expense: expenseId, ...devParams } = useLocalSearchParams<{ id: string; expense?: string; category?: string; sub?: string; receipt?: string }>();
+  const { id, expense: expenseId, ...devParams } = useLocalSearchParams<{ id: string; expense?: string; category?: string; sub?: string; receipt?: string; nights?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
@@ -71,6 +71,7 @@ export default function ExpenseScreen() {
   const [lodging, setLodging] = useState(false);
   const [nights, setNights] = useState("1");
   const [presence, setPresence] = useState<Record<string, boolean[]>>({});
+  const [nightsOpen, setNightsOpen] = useState(false); // B6 Who slept where, full screen over the sheet
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [seeded, setSeeded] = useState(false);
@@ -143,6 +144,7 @@ export default function ExpenseScreen() {
   }, [existing]);
 
   // DEV only: ?category=&sub= preselects a pair (screenshots, tests)
+  useEffect(() => { if (__DEV__ && seeded && lodging && devParams.nights === "1") setNightsOpen(true); }, [seeded, lodging, devParams.nights]); // screenshots: open B6 directly
   useEffect(() => { if (__DEV__ && seeded && !existing && devParams.category) changeCategory(devParams.category, devParams.sub ?? null); }, [seeded, existing, devParams.category, devParams.sub]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const amountCents = parseToCents(amount) ?? 0;
@@ -161,6 +163,9 @@ export default function ExpenseScreen() {
   // the payer: you, or on an edit the person who originally paid
   const payerId = existing?.expense_payers[0]?.user_id ?? me;
   const lodgingOffered = category === "travel" && isLodgingCategory(category, subcategory);
+  const stayedOn = (uid: string, i: number) => presence[uid]?.[i] ?? true;
+  const stripesPainted = involved.reduce((a, uid) => a + Array.from({ length: nightsN }, (_, i) => stayedOn(uid, i)).filter(Boolean).length, 0);
+  const emptyNight = involved.length > 0 && Array.from({ length: nightsN }, (_, i) => involved.some((uid) => stayedOn(uid, i))).some((x) => !x);
   function setNightsCount(v: string) {
     setNights(v);
     const n = Math.max(1, parseInt(v, 10) || 1);
@@ -337,23 +342,14 @@ export default function ExpenseScreen() {
                 {lodging ? (
                   <>
                     <Input label="Nights" keyboardType="number-pad" value={nights} onChangeText={setNightsCount} helper={`${formatDayShort(data.trip.start_date)} → ${formatDayShort(addDays(data.trip.start_date, nightsN))} · ${formatCents(Math.round(total / nightsN), currency)} a night, split among the people staying each night.`} />
-                    {involved.map((uid) => (
-                      <View key={uid} style={styles.nightsRow}>
-                        <ZText variant="captionStrong" numberOfLines={1} style={styles.nightsName}>{first(uid)}</ZText>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.nightCells}>
-                          {Array.from({ length: nightsN }, (_, i) => {
-                            const stayed = presence[uid]?.[i] ?? true;
-                            return (
-                              <View key={i} style={styles.nightCol}>
-                                <NightCell on={stayed} label={`${name(uid)}, ${weekdayShort(addDays(data.trip.start_date, i))}, ${stayed ? "stayed" : "away"}`} onPress={() => setPresence((p) => ({ ...p, [uid]: Array.from({ length: nightsN }, (_, k) => (k === i ? !stayed : p[uid]?.[k] ?? true)) }))} />
-                                <ZText variant="micro" color={color.textMuted}>{weekdayShort(addDays(data.trip.start_date, i))}</ZText>
-                              </View>
-                            );
-                          })}
-                        </ScrollView>
-                        <ZText variant="small" color={color.textMuted} tabular style={styles.nightsShare}>{shareText(uid)}</ZText>
-                      </View>
-                    ))}
+                    <RowCard
+                      tile={<Icon name="moon" size={20} />}
+                      title="Who slept where?"
+                      caption={`${stripesPainted} ${stripesPainted === 1 ? "stripe" : "stripes"} over ${nightsN} ${nightsN === 1 ? "night" : "nights"}${emptyNight ? " · a night has nobody in it" : ""}`}
+                      right={<Icon name="chevronRight" size={18} color={color.textMuted} />}
+                      onPress={() => setNightsOpen(true)}
+                      accessibilityLabel={`Who slept where? ${stripesPainted} stripes over ${nightsN} nights. Opens the nights grid`}
+                    />
                   </>
                 ) : (
                   <>
@@ -405,6 +401,22 @@ export default function ExpenseScreen() {
       <ActionSheet open={sheet === "currency"} onClose={() => setSheet(null)} title="Currency" actions={currencies.map((c) => ({ label: currencyLabel(c), onPress: () => setCurrency(c) }))} />
       <ActionSheet open={sheet === "category"} onClose={() => setSheet(null)} title="Category" actions={CATEGORIES.map((c) => ({ label: c.label, onPress: () => changeCategory(c.key, null) }))} />
       <ActionSheet open={sheet === "subcategory"} onClose={() => setSheet(null)} title={cat?.label ?? "Subcategory"} actions={(cat?.subcategories ?? []).map((s) => ({ label: s.label, onPress: () => changeCategory(cat!.key, s.key) }))} />
+      <Modal visible={nightsOpen && !!data} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setNightsOpen(false)}>
+        {data ? (
+          <WhoSleptWhere
+            context={`${description.trim() || "Lodging"} · ${formatCents(total, currency)}`}
+            startDate={data.trip.start_date}
+            nights={nightsN}
+            totalCents={total}
+            currency={currency}
+            people={involved.map((uid) => ({ id: uid, name: name(uid), short: first(uid), photo: photo(uid) }))}
+            payerId={payerId}
+            presence={Object.fromEntries(involved.map((uid) => [uid, Array.from({ length: nightsN }, (_, i) => stayedOn(uid, i))]))}
+            onSave={(p) => { setPresence((prev) => ({ ...prev, ...p })); setNightsOpen(false); }}
+            onClose={() => setNightsOpen(false)}
+          />
+        ) : null}
+      </Modal>
       <ActionSheet open={sheet === "delete"} onClose={() => setSheet(null)} title="Delete this expense? It comes out of every balance and stays in the history." actions={[{ label: "Delete", destructive: true, onPress: remove }]} />
     </View>
   );
@@ -471,11 +483,6 @@ const styles = StyleSheet.create({
   chip: { alignItems: "center", gap: space[4], width: 64 },
   avatarOff: { opacity: 0.8 },
   chipCheck: { position: "absolute", right: -2, bottom: -2, width: 18, height: 18, borderRadius: 9, backgroundColor: palette.ink, borderWidth: 2, borderColor: palette.white, alignItems: "center", justifyContent: "center" },
-  nightsRow: { flexDirection: "row", alignItems: "center", gap: space[8] },
-  nightsName: { width: 64 },
-  nightCells: { gap: space[6], paddingVertical: space[2] },
-  nightCol: { alignItems: "center", gap: space[2] },
-  nightsShare: { width: 72, textAlign: "right" },
   splitRow: { flexDirection: "row", alignItems: "center", gap: space[10] },
   splitInput: { width: 110 },
   splitShare: { width: 72, textAlign: "right" },

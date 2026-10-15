@@ -41,7 +41,7 @@ export function StatusPill({ label, complete, style }: { label: string; complete
 export function ContextPill({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return (
     <View style={[styles.status, styles.whiteShadow, style]}>
-      <ZText variant="captionStrong">{children}</ZText>
+      <ZText variant="captionStrong" numberOfLines={1}>{children}</ZText>
     </View>
   );
 }

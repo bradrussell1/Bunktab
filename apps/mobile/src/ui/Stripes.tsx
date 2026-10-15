@@ -5,6 +5,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming, Easi
 import { motion } from "@bunktab/theme";
 import { Press } from "./Press";
 import { ZText } from "./Text";
+import { StripeGrow } from "./motion";
 import { useReducedMotion } from "./motion/useReducedMotion";
 
 const springPop = Easing.bezier(...(motion.springPop.bezier as [number, number, number, number]));
@@ -54,14 +55,15 @@ export function NightCell({ on, label, onPress, disabled }: { on: boolean; label
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ selected: on, disabled: !!disabled }}
-      hitSlop={4}
+      hitSlop={5}
       style={[styles.night, { width, height, borderRadius: radius.tile, backgroundColor: on ? color.surfaceInset : "transparent" }]}
     >
-      {on ? (
-        <Stripe done width={stripeW} height={stripeH} angleDeg={angleDeg} offColor="transparent" />
-      ) : (
-        <View style={{ width: stripeW, height: stripeH, borderRadius: stripeW / 2, borderWidth: 1.5, borderStyle: "dashed", borderColor: color.outlineDashed, transform: [{ rotate: `${angleDeg}deg` }] }} />
-      )}
+      <View style={{ width: stripeW, height: stripeH, transform: [{ rotate: `${angleDeg}deg` }] }}>
+        <View style={[StyleSheet.absoluteFill, { borderRadius: stripeW / 2, borderWidth: 1.5, borderStyle: "dashed", borderColor: color.outlineDashed }]} />
+        <StripeGrow on={on} style={StyleSheet.absoluteFill}>
+          <View style={{ width: stripeW, height: stripeH, borderRadius: stripeW / 2, backgroundColor: color.stripeOn }} />
+        </StripeGrow>
+      </View>
     </Press>
   );
 }
