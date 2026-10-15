@@ -127,7 +127,7 @@ export default function CloseoutScreen() {
         ) : (
           <View style={styles.titleBlock}>
             <ZText variant="title1" accessibilityRole="header">Earn your stripes</ZText>
-            <ZText variant="body" color={color.textSecondary}>Each stripe is someone who's done adding expenses.</ZText>
+            <ZText variant="body" color={color.textSecondary}>Each stripe is someone who&apos;s done adding expenses.</ZText>
           </View>
         )}
 
@@ -240,8 +240,8 @@ export default function CloseoutScreen() {
                   <ZText variant="bodyStrong" style={styles.flex}>Settled up</ZText>
                   <Toggle value={settledUp} onChange={toggleSettledUp} disabled={settling} label="Settled up" />
                 </View>
-                <ZText variant="caption" color={color.textSecondary}>Turn this on once you've paid and been paid for this dazzle. It marks your payments paid and quiets the expenses.</ZText>
-                <ZText variant="caption" color={color.textMuted}>Venmo does the paying. Zebrasplit only prepares each payment and can't see whether it went through, so mark each one paid yourself. Recipients can tap Got it to confirm, but they don't have to.</ZText>
+                <ZText variant="caption" color={color.textSecondary}>Turn this on once you&apos;ve paid and been paid for this dazzle. It marks your payments paid and quiets the expenses.</ZText>
+                <ZText variant="caption" color={color.textMuted}>Venmo does the paying. Zebrasplit only prepares each payment and can&apos;t see whether it went through, so mark each one paid yourself. Recipients can tap Got it to confirm, but they don&apos;t have to.</ZText>
               </Card>
             </Rise>
           </>

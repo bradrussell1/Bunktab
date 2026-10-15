@@ -145,7 +145,7 @@ export default function ExpenseScreen() {
 
   // DEV only: ?category=&sub= preselects a pair (screenshots, tests)
   useEffect(() => { if (__DEV__ && seeded && lodging && devParams.nights === "1") setNightsOpen(true); }, [seeded, lodging, devParams.nights]); // screenshots: open B6 directly
-  useEffect(() => { if (__DEV__ && seeded && !existing && devParams.category) changeCategory(devParams.category, devParams.sub ?? null); }, [seeded, existing, devParams.category, devParams.sub]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (__DEV__ && seeded && !existing && devParams.category) changeCategory(devParams.category, devParams.sub ?? null); }, [seeded, existing, devParams.category, devParams.sub]);
 
   const amountCents = parseToCents(amount) ?? 0;
   const tipCents = parseToCents(tip) ?? 0;

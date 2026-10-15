@@ -35,7 +35,7 @@ export default function PhoneScreen() {
       footer={<Button label="Send code" onPress={send} loading={busy} />}
     >
       <Input label="Phone number" keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" placeholder="(555) 555-0100" value={raw} onChangeText={setRaw} error={error} helper="Standard message rates apply." onSubmitEditing={send} returnKeyType="done" autoFocus />
-      {!supabaseConfigured ? <FormError>Supabase isn't configured: add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to apps/mobile/.env.</FormError> : null}
+      {!supabaseConfigured ? <FormError>Supabase isn&apos;t configured: add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to apps/mobile/.env.</FormError> : null}
     </AuthScreen>
   );
 }

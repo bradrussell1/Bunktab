@@ -147,7 +147,7 @@ function Sheet() {
           <SpeechBubble tone="white">Did anyone grab the tip?</SpeechBubble>
           <SpeechBubble tone="cream">Yep, $40 on the villa dinner.</SpeechBubble>
           <Banner>Offline. Changes will sync.</Banner>
-          <Banner dot="pink">Jordan hasn't added anything yet</Banner>
+          <Banner dot="pink">Jordan hasn&apos;t added anything yet</Banner>
           <Row><LiveDot /><ZText variant="caption" color={color.textMuted}>live</ZText></Row>
         </Section>
 

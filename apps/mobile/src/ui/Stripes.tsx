@@ -1,8 +1,7 @@
-import { color, palette, radius, shadow, size, space } from "@bunktab/theme";
+import { color, motion, palette, radius, shadow, size, space } from "@bunktab/theme";
 import { useEffect, type ReactNode } from "react";
 import { Image, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withTiming, Easing } from "react-native-reanimated";
-import { motion } from "@bunktab/theme";
 import { Press } from "./Press";
 import { ZText } from "./Text";
 import { StripeGrow } from "./motion";

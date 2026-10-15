@@ -78,7 +78,7 @@ export default function TripScreen() {
     );
   }
 
-  const { trip, members } = data;
+  const { trip } = data;
   const isOwner = meMember?.role === "owner";
   const settledUp = !!meMember?.settled_up_at;
   const doneCount = figures.members.filter((m) => m.done_at).length;
@@ -291,7 +291,7 @@ export default function TripScreen() {
       {!readonly && !closed ? (
         <View onLayout={(e) => setFooterH(e.nativeEvent.layout.height)} style={[styles.footer, { paddingBottom: insets.bottom + space[16] }]}>
           <View style={styles.doneRow}>
-            <ZText variant="bodyStrong" style={styles.flex}>I'm done adding expenses</ZText>
+            <ZText variant="bodyStrong" style={styles.flex}>I&apos;m done adding expenses</ZText>
             <Toggle value={myDone} onChange={toggleDone} disabled={busy} label="I'm done adding expenses" />
           </View>
           <View style={styles.footerButtons}>

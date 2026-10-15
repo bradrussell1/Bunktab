@@ -39,7 +39,7 @@ export function WhoSleptWhere({ context, startDate, nights, totalCents, currency
   const [pops, setPops] = useState<number[]>(() => Array.from({ length: nights }, () => 0));
 
   const stayed = (id: string, i: number) => draft[id]?.[i] ?? true;
-  const { counts, perNight, perSleeper, shares, assigned, stripes } = useMemo(() => {
+  const { perNight, perSleeper, shares, assigned, stripes } = useMemo(() => {
     const perNight = divideEvenly(totalCents, nights);
     const counts = Array.from({ length: nights }, (_, i) => people.filter((p) => stayed(p.id, i)).length);
     const ordered = [...people].sort((a, b) => (a.id === payerId ? -1 : b.id === payerId ? 1 : 0));
