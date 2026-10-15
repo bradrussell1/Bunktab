@@ -1,47 +1,33 @@
-import { theme } from "@bunktab/theme";
-import { LinearGradient } from "expo-linear-gradient";
+import { zebraLabel, zebraMoodFor } from "@bunktab/core";
+import { color, space } from "@bunktab/theme";
 import { useRouter } from "expo-router";
-import { Pressable, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, HeroText, Text } from "@/components/ui";
+import { View } from "react-native";
+import { AuthScreen } from "@/components/AuthScreen";
+import { Button, Zebra, ZText } from "@/ui";
 
 /**
- * First screen (user brief #22): black canvas, the wordmark up top, a
- * pastel mesh panel from about halfway down that ends just past a single
- * Login button with big rounded bottom corners, and a dusk "Sign-Up" link
- * on the black below it.
+ * First screen (RESKIN_PROMPT B1): the full zebra (hi, blinking, a gentle bob) above
+ * the lowercase wordmark at display scale and "Split the trip. Keep it black and
+ * white.", then the one volt action (Log in) and a secondary "Create an account".
  */
 export default function LandingScreen() {
   const router = useRouter();
+  const mood = zebraMoodFor({ place: "login", profileSaved: false }) ?? "hi";
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background.main }} edges={["top", "bottom"]}>
-      <View style={{ flex: 1 }}>
-        <View style={{ flex: 1, paddingHorizontal: theme.screenPadding, paddingTop: theme.spacing.xxl * 2, gap: theme.spacing.sm }}>
-          <Text variant="captionCaps2" color={theme.colors.text.onBackground.accent}>Zebrasplit</Text>
-          <Text variant="largeTitle" style={{ fontSize: 40, lineHeight: 46 }}>Split the trip.{"\n"}Settle in Venmo.</Text>
-          <Text variant="body" color={theme.colors.text.onBackground.secondary}>Everyone logs what they paid. Close out with the fewest payments.</Text>
-        </View>
-
-        <LinearGradient
-          colors={[...theme.colors.hero.gradient]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ paddingHorizontal: theme.screenPadding, paddingTop: 36, paddingBottom: 36, borderBottomLeftRadius: 40, borderBottomRightRadius: 40, gap: theme.spacing.xl, ...theme.elevation.sm }}
-        >
-          <View style={{ gap: theme.spacing.xs }}>
-            <HeroText variant="title2">Welcome back</HeroText>
-            <HeroText variant="body" tone="mid">Log in with your email or phone number.</HeroText>
-          </View>
-          <Button title="Login" onPress={() => router.push("/(auth)/login")} accessibilityLabel="Log in" />
-        </LinearGradient>
-
-        <View style={{ alignItems: "center", paddingVertical: theme.spacing.xxl, gap: theme.spacing.sm }}>
-          <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>New here?</Text>
-          <Pressable onPress={() => router.push("/(auth)/signup")} accessibilityRole="button" accessibilityLabel="Sign up" hitSlop={12}>
-            <Text variant="title2" color={theme.colors.text.onBackground.accent}>Sign-Up</Text>
-          </Pressable>
-        </View>
+    <AuthScreen
+      centered
+      hero={<Zebra variant="full" mood={mood} size={236} animate={{ blink: true, bob: true }} accessibilityLabel={zebraLabel(mood)} />}
+      footer={
+        <>
+          <Button label="Log in" onPress={() => router.push("/(auth)/login")} />
+          <Button label="Create an account" kind="secondary" onPress={() => router.push("/(auth)/signup")} />
+        </>
+      }
+    >
+      <View style={{ alignItems: "center", gap: space[8] }}>
+        <ZText variant="display" accessibilityRole="header">zebrasplit</ZText>
+        <ZText variant="body" color={color.textSecondary} style={{ textAlign: "center" }}>Split the trip. Keep it black and white.</ZText>
       </View>
-    </SafeAreaView>
+    </AuthScreen>
   );
 }

@@ -3,7 +3,6 @@ import {
   COMMON_CURRENCIES,
   addDays,
   formatDayShort,
-  weekdayShort,
   SplitError,
   computeNightsShares,
   computeShares,
@@ -15,37 +14,44 @@ import {
   toBaseCents,
   type SplitType,
 } from "@bunktab/core";
-import { theme } from "@bunktab/theme";
+import { color, layout, palette, radius, shadow, size, space, text as textStyle } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
-import { ActionSheetIOS, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, View } from "react-native";
-import { CategoryPicker } from "@/components/CategoryPicker";
-import { Avatar, Button, Card, Divider, Input, ListItem, Screen, Segmented, Text } from "@/components/ui";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { FormError } from "@/components/AuthScreen";
+import { WhoSleptWhere } from "@/components/WhoSleptWhere";
+import { ActionSheet, Avatar, Button, Icon, Input, Press, Receipt, RowCard, SegmentedControl, TextLink, Toggle, ZText } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { fetchRate, formatFetchedAt } from "@/lib/fx";
-import { pickReceipt, readReceipt, signReceipt, uploadReceipt } from "@/lib/receipts";
+import { pickReceipt, readReceipt, signReceipt, uploadReceipt, type ReceiptRead } from "@/lib/receipts";
 import { supabase } from "@/lib/supabase";
 import { activeMembers, useTrip, type Expense } from "@/lib/trips";
 import { currencyLabel } from "@/lib/currencyLabels";
 
 /**
- * Add or edit an expense (spec: Screens → Add or edit expense). Amount and
- * currency; the payer is always you (an edit keeps the original payer);
- * who's involved (everyone by default); the split type; description; category and
- * subcategory from the fixed list; tip as its own field; "Pro-rate lodging
- * by nights", offered only for hotels and rentals, switches to nights. Shares are computed by @bunktab/core and saved
- * through save_expense in one transaction; the server re-checks the sums.
- * A receipt photo uploads to the private receipts bucket and the total is
- * read server-side to pre-fill the amount (tip stays separate); a non-base
- * currency fetches its rate on selection, editable, locked on save.
+ * Add or edit an expense (RESKIN_PROMPT B5; spec: Screens → Add or edit expense), as a
+ * white sheet sliding up over the dazzle page. Big amount entry with a currency pill;
+ * "Snap a receipt" (ink) and, once the photo is read, the thermal Receipt card with
+ * "Use $164.00" / Edit; who paid (you, or on an edit the original payer); who's
+ * involved as avatar chips (everyone by default, deselected = dashed); split type;
+ * description; category and subcategory as pill dropdowns (the second hides when
+ * there are none); tip; "Split by nights stayed" for hotels and rentals with a
+ * "Who slept where?" row opening the B6 nights grid. Shares are computed by @bunktab/core and saved through
+ * save_expense in one transaction; the server re-checks the sums. A receipt photo
+ * uploads to the private receipts bucket and the total is read server-side to
+ * pre-fill the amount (tip stays separate); a non-base currency fetches its rate
+ * on selection, editable, locked on save. Every read, RPC and target is unchanged.
  */
 const SPLITS: { key: SplitType; label: string }[] = [
   { key: "equal", label: "Equal" }, { key: "exact", label: "Exact" }, { key: "percent", label: "%" },
 ];
+type Sheet = "receipt" | "currency" | "category" | "subcategory" | "delete" | null;
 
 export default function ExpenseScreen() {
-  const { id, expense: expenseId, ...devParams } = useLocalSearchParams<{ id: string; expense?: string; category?: string; sub?: string }>();
+  const { id, expense: expenseId, ...devParams } = useLocalSearchParams<{ id: string; expense?: string; category?: string; sub?: string; receipt?: string; nights?: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const me = session!.user.id;
   const { data } = useTrip(id);
@@ -65,6 +71,7 @@ export default function ExpenseScreen() {
   const [lodging, setLodging] = useState(false);
   const [nights, setNights] = useState("1");
   const [presence, setPresence] = useState<Record<string, boolean[]>>({});
+  const [nightsOpen, setNightsOpen] = useState(false); // B6 Who slept where, full screen over the sheet
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [seeded, setSeeded] = useState(false);
@@ -72,8 +79,12 @@ export default function ExpenseScreen() {
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [receiptBusy, setReceiptBusy] = useState(false);
   const [receiptNote, setReceiptNote] = useState<string | null>(null);
+  // the last successful read-out, shown as the thermal Receipt card. DEV: ?receipt=demo previews it (no upload)
+  const [read, setRead] = useState<ReceiptRead | null>(__DEV__ && devParams.receipt === "demo" ? { total_cents: 16400, currency: null, confidence: "high" } : null);
   const [fxNote, setFxNote] = useState<string | null>(null);
   const [commentCount, setCommentCount] = useState<number | null>(null);
+  const [sheet, setSheet] = useState<Sheet>(null);
+  const amountRef = useRef<TextInput>(null);
 
   const members = useMemo(() => (data ? activeMembers(data) : []), [data]);
   const cat = CATEGORIES.find((c) => c.key === category) ?? null;
@@ -133,7 +144,8 @@ export default function ExpenseScreen() {
   }, [existing]);
 
   // DEV only: ?category=&sub= preselects a pair (screenshots, tests)
-  useEffect(() => { if (__DEV__ && seeded && !existing && devParams.category) changeCategory(devParams.category, devParams.sub ?? null); }, [seeded, existing, devParams.category, devParams.sub]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (__DEV__ && seeded && lodging && devParams.nights === "1") setNightsOpen(true); }, [seeded, lodging, devParams.nights]); // screenshots: open B6 directly
+  useEffect(() => { if (__DEV__ && seeded && !existing && devParams.category) changeCategory(devParams.category, devParams.sub ?? null); }, [seeded, existing, devParams.category, devParams.sub]);
 
   const amountCents = parseToCents(amount) ?? 0;
   const tipCents = parseToCents(tip) ?? 0;
@@ -151,6 +163,9 @@ export default function ExpenseScreen() {
   // the payer: you, or on an edit the person who originally paid
   const payerId = existing?.expense_payers[0]?.user_id ?? me;
   const lodgingOffered = category === "travel" && isLodgingCategory(category, subcategory);
+  const stayedOn = (uid: string, i: number) => presence[uid]?.[i] ?? true;
+  const stripesPainted = involved.reduce((a, uid) => a + Array.from({ length: nightsN }, (_, i) => stayedOn(uid, i)).filter(Boolean).length, 0);
+  const emptyNight = involved.length > 0 && Array.from({ length: nightsN }, (_, i) => involved.some((uid) => stayedOn(uid, i))).some((x) => !x);
   function setNightsCount(v: string) {
     setNights(v);
     const n = Math.max(1, parseInt(v, 10) || 1);
@@ -166,25 +181,27 @@ export default function ExpenseScreen() {
     try {
       const path = await uploadReceipt(data.trip.id, uri);
       setReceiptPath(path);
-      const read = await readReceipt(path);
-      if (read?.total_cents && read.total_cents > 0 && read.confidence !== "low" && !amount.trim()) {
-        setAmount((read.total_cents / 100).toFixed(2));
-        if (read.currency && (COMMON_CURRENCIES as readonly string[]).includes(read.currency)) setCurrency(read.currency);
-        setReceiptNote("Read from the receipt, check it");
+      const r = await readReceipt(path);
+      if (r?.total_cents && r.total_cents > 0 && r.confidence !== "low") {
+        setRead(r);
+        if (!amount.trim()) {
+          setAmount((r.total_cents / 100).toFixed(2));
+          if (r.currency && (COMMON_CURRENCIES as readonly string[]).includes(r.currency)) setCurrency(r.currency);
+          setReceiptNote("Read from the receipt, check it");
+        } else setReceiptNote("Receipt attached");
       } else {
+        setRead(null);
         setReceiptNote(amount.trim() ? "Receipt attached" : "Couldn't read a total, enter it by hand");
       }
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't upload the receipt."); }
     setReceiptBusy(false);
   }
-  function chooseReceipt() {
-    if (Platform.OS === "ios") {
-      ActionSheetIOS.showActionSheetWithOptions({ options: ["Cancel", "Take photo", "Choose photo"], cancelButtonIndex: 0 }, (i) => { if (i === 1) attachReceipt("camera"); if (i === 2) attachReceipt("library"); });
-    } else {
-      Alert.alert("Receipt", undefined, [{ text: "Take photo", onPress: () => attachReceipt("camera") }, { text: "Choose photo", onPress: () => attachReceipt("library") }, { text: "Cancel", style: "cancel" }]);
-    }
+  function useReadTotal() {
+    if (!read?.total_cents) return;
+    setAmount((read.total_cents / 100).toFixed(2));
+    if (read.currency && (COMMON_CURRENCIES as readonly string[]).includes(read.currency)) setCurrency(read.currency);
   }
-  function removeReceipt() { setReceiptPath(null); setReceiptNote(null); }
+  function removeReceipt() { setReceiptPath(null); setReceiptNote(null); setRead(null); }
 
   const preview = useMemo(() => {
     try {
@@ -229,124 +246,250 @@ export default function ExpenseScreen() {
   }
   const isOwner = data?.members.find((m) => m.user_id === me)?.role === "owner";
   const canDelete = !!existing && (existing.created_by === me || isOwner); // user: only the owner or the person who created it
-  function remove() {
-    Alert.alert("Delete this expense?", "It comes out of every balance and stays in the history.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: async () => {
-        const { error: e } = await supabase.rpc("delete_expense", { p_id: existing!.id });
-        if (e) { setError(/owner|created|allowed|42501/i.test(e.message) ? "Only the trip owner or the person who added this expense can delete it." : e.message); return; }
-        router.back();
-      } },
-    ]);
+  async function remove() {
+    const { error: e } = await supabase.rpc("delete_expense", { p_id: existing!.id });
+    if (e) { setError(/owner|created|allowed|42501/i.test(e.message) ? "Only the dazzle owner or the person who added this expense can delete it." : e.message); return; }
+    router.back();
   }
 
-  if (!data || !seeded) return <Screen><View /></Screen>;
   const name = (uid: string) => (uid === me ? "You" : members.find((m) => m.user_id === uid)?.display_name ?? "Member");
-  const payerNote = payerId === me ? "You paid this" : `${name(payerId)} paid this`;
+  const first = (uid: string) => name(uid).split(/\s+/)[0]!;
+  const photo = (uid: string) => members.find((m) => m.user_id === uid)?.photo_url ?? null;
+  const avatarName = (uid: string) => members.find((m) => m.user_id === uid)?.display_name ?? "?";
+  const shareText = (uid: string) => (preview?.shares && involved.includes(uid) ? formatCents(preview.shares[uid] ?? 0, currency) : undefined);
+  const currencies = data ? [data.trip.base_currency, ...COMMON_CURRENCIES.filter((c) => c !== data.trip.base_currency)] : [...COMMON_CURRENCIES];
+  const amountError = total <= 0 && (amount.length > 0 || tip.length > 0) ? "Enter an amount." : null;
 
   return (
-    <Screen padded={false}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: theme.screenPadding, paddingVertical: theme.spacing.sm }}>
-          <Button title="Cancel" kind="text" size="small" onPress={() => router.back()} />
-          <Text variant="title2">{existing ? "Edit expense" : "Add expense"}</Text>
-          {canDelete ? <Button title="Delete" kind="text" size="small" onPress={remove} /> : <View style={{ width: 60 }} />}
+    <View style={styles.host}>
+      <Pressable style={styles.backdrop} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close" />
+      <View style={[styles.sheet, { marginTop: insets.top + space[24] }]} accessibilityViewIsModal>
+        <View style={styles.grabber} />
+        <View style={styles.header}>
+          <TextLink label="Cancel" muted onPress={() => router.back()} style={styles.headerSide} />
+          <ZText variant="headline" accessibilityRole="header">{existing ? "Edit expense" : "Add expense"}</ZText>
+          <View style={styles.headerSide} />
         </View>
-        <ScrollView contentContainerStyle={{ paddingHorizontal: theme.screenPadding, gap: theme.spacing.lg, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
-          <Card style={{ padding: 12, flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
-            <Pressable onPress={chooseReceipt} disabled={receiptBusy} accessibilityRole="button" accessibilityLabel={receiptPath ? "Change receipt photo" : "Add receipt photo"}
-              style={{ width: 56, height: 56, borderRadius: theme.radius.control, borderWidth: 1, borderColor: theme.colors.border.neutral, backgroundColor: theme.colors.fill.secondary, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-              {receiptUrl ? <Image source={{ uri: receiptUrl }} style={{ width: 56, height: 56 }} resizeMode="cover" accessibilityIgnoresInvertColors /> : <Text variant="caption3" color={theme.colors.text.onBackground.secondary}>{receiptBusy ? "…" : "Receipt"}</Text>}
-            </Pressable>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text variant="headline">{receiptPath ? "Receipt attached" : "Receipt"}</Text>
-              <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>{receiptBusy ? "Uploading and reading the total…" : receiptNote ?? (receiptPath ? "Saved with the expense as proof." : "Snap it and the total fills in. Add tip separately.")}</Text>
-            </View>
-            {receiptPath
-              ? <Button title="Remove" kind="text" size="small" onPress={removeReceipt} disabled={receiptBusy} />
-              : <Button title="Add" kind="secondary" size="small" onPress={chooseReceipt} loading={receiptBusy} />}
-          </Card>
-          <View style={{ flexDirection: "row", gap: theme.spacing.md }}>
-            <View style={{ flex: 2 }}><Input label="Amount" placeholder="0.00" keyboardType="decimal-pad" value={amount} onChangeText={setAmount} autoFocus={!existing} /></View>
-            <View style={{ flex: 1 }}><Input label="Tip" placeholder="0.00" keyboardType="decimal-pad" value={tip} onChangeText={setTip} /></View>
-          </View>
-          <View style={{ gap: theme.spacing.xs }}>
-            <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Currency</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: theme.spacing.sm }}>
-              {[data.trip.base_currency, ...COMMON_CURRENCIES.filter((c) => c !== data.trip.base_currency)].map((c) => (
-                <Pressable key={c} onPress={() => setCurrency(c)} accessibilityRole="radio" accessibilityState={{ selected: currency === c }} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: theme.radius.pill, borderWidth: 1, borderColor: currency === c ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: currency === c ? theme.colors.fill.primary : theme.colors.background.surface }}>
-                  <Text variant="caption1Semibold" color={currency === c ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.primary}>{currencyLabel(c)}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-            {currency !== data.trip.base_currency && <Input label={`Rate: 1 ${currency} in ${data.trip.base_currency}`} keyboardType="decimal-pad" value={fx} helper={`${formatCents(total, currency)} = ${formatCents(toBaseCents(total, fxRate), data.trip.base_currency)}${fxNote ? ` · ${fxNote}` : " · locked on save"}`} onChangeText={(v) => { setFx(v); setFxNote("Typed rate, locked on save"); }} />}
-          </View>
-          <Input label="Description" placeholder="Dinner at Rosa's" value={description} onChangeText={setDescription} maxLength={140} helper={payerNote} />
+        {!data || !seeded ? <View style={styles.flex} /> : (
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
+            <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
+              {/* amount */}
+              <View style={styles.amountRow}>
+                <Press onPress={() => setSheet("currency")} scaleTo={0.97} accessibilityRole="button" accessibilityLabel={`Currency, ${currency}`} style={styles.currencyPill}>
+                  <ZText variant="captionStrong">{currency}</ZText>
+                  <Icon name="chevronDown" size={14} color={color.textMuted} />
+                </Press>
+                <TextInput
+                  ref={amountRef}
+                  value={amount}
+                  onChangeText={setAmount}
+                  placeholder="0.00"
+                  placeholderTextColor={color.textMuted}
+                  keyboardType="decimal-pad"
+                  autoFocus={!existing && !read}
+                  accessibilityLabel="Amount"
+                  style={styles.amountInput}
+                />
+              </View>
+              {currency !== data.trip.base_currency ? (
+                <Input label={`Rate: 1 ${currency} in ${data.trip.base_currency}`} keyboardType="decimal-pad" value={fx} helper={`${formatCents(total, currency)} = ${formatCents(toBaseCents(total, fxRate), data.trip.base_currency)}${fxNote ? ` · ${fxNote}` : " · locked on save"}`} onChangeText={(v) => { setFx(v); setFxNote("Typed rate, locked on save"); }} />
+              ) : null}
 
-          <CategoryPicker category={category} subcategory={subcategory} onChange={changeCategory} />
-
-          <Card style={{ padding: 0, overflow: "hidden" }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 12, paddingBottom: 4 }}>
-              <Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary}>Who&apos;s involved</Text>
-              <Button title={involved.length === members.length ? "Clear" : "Select all"} kind="text" size="small" onPress={() => setInvolved(involved.length === members.length ? [] : members.map((m) => m.user_id))} />
-            </View>
-            {members.map((m) => {
-              const on = involved.includes(m.user_id);
-              return (
-                <View key={m.user_id}>
-                  <Pressable onPress={() => toggleInvolved(m.user_id)} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 12 }}>
-                    <Check on={on} /><Avatar name={m.display_name ?? "?"} size={28} /><Text variant="headline" style={{ flex: 1 }}>{name(m.user_id)}</Text>
-                    {on && !lodging && split === "exact" && <Input placeholder="0.00" keyboardType="decimal-pad" value={exact[m.user_id] ?? ""} onChangeText={(v) => setExact((x) => ({ ...x, [m.user_id]: v }))} style={{ width: 96, height: 36 }} />}
-                    {on && !lodging && split === "percent" && <Input placeholder="%" keyboardType="decimal-pad" value={percents[m.user_id] ?? ""} onChangeText={(v) => setPercents((x) => ({ ...x, [m.user_id]: v }))} style={{ width: 72, height: 36 }} />}
-                    {on && preview?.shares && <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>{formatCents(preview.shares[m.user_id] ?? 0, currency)}</Text>}
-                  </Pressable>
-                  {on && lodging && (
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 12, paddingBottom: 10, paddingLeft: 64 }}>
-                      {Array.from({ length: nightsN }, (_, i) => {
-                        const stayed = presence[m.user_id]?.[i] ?? true;
-                        return <Pressable key={i} onPress={() => setPresence((p) => ({ ...p, [m.user_id]: Array.from({ length: nightsN }, (_, k) => (k === i ? !stayed : p[m.user_id]?.[k] ?? true)) }))} accessibilityRole="checkbox" accessibilityState={{ checked: stayed }} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: theme.radius.tag, borderWidth: 1, borderColor: stayed ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: stayed ? theme.colors.fill.primary : "transparent" }}><Text variant="caption3" color={stayed ? theme.colors.text.onFill.onPrimary : theme.colors.text.onBackground.secondary}>{weekdayShort(addDays(data.trip.start_date, i))}</Text></Pressable>;
-                      })}
-                    </View>
-                  )}
+              {/* receipt */}
+              {read?.total_cents ? (
+                <View style={styles.receiptBlock}>
+                  <Receipt merchant="Receipt" lines={[]} totalCents={read.total_cents} />
+                  <View style={styles.receiptActions}>
+                    <Button kind="ink" height={size.pillButton} label={`Use ${formatCents(read.total_cents, read.currency ?? currency)}`} onPress={useReadTotal} />
+                    <TextLink label="Edit" onPress={() => amountRef.current?.focus()} />
+                    <TextLink label="Remove" muted onPress={removeReceipt} />
+                  </View>
                 </View>
-              );
-            })}
-          </Card>
-
-          <View style={{ gap: theme.spacing.sm }}>
-            {/* one row: "Split" on the left; for hotels/rentals a right-aligned "Pro-rate lodging by nights" switch */}
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", minHeight: 31 }}>
-              <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Split</Text>
-              {lodgingOffered && (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.sm }}>
-                  <Text variant="caption1Semibold" color={theme.colors.text.onBackground.secondary}>Pro-rate lodging by nights</Text>
-                  <Switch value={lodging} onValueChange={setLodging} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.grayDeep }} accessibilityLabel="Pro-rate lodging by nights" />
-                </View>
+              ) : receiptPath || receiptBusy ? (
+                <RowCard
+                  tile={receiptUrl ? <Image source={{ uri: receiptUrl }} style={styles.thumb} accessibilityIgnoresInvertColors /> : <Icon name="camera" />}
+                  title={receiptBusy ? "Reading the receipt…" : "Receipt attached"}
+                  caption={receiptBusy ? "Uploading and reading the total" : receiptNote ?? "Saved with the expense as proof"}
+                  right={!receiptBusy ? <TextLink label="Remove" muted onPress={removeReceipt} /> : null}
+                />
+              ) : (
+                <Button kind="ink" icon="camera" label="Snap a receipt" height={size.buttonHeight} onPress={() => setSheet("receipt")} />
               )}
+
+              <Section label="Who paid">
+                <View style={styles.chips}>
+                  <PersonChip name={first(payerId)} fullName={name(payerId)} avatarName={avatarName(payerId)} photo={photo(payerId)} on />
+                </View>
+              </Section>
+
+              <Section label="Who's involved" right={<TextLink label={involved.length === members.length ? "Clear" : "Everyone"} muted onPress={() => setInvolved(involved.length === members.length ? [] : members.map((m) => m.user_id))} />}>
+                <View style={styles.chips}>
+                  {members.map((m) => (
+                    <PersonChip key={m.user_id} name={first(m.user_id)} fullName={name(m.user_id)} avatarName={m.display_name ?? "?"} photo={m.photo_url} on={involved.includes(m.user_id)} share={shareText(m.user_id)} onPress={() => toggleInvolved(m.user_id)} />
+                  ))}
+                </View>
+              </Section>
+
+              <Section
+                label="Split"
+                right={lodgingOffered ? (
+                  <View style={styles.toggleRow}>
+                    <ZText variant="small" color={color.textMuted}>Split by nights stayed</ZText>
+                    <Toggle value={lodging} onChange={setLodging} label="Split by nights stayed" />
+                  </View>
+                ) : null}
+              >
+                {lodging ? (
+                  <>
+                    <Input label="Nights" keyboardType="number-pad" value={nights} onChangeText={setNightsCount} helper={`${formatDayShort(data.trip.start_date)} → ${formatDayShort(addDays(data.trip.start_date, nightsN))} · ${formatCents(Math.round(total / nightsN), currency)} a night, split among the people staying each night.`} />
+                    <RowCard
+                      tile={<Icon name="moon" size={20} />}
+                      title="Who slept where?"
+                      caption={`${stripesPainted} ${stripesPainted === 1 ? "stripe" : "stripes"} over ${nightsN} ${nightsN === 1 ? "night" : "nights"}${emptyNight ? " · a night has nobody in it" : ""}`}
+                      right={<Icon name="chevronRight" size={18} color={color.textMuted} />}
+                      onPress={() => setNightsOpen(true)}
+                      accessibilityLabel={`Who slept where? ${stripesPainted} stripes over ${nightsN} nights. Opens the nights grid`}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <SegmentedControl options={SPLITS} value={split} onChange={setSplit} />
+                    {split === "equal" ? <ZText variant="small" color={color.textMuted}>Leftover cents go to the payer so the total always matches.</ZText> : null}
+                    {split !== "equal" ? involved.map((uid) => (
+                      <View key={uid} style={styles.splitRow}>
+                        <ZText variant="bodyStrong" numberOfLines={1} style={styles.flex}>{name(uid)}</ZText>
+                        {split === "exact"
+                          ? <Input placeholder="0.00" keyboardType="decimal-pad" value={exact[uid] ?? ""} onChangeText={(v) => setExact((x) => ({ ...x, [uid]: v }))} style={styles.splitInput} accessibilityLabel={`${name(uid)}'s exact amount`} />
+                          : <Input placeholder="%" keyboardType="decimal-pad" value={percents[uid] ?? ""} onChangeText={(v) => setPercents((x) => ({ ...x, [uid]: v }))} style={styles.splitInput} accessibilityLabel={`${name(uid)}'s percent`} />}
+                        <ZText variant="small" color={color.textMuted} tabular style={styles.splitShare}>{shareText(uid)}</ZText>
+                      </View>
+                    )) : null}
+                  </>
+                )}
+                {preview?.error ? <ZText variant="small" color={color.error}>{preview.error}</ZText> : null}
+              </Section>
+
+              <Input label="Description" placeholder="Dinner at Rosa's" value={description} onChangeText={setDescription} maxLength={140} />
+
+              <View style={styles.pillRow}>
+                <DropdownPill label="Category" value={cat?.label ?? "Pick a category"} placeholder={!cat} onPress={() => setSheet("category")} />
+                {cat && cat.subcategories.length > 0 ? (
+                  <DropdownPill label="Subcategory" value={cat.subcategories.find((s) => s.key === subcategory)?.label ?? "Pick one"} placeholder={!subcategory} onPress={() => setSheet("subcategory")} />
+                ) : null}
+              </View>
+
+              <Input label="Tip (optional)" placeholder="0.00" keyboardType="decimal-pad" value={tip} onChangeText={setTip} helper="Kept separate from the receipt total." />
+
+              {existing ? (
+                <RowCard tile={<Icon name="send" />} title={`Comments${commentCount === null ? "" : ` (${commentCount})`}`} caption="Questions and notes about this expense" right={<Icon name="chevronRight" size={18} color={color.textMuted} />} onPress={() => router.push(`/(app)/trip/${data.trip.id}/comments?expense=${existing.id}`)} />
+              ) : null}
+              {canDelete ? (
+                <Press onPress={() => setSheet("delete")} scaleTo={0.97} accessibilityRole="button" accessibilityLabel="Delete this expense" style={styles.delete}>
+                  <ZText variant="bodyStrong" color={color.destructive} style={styles.deleteText}>Delete this expense</ZText>
+                </Press>
+              ) : null}
+            </ScrollView>
+            <View style={[styles.footer, { paddingBottom: insets.bottom + space[12] }]}>
+              <FormError>{error ?? amountError}</FormError>
+              <Button label={existing ? "Save changes" : "Add expense"} onPress={save} loading={busy} disabled={total <= 0 || receiptBusy} />
             </View>
-            {lodging ? (
-              <Input label="Nights" keyboardType="number-pad" value={nights} onChangeText={setNightsCount} helper={`${formatDayShort(data.trip.start_date)} → ${formatDayShort(addDays(data.trip.start_date, nightsN))} · ${nightsN} ${nightsN === 1 ? "night" : "nights"} · ${formatCents(Math.round(total / nightsN), currency)} a night, split among the people ticked for each night.`} />
-            ) : (
-              <Segmented options={SPLITS} value={split} onChange={setSplit} />
-            )}
-            {preview?.error && <Text variant="caption1" color={theme.colors.text.destructive}>{preview.error}</Text>}
-            {!lodging && split === "equal" && <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>Leftover cents go to the payer so the total always matches.</Text>}
-          </View>
-          {existing && (
-            <Card style={{ padding: 0, overflow: "hidden" }}>
-              <ListItem title={`Comments${commentCount === null ? "" : ` (${commentCount})`}`} subtitle="Questions and notes about this expense" onPress={() => router.push(`/(app)/trip/${data.trip.id}/comments?expense=${existing.id}`)} right={<Text variant="caption1Semibold" color={theme.colors.text.onBackground.accent}>Open ›</Text>} />
-            </Card>
-          )}
-          <Divider />
-          {total <= 0 && (amount.length > 0 || tip.length > 0) && <Text variant="caption1" color={theme.colors.text.destructive}>Enter an amount.</Text>}
-          {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
-          <Button title={existing ? "Save changes" : `Add ${total ? formatCents(total, currency) : "expense"}`} onPress={save} loading={busy} disabled={total <= 0 || receiptBusy} />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Screen>
+          </KeyboardAvoidingView>
+        )}
+      </View>
+
+      <ActionSheet open={sheet === "receipt"} onClose={() => setSheet(null)} title="Snap a receipt" actions={[{ label: "Take a photo", onPress: () => attachReceipt("camera") }, { label: "Choose from photos", onPress: () => attachReceipt("library") }]} />
+      <ActionSheet open={sheet === "currency"} onClose={() => setSheet(null)} title="Currency" actions={currencies.map((c) => ({ label: currencyLabel(c), onPress: () => setCurrency(c) }))} />
+      <ActionSheet open={sheet === "category"} onClose={() => setSheet(null)} title="Category" actions={CATEGORIES.map((c) => ({ label: c.label, onPress: () => changeCategory(c.key, null) }))} />
+      <ActionSheet open={sheet === "subcategory"} onClose={() => setSheet(null)} title={cat?.label ?? "Subcategory"} actions={(cat?.subcategories ?? []).map((s) => ({ label: s.label, onPress: () => changeCategory(cat!.key, s.key) }))} />
+      <Modal visible={nightsOpen && !!data} animationType="slide" presentationStyle="fullScreen" onRequestClose={() => setNightsOpen(false)}>
+        {data ? (
+          <WhoSleptWhere
+            context={`${description.trim() || "Lodging"} · ${formatCents(total, currency)}`}
+            startDate={data.trip.start_date}
+            nights={nightsN}
+            totalCents={total}
+            currency={currency}
+            people={involved.map((uid) => ({ id: uid, name: name(uid), short: first(uid), photo: photo(uid) }))}
+            payerId={payerId}
+            presence={Object.fromEntries(involved.map((uid) => [uid, Array.from({ length: nightsN }, (_, i) => stayedOn(uid, i))]))}
+            onSave={(p) => { setPresence((prev) => ({ ...prev, ...p })); setNightsOpen(false); }}
+            onClose={() => setNightsOpen(false)}
+          />
+        ) : null}
+      </Modal>
+      <ActionSheet open={sheet === "delete"} onClose={() => setSheet(null)} title="Delete this expense? It comes out of every balance and stays in the history." actions={[{ label: "Delete", destructive: true, onPress: remove }]} />
+    </View>
   );
 }
 
-function Check({ on }: { on: boolean }) {
-  return <View style={{ width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: on ? theme.colors.fill.primary : theme.colors.border.neutral, backgroundColor: on ? theme.colors.fill.primary : "transparent", alignItems: "center", justifyContent: "center" }}>{on && <Text variant="caption3" color={theme.colors.text.onFill.onPrimary}>✓</Text>}</View>;
+function Section({ label, right, children }: { label: string; right?: ReactNode; children: ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHead}>
+        <ZText variant="captionStrong">{label}</ZText>
+        {right}
+      </View>
+      {children}
+    </View>
+  );
 }
+
+/** Avatar chip: selected = sand avatar with a small ink check; deselected = dashed outline, muted name. */
+function PersonChip({ name, fullName, avatarName, photo, on, share, onPress }: { name: string; fullName: string; avatarName: string; photo?: string | null; on: boolean; share?: string; onPress?: () => void }) {
+  return (
+    <Press onPress={onPress} disabled={!onPress} scaleTo={0.97} accessibilityRole={onPress ? "checkbox" : "text"} accessibilityState={onPress ? { checked: on } : undefined} accessibilityLabel={`${fullName}${share ? `, ${share}` : ""}${onPress ? (on ? ", included" : ", not included") : ""}`} style={styles.chip}>
+      <View>
+        <Avatar name={avatarName} uri={photo} size={44} notDone={!on} style={!on ? styles.avatarOff : null} />
+        {on && onPress ? <View style={styles.chipCheck}><Icon name="check" size={10} color={color.textOnInk} stroke={3} /></View> : null}
+      </View>
+      <ZText variant="small" numberOfLines={1} color={on ? color.text : color.textMuted}>{name}</ZText>
+      {share && on ? <ZText variant="micro" color={color.textMuted} tabular>{share}</ZText> : null}
+    </Press>
+  );
+}
+
+/** White pill "dropdown": label above, value (muted when nothing's picked) and a chevron. */
+function DropdownPill({ label, value, placeholder, onPress }: { label: string; value: string; placeholder?: boolean; onPress: () => void }) {
+  return (
+    <View style={styles.flex}>
+      <ZText variant="captionStrong" style={styles.fieldLabel}>{label}</ZText>
+      <Press onPress={onPress} scaleTo={0.98} accessibilityRole="button" accessibilityLabel={`${label}: ${value}`} style={styles.dropdown}>
+        <ZText variant="body" color={placeholder ? color.textMuted : color.text} numberOfLines={1} style={styles.flex}>{value}</ZText>
+        <Icon name="chevronDown" size={16} color={color.textMuted} />
+      </Press>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  host: { flex: 1 },
+  flex: { flex: 1 },
+  backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: palette.ink, opacity: 0.28 },
+  sheet: { flex: 1, backgroundColor: palette.white, borderTopLeftRadius: radius.hero, borderTopRightRadius: radius.hero, paddingTop: 10, ...shadow.sheet },
+  grabber: { width: 36, height: 5, borderRadius: radius.pill, backgroundColor: color.surfaceTile, alignSelf: "center", marginBottom: 10 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: layout.screenGutter, paddingBottom: space[4] },
+  headerSide: { width: 72 },
+  content: { paddingHorizontal: layout.screenGutter, paddingTop: space[8], paddingBottom: space[24], gap: space[16] },
+  amountRow: { flexDirection: "row", alignItems: "center", gap: space[10], paddingHorizontal: space[4] },
+  currencyPill: { flexDirection: "row", alignItems: "center", gap: space[4], borderRadius: radius.pill, borderWidth: 1.5, borderColor: color.outline, paddingHorizontal: 12, minHeight: size.pillButton, justifyContent: "center" },
+  amountInput: { flex: 1, ...textStyle("amountL"), color: color.text, paddingVertical: space[8], minHeight: size.ctaHeight },
+  receiptBlock: { alignItems: "center", gap: space[12] },
+  receiptActions: { flexDirection: "row", alignItems: "center", gap: space[16] },
+  thumb: { width: size.iconTile, height: size.iconTile },
+  section: { gap: space[10] },
+  sectionHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 24, paddingHorizontal: space[4] },
+  toggleRow: { flexDirection: "row", alignItems: "center", gap: space[8] },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: space[10] },
+  chip: { alignItems: "center", gap: space[4], width: 64 },
+  avatarOff: { opacity: 0.8 },
+  chipCheck: { position: "absolute", right: -2, bottom: -2, width: 18, height: 18, borderRadius: radius.pill, backgroundColor: palette.ink, borderWidth: 2, borderColor: palette.white, alignItems: "center", justifyContent: "center" },
+  splitRow: { flexDirection: "row", alignItems: "center", gap: space[10] },
+  splitInput: { width: 110 },
+  splitShare: { width: 72, textAlign: "right" },
+  pillRow: { flexDirection: "row", gap: space[10] },
+  fieldLabel: { marginBottom: 6, marginLeft: 4 },
+  dropdown: { backgroundColor: palette.white, borderWidth: 1.5, borderColor: color.outline, borderRadius: radius.pill, minHeight: size.buttonHeight, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: space[8] },
+  delete: { alignSelf: "center", minHeight: layout.minTapTarget, justifyContent: "center", paddingHorizontal: space[12] },
+  deleteText: { textDecorationLine: "underline" },
+  footer: { paddingHorizontal: layout.screenGutter, paddingTop: space[10], gap: space[10], borderTopWidth: 1.5, borderTopColor: color.divider, backgroundColor: palette.white },
+});

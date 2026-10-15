@@ -1,8 +1,7 @@
-import { theme } from "@bunktab/theme";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
-import { Button, Input, Screen, Text } from "@/components/ui";
+import { AuthScreen } from "@/components/AuthScreen";
+import { Button, Input, TextLink } from "@/ui";
 import { friendlyAuthError, toE164, useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -41,18 +40,19 @@ export default function AddPhoneScreen() {
     router.push({ pathname: "/(auth)/code", params: { phone, mode: "phone_change" } });
   }
 
-  if (checking) return <Screen><View /></Screen>;
+  if (checking) return <AuthScreen />;
   return (
-    <Screen>
-      <ScrollView contentContainerStyle={{ gap: theme.spacing.xl, paddingTop: theme.spacing.xxl, paddingBottom: 48 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentInsetAdjustmentBehavior="automatic">
-        <View style={{ gap: theme.spacing.sm }}>
-          <Text variant="largeTitle">Add your phone number</Text>
-          <Text variant="body" color={theme.colors.text.onBackground.secondary}>Friends invite you by number, so we need to confirm one. We'll text you a code.</Text>
-        </View>
-        <Input label="Phone number" keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" placeholder="(555) 555-0100" value={raw} onChangeText={setRaw} error={error} onSubmitEditing={send} returnKeyType="done" autoFocus />
-        <Button title="Continue" onPress={send} loading={busy} />
-        <Button title="Sign out" kind="text" size="small" style={{ alignSelf: "center" }} onPress={signOut} />
-      </ScrollView>
-    </Screen>
+    <AuthScreen
+      title="Add your phone number"
+      lead="Friends invite you by number, so we need to confirm one. We'll text you a code."
+      footer={
+        <>
+          <Button label="Send code" onPress={send} loading={busy} />
+          <TextLink label="Sign out" muted style={{ alignSelf: "center" }} onPress={signOut} />
+        </>
+      }
+    >
+      <Input label="Phone number" keyboardType="phone-pad" textContentType="telephoneNumber" autoComplete="tel" placeholder="(555) 555-0100" value={raw} onChangeText={setRaw} error={error} onSubmitEditing={send} returnKeyType="done" autoFocus />
+    </AuthScreen>
   );
 }

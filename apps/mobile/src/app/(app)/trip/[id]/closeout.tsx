@@ -1,28 +1,35 @@
-import { closeoutUnlocked, formatCents, venmoChargeLink, venmoPayLink } from "@bunktab/core";
-import { theme } from "@bunktab/theme";
+import { closeoutUnlocked, formatCents, venmoChargeLink, venmoPayLink, zebraLabel, zebraMoodFor } from "@bunktab/core";
+import { color, layout, palette, radius, shadow, size, space } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, ScrollView, Switch, View } from "react-native";
-import { NotchedHero, notchInset } from "@/components/NotchedHero";
-import { Avatar, Button, Card, Divider, Hero, HeroAction, HeroText, ListItem, Screen, Text } from "@/components/ui";
+import { useEffect, useRef, useState } from "react";
+import { Linking, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ActionSheet, Banner, Button, Card, Confetti, Dance, HeroCard, Icon, InsetPanel, PersonPill, Press, Rise, ScreenBackground, StatusPill, TextLink, Toggle, TopBar, VenmoZipButton, Zebra, ZText, haptic, ScreenSkeleton } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { activeMembers, memberName, useTrip } from "@/lib/trips";
 
 /**
- * Close out and pay (spec: Screens → Close out and pay). The plan is written
- * by the database (generate_settlements) when the gate is open. Your
- * payments show as "Pay Mike $84.50" buttons that open Venmo pre-filled,
- * falling back to venmo.com when the app isn't installed; each has Mark as
- * paid, and the recipient an optional Got it. Creditors get "Request from
- * everyone". The trip is settled when every payment is marked paid. The
- * hero is your payments (or what's owed to you when you have none).
+ * Earn your stripes / close out (RESKIN_PROMPT B7, board "Earn your stripes"; spec:
+ * Screens → Close out and pay). One screen, two states:
+ *
+ * Not everyone done: "Earn your stripes", the zebra stage (one stripe per member
+ * who's Done, mood by the progress rule), a person pill per member (yours toggles
+ * set_done), a locked "Close out at N stripes · K to go" button and, for the owner,
+ * "Skip ahead: everyone's done" (owner_closeout, confirmed in an action sheet).
+ *
+ * Everyone done: "Stripes are even. Time to settle." The zebra dances and confetti
+ * fires the moment the last stripe lands; the payment plan (written by the database
+ * through generate_settlements) rises in: your payments as "Pay Mike $84.50" Venmo
+ * zip buttons with Mark as paid / Undo, what's owed to you with Got it, payments
+ * between others, then "We earned our stripes. Share the recap?" and one volt
+ * "Request … in Venmo" for creditors. Settled up stays a toggle (set_settled_up).
+ * Venmo link building, RPC names and the gate are unchanged.
  */
-/** Server messages → people words. */
 function friendly(m: string): string {
   const s = m.toLowerCase();
   if (s.includes("still locked")) return "Close out is locked until everyone has tapped Done.";
-  if (s.includes("not a member")) return "You're not on this trip any more.";
+  if (s.includes("not a member")) return "You're not on this dazzle any more.";
   if (s.includes("network")) return "Connection hiccup. Pull to try again.";
   return m;
 }
@@ -30,35 +37,70 @@ function friendly(m: string): string {
 export default function CloseoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { session } = useAuth();
   const me = session!.user.id;
   const { data, loading, reload } = useTrip(id);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
   const [settling, setSettling] = useState(false);
+  const [busyDone, setBusyDone] = useState(false);
+  const [confirmSkip, setConfirmSkip] = useState(false);
+  const [play, setPlay] = useState({ dance: 0, confetti: 0 });
+  const wasUnlocked = useRef<boolean | null>(null);
 
-  // the plan is only asked for once the gate is open; a locked trip shows a locked state instead
+  // the plan is only asked for once the gate is open; a locked trip shows the stripes instead
   const gateOpen = data ? (closeoutUnlocked(activeMembers(data).map((m) => ({ doneAt: m.done_at, removedAt: m.removed_at }))) || !!data.trip.closeout_override_at) : false;
   useEffect(() => {
     if (!data || generated || !gateOpen) return;
     setGenerated(true);
     if (data.trip.status === "open") supabase.rpc("generate_settlements", { p_trip: data.trip.id }).then(({ error: e }) => { if (e) setError(friendly(e.message)); reload(); });
   }, [data, generated, gateOpen, reload]);
+  // the last stripe landing (while you watch) → dance + confetti; already even on open → one dance
+  useEffect(() => {
+    if (!data) return;
+    if (wasUnlocked.current === null) { wasUnlocked.current = gateOpen; if (gateOpen) setPlay((p) => ({ ...p, dance: p.dance + 1 })); return; }
+    if (!wasUnlocked.current && gateOpen) { wasUnlocked.current = true; setPlay((p) => ({ dance: p.dance + 1, confetti: p.confetti + 1 })); haptic.success(); }
+    if (!gateOpen) wasUnlocked.current = false;
+  }, [data, gateOpen]);
 
-  if (loading || !data) return <Screen><View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator /></View></Screen>;
-  const { trip, settlements, members } = data;
+  if (loading || !data) {
+    return <View style={styles.screen}><ScreenBackground /><TopBar onBack={() => router.back()} /><ScreenSkeleton rows={3} /></View>;
+  }
+  const { trip, settlements } = data;
+  const members = activeMembers(data);
+  const doneCount = members.filter((m) => m.done_at).length;
+  const toGo = members.length - doneCount;
+  const closed = trip.status !== "open";
+  const cur = trip.base_currency;
+  const isOwner = members.find((m) => m.user_id === me)?.role === "owner";
+  const myDone = !!members.find((m) => m.user_id === me)?.done_at;
+  const mood = zebraMoodFor({ place: "stripes", members: members.length, done: doneCount }) ?? "hi";
+
   const mine = settlements.filter((s) => s.from_user === me);
   const owed = settlements.filter((s) => s.to_user === me);
   const others = settlements.filter((s) => s.from_user !== me && s.to_user !== me);
-  const venmoOf = (uid: string) => members.find((m) => m.user_id === uid)?.venmo_username ?? null;
-  const meMember = members.find((m) => m.user_id === me);
-  const settledUp = !!meMember?.settled_up_at;
-  const active = activeMembers(data);
-  const notDone = active.filter((m) => !m.done_at);
+  const venmoOf = (uid: string) => data.members.find((m) => m.user_id === uid)?.venmo_username ?? null;
+  const settledUp = !!data.members.find((m) => m.user_id === me)?.settled_up_at;
+  const pendingOwed = owed.filter((s) => s.status === "pending");
+  const canRequest = pendingOwed.length > 0 && owed.every((s) => venmoOf(s.from_user));
+  const allMinePaid = mine.length > 0 && mine.every((s) => s.status !== "pending");
+  const who = (uid: string) => memberName(data, uid, me);
 
   async function open(link: { app: string; web: string }) {
     const can = await Linking.canOpenURL(link.app).catch(() => false);
     await Linking.openURL(can ? link.app : link.web);
+  }
+  async function toggleDone(v: boolean) {
+    setBusyDone(true);
+    const { error: e } = await supabase.rpc("set_done", { p_trip: trip.id, p_done: v });
+    if (e) setError(friendly(e.message));
+    await reload(); setBusyDone(false);
+  }
+  async function skipAhead() {
+    const { error: e } = await supabase.rpc("owner_closeout", { p_trip: trip.id });
+    if (e) setError(friendly(e.message));
+    reload();
   }
   async function toggleSettledUp(v: boolean) {
     setSettling(true);
@@ -70,138 +112,182 @@ export default function CloseoutScreen() {
     const { error: e } = await supabase.rpc("mark_settlement", { p_settlement: sid, p_action: action });
     if (e) setError(friendly(e.message)); reload();
   }
+  const requestLabel = pendingOwed.length === 1 ? `Request ${formatCents(pendingOwed[0]!.amount_cents, cur)} in Venmo` : "Request from everyone in Venmo";
+  const request = () => open(venmoChargeLink(pendingOwed.map((s) => venmoOf(s.from_user)!), owed[0]!.amount_cents, trip.title));
 
   return (
-    <Screen>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: theme.spacing.sm }}>
-        <Button title="‹ Trip" kind="text" size="small" onPress={() => router.back()} />
-        <Text variant="title2">{trip.status === "settled" ? "Settled" : "Close out"}</Text>
-        <View style={{ width: 60 }} />
-      </View>
-      <ScrollView contentContainerStyle={{ gap: theme.spacing.lg, paddingBottom: 40 }}>
-        {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
-        <Card style={{ gap: theme.spacing.sm }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: theme.spacing.md }}>
-            <Text variant="text">Settled up</Text>
-            <Switch value={settledUp} onValueChange={toggleSettledUp} disabled={settling} trackColor={{ true: theme.colors.fill.primary, false: theme.palette.grayDeep }} />
+    <View style={styles.screen}>
+      <ScreenBackground />
+      <TopBar onBack={() => router.back()} right={<StatusPill label={gateOpen ? `All ${members.length} stripes` : `${doneCount} of ${members.length} stripes`} complete={gateOpen} />} />
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
+        {gateOpen ? (
+          <Rise key="even" style={styles.titleBlock}>
+            <ZText variant="title1" accessibilityRole="header">Stripes are even.{"\n"}Time to settle.</ZText>
+          </Rise>
+        ) : (
+          <View style={styles.titleBlock}>
+            <ZText variant="title1" accessibilityRole="header">Earn your stripes</ZText>
+            <ZText variant="body" color={color.textSecondary}>Each stripe is someone who&apos;s done adding expenses.</ZText>
           </View>
-          <Text variant="caption1" color={theme.colors.text.onBackground.secondary}>Turn this on once you&apos;ve paid and/or been paid for this trip. It marks your payments paid and greys out the expenses.</Text>
-        </Card>
-        {!gateOpen && trip.status === "open" && settlements.length === 0 && (
-          <Hero style={{ gap: theme.spacing.sm }}>
-            <HeroText variant="captionCaps2" tone="mid">Close out is locked</HeroText>
-            <HeroText variant="title2">{active.length - notDone.length} of {active.length} have tapped Done.</HeroText>
-            <HeroText variant="caption1" tone="mid">Still to go: {notDone.map((m) => memberName(data, m.user_id, me)).join(", ")}. The payment plan appears once everyone is done.</HeroText>
-          </Hero>
-        )}
-        {gateOpen && settlements.length === 0 && (
-          <Hero>
-            <HeroText variant="captionCaps2" tone="mid">Nothing to settle</HeroText>
-            <HeroText variant="title2" style={{ marginTop: 4 }}>Everyone is even.</HeroText>
-          </Hero>
         )}
 
-        {mine.length > 0 && (
-          <Hero style={{ gap: theme.spacing.md }}>
-            <View style={{ gap: 2 }}>
-              <HeroText variant="captionCaps2" tone="mid">Your payments</HeroText>
-              <HeroText variant="largeTitle" tone="dusk" numberOfLines={1} adjustsFontSizeToFit>{formatCents(mine.reduce((a, s) => a + s.amount_cents, 0), trip.base_currency)}</HeroText>
-              <HeroText variant="caption1Semibold" tone="mid">{mine.filter((s) => s.status !== "pending").length} of {mine.length} marked paid</HeroText>
-            </View>
-            {mine.map((s) => {
-              const to = memberName(data, s.to_user, me); const handle = venmoOf(s.to_user); const paid = s.status !== "pending";
+        {error ? <Banner dot="pink" style={styles.gutter}>{error}</Banner> : null}
+
+        {/* the zebra stage: one stripe per member who's Done */}
+        <HeroCard style={styles.stage}>
+          <Dance play={play.dance}>
+            <Zebra variant="full" members={members.length} done={doneCount} mood={mood} size={244} animate={{ blink: true, swish: true }} accessibilityLabel={zebraLabel(mood, members.length, doneCount)} />
+          </Dance>
+          <Confetti play={play.confetti} style={StyleSheet.absoluteFill} />
+        </HeroCard>
+
+        {!gateOpen ? (
+          <View style={styles.pills}>
+            {members.map((m, i) => {
+              const done = !!m.done_at;
+              const isMe = m.user_id === me;
               return (
-                <View key={s.id} style={{ gap: 10, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.hero.divider }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md }}>
-                    <Avatar name={to} onHero />
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <HeroText variant="headline">Pay {to} {formatCents(s.amount_cents, trip.base_currency)}</HeroText>
-                      <HeroText variant="caption1" tone="mid">{handle ? `@${handle}` : `${to} hasn't added a Venmo handle yet`}</HeroText>
+                <PersonPill
+                  key={m.user_id}
+                  name={isMe ? "You" : (m.display_name ?? "Member")}
+                  done={done}
+                  stripeIndex={done ? members.slice(0, i + 1).filter((x) => x.done_at).length : undefined}
+                  bust={done ? <Zebra variant="bust" mood="happy" size={44} decorative /> : undefined}
+                  onPress={isMe && !closed && !busyDone ? () => toggleDone(!myDone) : undefined}
+                />
+              );
+            })}
+          </View>
+        ) : (
+          <>
+            {settlements.length === 0 ? (
+              <Rise delay={250} style={styles.gutter}>
+                <Card><ZText variant="headline">Everyone is even.</ZText><ZText variant="caption" color={color.textSecondary}>Nothing to settle on this dazzle.</ZText></Card>
+              </Rise>
+            ) : null}
+
+            {mine.length > 0 ? (
+              <Rise delay={250} style={styles.gutter}>
+                <Card style={styles.payCard}>
+                  <View style={styles.payHeader}>
+                    <View style={styles.flex}>
+                      <ZText variant="small" color={color.textSecondary}>Your payments</ZText>
+                      <ZText variant="headline">{mine.filter((s) => s.status !== "pending").length} of {mine.length} marked paid</ZText>
                     </View>
-                    {paid && <HeroText variant="caption1Semibold" tone="mint">{s.status === "confirmed" ? "Confirmed" : "Marked paid"}</HeroText>}
+                    <Zebra variant="bust" size={84} mood={zebraMoodFor({ place: "payment", paid: allMinePaid }) ?? "hi"} animate={{ blink: true }} accessibilityLabel={allMinePaid ? "Zebra, love: all paid" : "Zebra, hi"} />
                   </View>
-                  <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
-                    <Button title="Pay in Venmo" size="small" style={{ flex: 1 }} disabled={!handle || paid} onPress={() => open(venmoPayLink(handle!, s.amount_cents, trip.title))} />
-                    <Pressable onPress={() => mark(s.id, paid ? "unmark" : "mark_paid")} disabled={s.status === "confirmed"} accessibilityRole="button"
-                      style={({ pressed }) => ({ flex: 1, height: 36, borderRadius: theme.radius.control, borderWidth: 1, borderColor: theme.colors.hero.ink, alignItems: "center", justifyContent: "center", opacity: pressed ? 0.7 : s.status === "confirmed" ? 0.5 : 1 })}>
-                      <HeroText variant="caption1Semibold">{paid ? "Undo" : "Mark as paid"}</HeroText>
-                    </Pressable>
-                  </View>
+                  {mine.map((s) => {
+                    const to = who(s.to_user); const handle = venmoOf(s.to_user); const paid = s.status !== "pending"; const amt = formatCents(s.amount_cents, cur);
+                    return (
+                      <View key={s.id} style={styles.payRow}>
+                        {handle ? (
+                          <VenmoZipButton label={`Pay ${to} ${amt}`} paid={paid} onPress={() => open(venmoPayLink(handle, s.amount_cents, trip.title))} />
+                        ) : (
+                          <Button kind="locked" label={`Pay ${to} ${amt}`} accessibilityLabel={`Pay ${to} ${amt}, unavailable: ${to} hasn't added a Venmo handle yet`} />
+                        )}
+                        <View style={styles.payMeta}>
+                          <ZText variant="caption" color={color.textMuted} style={styles.flex} numberOfLines={1}>{handle ? `@${handle}` : `${to} hasn't added a Venmo handle yet`}</ZText>
+                          {s.status === "confirmed"
+                            ? <ZText variant="captionStrong">{to} confirmed</ZText>
+                            : <TextLink label={paid ? "Undo" : "Mark as paid"} muted={paid} onPress={() => mark(s.id, paid ? "unmark" : "mark_paid")} />}
+                        </View>
+                      </View>
+                    );
+                  })}
+                </Card>
+              </Rise>
+            ) : null}
+
+            {owed.length > 0 || others.length > 0 ? (
+              <Rise delay={mine.length ? 350 : 250} style={styles.gutter}>
+                <Card style={styles.listCard}>
+                  {owed.map((s, i) => {
+                    const from = who(s.from_user);
+                    const status = s.status === "pending" ? "Not marked paid yet" : s.status === "confirmed" ? "You confirmed" : "Marked paid";
+                    return (
+                      <View key={s.id} style={[styles.listRow, i > 0 ? styles.listRule : null]} accessibilityLabel={`${from} pays you ${formatCents(s.amount_cents, cur)}, ${status}`}>
+                        <View style={styles.flex}>
+                          <ZText variant="body">{from} pays you</ZText>
+                          <ZText variant="small" color={s.status === "pending" ? color.textMuted : color.text}>{status}</ZText>
+                        </View>
+                        <ZText variant="amountRow" tabular>{formatCents(s.amount_cents, cur)}</ZText>
+                        {s.status === "marked_paid" ? <Button kind="secondary" onWhite height={size.pillSmall} label="Got it" onPress={() => mark(s.id, "confirm")} /> : null}
+                      </View>
+                    );
+                  })}
+                  {others.map((s, i) => (
+                    <View key={s.id} style={[styles.listRow, owed.length + i > 0 ? styles.listRule : null]}>
+                      <ZText variant="body" color={color.textSecondary} style={styles.flex}>{who(s.from_user)} pays {who(s.to_user)}</ZText>
+                      <ZText variant="amountRow" tabular color={color.textSecondary}>{formatCents(s.amount_cents, cur)}</ZText>
+                    </View>
+                  ))}
+                </Card>
+              </Rise>
+            ) : null}
+
+            <Rise delay={350} style={styles.gutter}>
+              <Press onPress={() => router.push(`/(app)/trip/${trip.id}/recap`)} scaleTo={0.98} accessibilityRole="button" accessibilityLabel="We earned our stripes. Share the recap?">
+                <InsetPanel tone="blush" style={styles.recapNudge}>
+                  <ZText variant="label" color={color.youOweText}>We earned our stripes. Share the recap?</ZText>
+                  <Icon name="chevronRight" size={16} color={color.youOweText} />
+                </InsetPanel>
+              </Press>
+            </Rise>
+
+            <Rise delay={450} style={styles.gutter}>
+              <Card style={styles.settledCard}>
+                <View style={styles.settledRow}>
+                  <ZText variant="bodyStrong" style={styles.flex}>Settled up</ZText>
+                  <Toggle value={settledUp} onChange={toggleSettledUp} disabled={settling} label="Settled up" />
                 </View>
-              );
-            })}
-          </Hero>
+                <ZText variant="caption" color={color.textSecondary}>Turn this on once you&apos;ve paid and been paid for this dazzle. It marks your payments paid and quiets the expenses.</ZText>
+                <ZText variant="caption" color={color.textMuted}>Venmo does the paying. Zebrasplit only prepares each payment and can&apos;t see whether it went through, so mark each one paid yourself. Recipients can tap Got it to confirm, but they don&apos;t have to.</ZText>
+              </Card>
+            </Rise>
+          </>
         )}
-
-        {owed.length > 0 && mine.length === 0 && (() => {
-          const canRequest = owed.some((s) => s.status === "pending") && owed.every((s) => venmoOf(s.from_user));
-          const header = (
-            <View style={{ gap: 2, paddingRight: canRequest ? notchInset(52, 52).width - theme.spacing.xl : 0 }}>
-              <HeroText variant="captionCaps2" tone="mid">Owed to you</HeroText>
-              <HeroText variant="largeTitle" tone="mint" numberOfLines={1} adjustsFontSizeToFit>{formatCents(owed.reduce((a, s) => a + s.amount_cents, 0), trip.base_currency)}</HeroText>
-              <HeroText variant="caption1Semibold" tone="mid">{owed.filter((s) => s.status !== "pending").length} of {owed.length} marked paid</HeroText>
-            </View>
-          );
-          const rows = (
-            <>
-            {owed.map((s) => {
-              const from = memberName(data, s.from_user, me);
-              return (
-                <View key={s.id} style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.md, paddingTop: theme.spacing.md, borderTopWidth: 1, borderTopColor: theme.colors.hero.divider }}>
-                  <Avatar name={from} onHero />
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <HeroText variant="headline">{from} pays you {formatCents(s.amount_cents, trip.base_currency)}</HeroText>
-                    <HeroText variant="caption1" tone={s.status === "pending" ? "mid" : "mint"}>{s.status === "pending" ? "Not marked paid yet" : s.status === "confirmed" ? "You confirmed" : "Marked paid"}</HeroText>
-                  </View>
-                  {s.status === "marked_paid" && <Button title="Got it" size="small" onPress={() => mark(s.id, "confirm")} />}
-                </View>
-              );
-            })}
-            {canRequest && <HeroText variant="caption1" tone="mid">The arrow opens one Venmo request to everyone who still owes you.</HeroText>}
-            </>
-          );
-          // the Request arrow sits in a top-right notch when there is something to request
-          return canRequest ? (
-            <NotchedHero corner="tr" slotWidth={52} slotHeight={52} contentStyle={{ gap: theme.spacing.md }}
-              renderSlot={() => <HeroAction label="Request from everyone in Venmo" onPress={() => open(venmoChargeLink(owed.filter((s) => s.status === "pending").map((s) => venmoOf(s.from_user)!), owed[0]!.amount_cents, trip.title))} />}>
-              {header}{rows}
-            </NotchedHero>
-          ) : (
-            <Hero style={{ gap: theme.spacing.md }}>{header}{rows}</Hero>
-          );
-        })()}
-
-        {owed.length > 0 && mine.length > 0 && (
-          <View style={{ gap: theme.spacing.sm }}>
-            <Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary}>Owed to you</Text>
-            <Card style={{ padding: 0, overflow: "hidden" }}>
-              {owed.map((s, i) => {
-                const from = memberName(data, s.from_user, me);
-                return (
-                  <View key={s.id}>
-                    {i > 0 && <Divider />}
-                    <ListItem title={`${from} pays you ${formatCents(s.amount_cents, trip.base_currency)}`} subtitle={s.status === "pending" ? "Not marked paid yet" : s.status === "confirmed" ? "You confirmed" : "Marked paid"} left={<Avatar name={from} />}
-                      right={s.status === "marked_paid" ? <Button title="Got it" size="small" onPress={() => mark(s.id, "confirm")} /> : undefined} />
-                  </View>
-                );
-              })}
-            </Card>
-            {owed.some((s) => s.status === "pending") && owed.every((s) => venmoOf(s.from_user)) && (
-              <Button title="Request from everyone" kind="secondary" size="medium" onPress={() => open(venmoChargeLink(owed.filter((s) => s.status === "pending").map((s) => venmoOf(s.from_user)!), owed[0]!.amount_cents, trip.title))} />
-            )}
-          </View>
-        )}
-
-        {others.length > 0 && (
-          <View style={{ gap: theme.spacing.sm }}>
-            <Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary}>Between others</Text>
-            <Card style={{ padding: 0, overflow: "hidden" }}>
-              {others.map((s, i) => <View key={s.id}>{i > 0 && <Divider />}<ListItem title={`${memberName(data, s.from_user, me)} pays ${memberName(data, s.to_user, me)} ${formatCents(s.amount_cents, trip.base_currency)}`} subtitle={s.status === "pending" ? "Pending" : "Marked paid"} /></View>)}
-            </Card>
-          </View>
-        )}
-        <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>Venmo does the paying. The app only prepares each payment and can&apos;t see whether it went through, so mark each one paid yourself. Recipients can tap Got it to confirm, but they don&apos;t have to.</Text>
       </ScrollView>
-    </Screen>
+
+      {/* footer */}
+      {!gateOpen ? (
+        <View style={[styles.footer, { paddingBottom: insets.bottom + layout.bottomCtaPadding }]}>
+          {isOwner && !closed ? <TextLink label="Skip ahead: everyone's done" muted onPress={() => setConfirmSkip(true)} style={styles.skip} /> : null}
+          <Button kind="locked" label={`Close out at ${members.length} stripes · ${toGo} to go`} accessibilityLabel={`Close out, locked, ${toGo} still adding expenses`} />
+        </View>
+      ) : canRequest ? (
+        <Rise delay={450} style={[styles.footer, { paddingBottom: insets.bottom + layout.bottomCtaPadding }]}>
+          <Button label={requestLabel} right={<Icon name="arrowUpRight" size={18} />} onPress={request} />
+        </Rise>
+      ) : null}
+
+      <ActionSheet
+        open={confirmSkip}
+        onClose={() => setConfirmSkip(false)}
+        title="Close out anyway? Not everyone has tapped Done. Everyone will be notified, the override is logged, and expenses already logged still count."
+        actions={[{ label: "Close out", destructive: true, onPress: skipAhead }]}
+      />
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: palette.bgMid },
+  flex: { flex: 1 },
+  content: { gap: space[12] },
+  gutter: { marginHorizontal: layout.screenGutter },
+  titleBlock: { paddingHorizontal: layout.textGutter, paddingTop: space[2], gap: space[4] },
+  stage: { marginHorizontal: layout.screenGutter, backgroundColor: color.surfaceTranslucentStrong, alignItems: "center", paddingVertical: space[6], paddingHorizontal: space[10], overflow: "hidden" },
+  pills: { paddingHorizontal: layout.screenGutter, gap: space[8] },
+  payCard: { gap: space[14] },
+  payHeader: { flexDirection: "row", alignItems: "flex-end", gap: space[12] },
+  payRow: { gap: space[8], paddingTop: space[12], borderTopWidth: 1, borderTopColor: color.divider },
+  payMeta: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space[12], paddingHorizontal: space[4] },
+  listCard: { paddingVertical: space[2] },
+  listRow: { flexDirection: "row", alignItems: "center", gap: space[12], paddingVertical: 12 },
+  listRule: { borderTopWidth: 1, borderTopColor: color.divider },
+  recapNudge: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space[8], borderRadius: radius.inset + 4, paddingVertical: 12, paddingHorizontal: 16 },
+  settledCard: { gap: space[8] },
+  settledRow: { flexDirection: "row", alignItems: "center", gap: space[12] },
+  footer: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: layout.screenGutter, paddingTop: space[10], gap: space[4], backgroundColor: color.surfaceTranslucentStrong, borderTopLeftRadius: radius.hero, borderTopRightRadius: radius.hero, ...shadow.sheet },
+  skip: { alignSelf: "center" },
+});

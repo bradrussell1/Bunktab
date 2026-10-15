@@ -1,0 +1,84 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-14T17:40:00Z"
+  },
+  "title": "Zebrasplit design directions",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "System.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 880,
+      "h": 1120,
+      "title": "System: zebra, moods, color, type"
+    },
+    "Main.dc.html": {
+      "x": 960,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Your dazzles (home)"
+    },
+    "Trip.dc.html": {
+      "x": 1430,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Dazzle (trip)"
+    },
+    "Stripes.dc.html": {
+      "x": 1900,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Earn your stripes (tap to play)",
+      "is_interactive": true
+    },
+    "Nights.dc.html": {
+      "x": 2370,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "Who slept where (tap to play)",
+      "is_interactive": true
+    },
+    "Delight.dc.html": {
+      "x": 0,
+      "y": 1520,
+      "w": 1208,
+      "h": 904,
+      "title": "Moments of delight (tap each to play)",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "System.dc.html",
+    "Main.dc.html",
+    "Trip.dc.html",
+    "Stripes.dc.html",
+    "Nights.dc.html",
+    "Delight.dc.html"
+  ],
+  "notes": {
+    "dirA": {
+      "x": 0,
+      "y": -300,
+      "text": "Zebrasplit: one direction. Black & white with volt and pink, on a soft cream gradient",
+      "kind": "title1",
+      "maxW": 2760
+    },
+    "dirD": {
+      "x": 0,
+      "y": 1220,
+      "text": "Moments of delight",
+      "kind": "title1",
+      "maxW": 1208
+    }
+  },
+  "designSystems": []
+}

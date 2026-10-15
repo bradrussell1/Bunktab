@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Zebrasplit, Moments of delight</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..900&amp;family=IBM+Plex+Mono:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1D1A17}a:hover{color:#3A3631}
+.tornlong{clip-path: polygon(0 0, 100% 0, 100% 94%, 92% 100%, 84% 94%, 76% 100%, 68% 94%, 60% 100%, 52% 94%, 44% 100%, 36% 94%, 28% 100%, 20% 94%, 12% 100%, 4% 94%, 0 98%)}
+@keyframes sweep{from{background-position:0 0}to{background-position:56px 0}}
+.sending{background: repeating-linear-gradient(115deg, #1D1A17 0 14px, #FFFFFF 14px 28px) !important; animation: sweep .5s linear infinite}
+@keyframes boop{0%{transform:translateY(46px) rotate(0)}35%{transform:translateY(-6px) rotate(-8deg)}55%{transform:translateY(0) rotate(8deg)}75%{transform:translateY(-3px) rotate(-4deg)}100%{transform:translateY(0) rotate(0)}}
+.boop{animation:boop .9s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes bubble{0%{opacity:0;transform:scale(.6) translateY(6px)}60%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+.bubble{animation:bubble .45s cubic-bezier(.3,1.5,.5,1) .35s both;transform-origin:0% 100%}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.4)}100%{transform:scale(1)}}
+.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes live{0%,100%{opacity:1}50%{opacity:.35}}
+.live{animation:live 1.4s ease-in-out infinite}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(0.1)}}
+.zeye{transform-box:fill-box;transform-origin:center;animation:blink 3.8s infinite}
+</style>
+</helmet>
+<div style="width: 1208px; height: 904px; box-sizing: border-box; background: radial-gradient(70% 55% at 100% 0%, #FFE9F3 0%, rgba(255,233,243,0) 60%), radial-gradient(60% 45% at 0% 20%, #F6FFD3 0%, rgba(246,255,211,0) 55%), linear-gradient(180deg, #FFFFFF 0%, #FBF8F2 50%, #F5F0E7 100%); color: #1D1A17; font-family: 'Figtree', system-ui, sans-serif; padding: 40px; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <h1 style="margin: 0; font-size: 40px; font-weight: 800; letter-spacing: -0.03em">Moments of delight</h1>
+      <span style="font-size: 17px; color: #6E6A63">Six small animations, each tied to a real moment in the app. They play on a loop; tap any to trigger it yourself.</span>
+    </div>
+    <span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; background: #FFFFFF; border-radius: 999px; padding: 7px 12px; box-shadow: 0 1px 2px rgba(29,26,23,0.06)"><span class="live" style="width: 8px; height: 8px; border-radius: 4px; background: #FF4FA3"></span>Looping</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; flex-grow: 1">
+
+    <div style="background: rgba(255,255,255,0.9); border-radius: 30px; padding: 24px; box-shadow: 0 1px 2px rgba(29,26,23,0.04), 0 12px 32px rgba(29,26,23,0.06); display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 19px; font-weight: 800">1 · Done earns a stripe</span>
+      <span style="font-size: 14px; color: #6E6A63">Flip the Done switch and a stripe swipes across your avatar.</span>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px">
+        <span style="width: 96px; height: 96px; border-radius: 48px; background: #F3EFE8; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center">
+          <span style="position: absolute; left: -10%; top: 38%; width: 120%; height: 24px; border-radius: 12px; background: #1D1A17; transform-origin: 0% 50%; transform: rotate(-24deg) scaleX({{t1x}}); transition: transform 520ms cubic-bezier(.3,1.3,.5,1)"></span>
+          <span style="position: relative; font-size: 22px; font-weight: 800; color: {{t1fg}}; transition: color 300ms ease 150ms">YOU</span>
+        </span>
+        <button onClick="{{t1toggle}}" aria-pressed="{{t1}}" style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 8px 0 18px; border-radius: 999px; border: none; background: #F3EFE8; font-family: inherit; font-size: 16px; font-weight: 700; color: #1D1A17; cursor: pointer">
+          {{t1label}}
+          <span style="width: 56px; height: 34px; border-radius: 17px; background: {{t1track}}; display: flex; align-items: center; padding: 0 4px; box-sizing: border-box; transition: background 250ms ease">
+            <span style="width: 26px; height: 26px; border-radius: 13px; background: {{t1knob}}; transform: translateX({{t1kx}}); transition: transform 300ms cubic-bezier(.3,1.5,.5,1), background 250ms ease"></span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.9); border-radius: 30px; padding: 24px; box-shadow: 0 1px 2px rgba(29,26,23,0.04), 0 12px 32px rgba(29,26,23,0.06); display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 19px; font-weight: 800">2 · The receipt prints in</span>
+      <span style="font-size: 14px; color: #6E6A63">After a photo, the AI's read slides out like a fresh receipt.</span>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding-top: 8px">
+        <div style="width: 220px; height: 16px; border-radius: 8px; background: #1D1A17; position: relative; z-index: 2"></div>
+        <div style="width: 196px; height: 168px; overflow: hidden; margin-top: -6px">
+          <div class="tornlong" style="width: 196px; background: #FFFFFF; border: 1.5px solid #E6E1D8; border-top: none; box-sizing: border-box; padding: 16px 14px 20px 14px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; display: flex; flex-direction: column; gap: 5px; transform: translateY({{t2y}}); transition: transform 900ms cubic-bezier(.2,.9,.25,1)">
+            <span style="font-weight: 700; text-align: center">EL FARO CANTINA</span>
+            <div style="display: flex; justify-content: space-between"><span>TACOS X12</span><span>96.00</span></div>
+            <div style="display: flex; justify-content: space-between"><span>MARGARITAS</span><span>54.00</span></div>
+            <div style="display: flex; justify-content: space-between"><span>GUAC</span><span>14.00</span></div>
+            <div style="border-top: 1px dashed #1D1A17; margin: 2px 0"></div>
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 13px"><span>TOTAL</span><span style="background: #E2FF2B; border-radius: 4px; padding: 0 3px">{{t2total}}</span></div>
+          </div>
+        </div>
+        <button onClick="{{t2play}}" style="margin-top: 10px; height: 44px; padding: 0 18px; border-radius: 999px; border: none; background: #1D1A17; color: #FFFFFF; font-family: inherit; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; cursor: pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E2FF2B" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          Snap a receipt
+        </button>
+      </div>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.9); border-radius: 30px; padding: 24px; box-shadow: 0 1px 2px rgba(29,26,23,0.04), 0 12px 32px rgba(29,26,23,0.06); display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 19px; font-weight: 800">3 · Your check ticks up</span>
+      <span style="font-size: 14px; color: #6E6A63">Opening a dazzle, the balance counts up and a stripe underlines it.</span>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px">
+        <span style="font-size: 15px; color: #6E6A63">You're owed</span>
+        <span style="font-size: 54px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1">{{t3val}}</span>
+        <span style="width: 220px; height: 10px; border-radius: 5px; background: #F3EFE8; overflow: hidden; display: block">
+          <span style="display: block; height: 100%; width: 100%; background: #E2FF2B; border-radius: 5px; transform-origin: 0% 50%; transform: scaleX({{t3bar}})"></span>
+        </span>
+        <button onClick="{{t3play}}" style="height: 44px; padding: 0 18px; border-radius: 999px; border: none; background: #F3EFE8; color: #1D1A17; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer">Open the dazzle</button>
+      </div>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.9); border-radius: 30px; padding: 24px; box-shadow: 0 1px 2px rgba(29,26,23,0.04), 0 12px 32px rgba(29,26,23,0.06); display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 19px; font-weight: 800">4 · Paint your nights</span>
+      <span style="font-size: 14px; color: #6E6A63">Each night drops in as a stripe, and its moon gives a little pop.</span>
+      <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center; gap: 10px">
+        <sc-for list="{{t4}}" as="n" hint-placeholder-count="5">
+          <button onClick="{{n.toggle}}" aria-pressed="{{n.on}}" aria-label="{{n.label}}" style="background: none; border: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; font-family: inherit; color: #1D1A17; cursor: pointer">
+            <svg class="{{n.cls}}" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="{{n.moon}}"></path></svg>
+            <span style="width: 48px; height: 96px; border-radius: 16px; background: #FAF7F2; display: flex; align-items: center; justify-content: center">
+              <span style="width: 22px; height: 80px; border-radius: 11px; border: 1.5px dashed #D3CDC3; box-sizing: border-box; position: relative; display: block; transform: rotate(7deg)">
+                <span style="position: absolute; inset: -1.5px; border-radius: 11px; background: #1D1A17; transform-origin: 50% 0%; transform: scaleY({{n.sy}}); transition: transform 460ms cubic-bezier(.3,1.5,.5,1)"></span>
+              </span>
+            </span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600">{{n.day}}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.9); border-radius: 30px; padding: 24px; box-shadow: 0 1px 2px rgba(29,26,23,0.04), 0 12px 32px rgba(29,26,23,0.06); display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 19px; font-weight: 800">5 · Stripes zip to Venmo</span>
+      <span style="font-size: 14px; color: #6E6A63">The pay button fills with moving stripes, then lands on a check.</span>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px">
+        <svg width="84" height="78" viewBox="30 -8 200 184" aria-hidden="true" style="transition: transform 300ms cubic-bezier(.3,1.5,.5,1); transform: scale({{t5z}})"><path d="M141.3 52.2 L152.8 50.0 L168.6 45.0 L170.6 61.4 L187.0 60.9 L184.5 77.1 L200.5 80.5 L194.2 95.6 L209.0 102.5 L199.3 115.7 L212.0 124.9 L200.3 134.3 L213.0 138.4 L202.8 146.0 L215.1 143.8 L208.0 154.2 L208.7 163.1 L201.2 171.1 L195.5 165.7 L190.6 159.4 L187.0 152.3 L184.6 144.5 L183.4 135.8 L183.0 126.4 L182.5 117.9 L180.9 109.7 L178.3 101.7 L174.8 94.0 L170.5 86.7 L165.3 80.1 L159.4 74.3 L152.9 69.4 L145.8 65.5 L137.7 62.6 Z" fill="#1D1A17" stroke="#1D1A17" stroke-width="6" stroke-linejoin="round"></path><path d="M124 140 C114 168 110 196 116 222 L206 222 C192 168 184 150 186 124 L140 110 Z" fill="#FFFBF2" stroke="#1D1A17" stroke-width="4" stroke-linejoin="round"></path><path d="M162 152 Q178 146 192 150" stroke="#1D1A17" stroke-width="10" fill="none" stroke-linecap="round"></path><g transform="rotate(-24 82 58)"><ellipse cx="82" cy="40" rx="15" ry="27" fill="#FFFBF2" stroke="#1D1A17" stroke-width="4"></ellipse><ellipse cx="82" cy="44" rx="7.5" ry="17" fill="#F5A9B8"></ellipse></g><g transform="rotate(24 158 58)"><ellipse cx="158" cy="40" rx="15" ry="27" fill="#FFFBF2" stroke="#1D1A17" stroke-width="4"></ellipse><ellipse cx="158" cy="44" rx="7.5" ry="17" fill="#F5A9B8"></ellipse></g><ellipse cx="120" cy="98" rx="60" ry="54" fill="#1D1A17" stroke="#1D1A17" stroke-width="8"></ellipse><ellipse cx="120" cy="140" rx="42" ry="28" fill="#1D1A17" stroke="#1D1A17" stroke-width="8"></ellipse><ellipse cx="120" cy="98" rx="60" ry="54" fill="#FFFBF2"></ellipse><ellipse cx="120" cy="140" rx="42" ry="28" fill="#9B9590"></ellipse><ellipse cx="120" cy="134" rx="30" ry="12" fill="#ABA59F" opacity="0.7"></ellipse><path d="M104 136 q-3 6 2 9 M136 136 q3 6 -2 9" stroke="#3C3833" stroke-width="4" fill="none" stroke-linecap="round"></path><ellipse cx="76" cy="118" rx="10" ry="6.5" fill="#F7A8BC"></ellipse><ellipse cx="164" cy="118" rx="10" ry="6.5" fill="#F7A8BC"></ellipse><g style="opacity: {{t5m0}}; transition: opacity 250ms ease">  <g class="zeye"><ellipse cx="97" cy="96" rx="8.5" ry="10" fill="#1D1A17"></ellipse><circle cx="100" cy="92" r="3.2" fill="#FFFFFF"></circle><circle cx="95" cy="100" r="1.4" fill="#FFFFFF"></circle></g>  <g class="zeye"><ellipse cx="143" cy="96" rx="8.5" ry="10" fill="#1D1A17"></ellipse><circle cx="146" cy="92" r="3.2" fill="#FFFFFF"></circle><circle cx="141" cy="100" r="1.4" fill="#FFFFFF"></circle></g></g><g style="opacity: {{t5m1}}; transition: opacity 250ms ease">  <path d="M97 107.0 C79.5 95.75 83.25 82.0 90.75 83.25 C94.5 83.25 97 87.0 97 89.5 C97 87.0 99.5 83.25 103.25 83.25 C110.75 82.0 114.5 95.75 97 107.0 Z" fill="#FF4FA3" stroke="#1D1A17" stroke-width="2.5" stroke-linejoin="round"></path>  <path d="M143 107.0 C125.5 95.75 129.25 82.0 136.75 83.25 C140.5 83.25 143 87.0 143 89.5 C143 87.0 145.5 83.25 149.25 83.25 C156.75 82.0 160.5 95.75 143 107.0 Z" fill="#FF4FA3" stroke="#1D1A17" stroke-width="2.5" stroke-linejoin="round"></path></g><path d="M100 52 C96 40 102 30 112 28 C110 36 116 40 120 34 C120 26 128 20 138 22 C132 30 136 38 144 38 C140 50 124 58 100 52 Z" fill="#1D1A17" stroke="#1D1A17" stroke-width="3" stroke-linejoin="round"></path></svg>
+        <div style="display: flex; align-items: center; gap: 12px; background: #FAF7F2; border-radius: 20px; padding: 12px 16px; width: 100%; box-sizing: border-box">
+          <span style="width: 40px; height: 40px; border-radius: 20px; background: #1D1A17; color: #FFFFFF; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center">MC</span>
+          <span style="flex-grow: 1; font-size: 15px">Mike pays you</span>
+          <span style="font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums">$690.90</span>
+        </div>
+        <button onClick="{{t5play}}" class="{{t5cls}}" style="width: 100%; height: 58px; border-radius: 999px; border: 2px solid #1D1A17; background: {{t5bg}}; color: {{t5fg}}; font-family: inherit; font-size: 17px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: background 250ms ease, color 250ms ease, transform 200ms ease; transform: scale({{t5scale}})">
+          <span style="background: {{t5labelBg}}; border-radius: 999px; padding: 2px 10px">{{t5label}}</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="background: rgba(255,255,255,0.9); border-radius: 30px; padding: 24px; box-shadow: 0 1px 2px rgba(29,26,23,0.04), 0 12px 32px rgba(29,26,23,0.06); display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 19px; font-weight: 800">6 · A friendly boop</span>
+      <span style="font-size: 14px; color: #6E6A63">Nudging someone sends the zebra popping up from behind their avatar.</span>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px">
+        <div style="position: relative; width: 220px; height: 124px; display: flex; align-items: flex-end; justify-content: center; overflow: hidden">
+          <sc-if value="{{t6}}" hint-placeholder-val="{{ false }}">
+            <svg class="boop" width="92" height="80" viewBox="30 4 200 172" aria-hidden="true" style="position: absolute; left: 38px; bottom: 26px">
+              <path d="M141.3 52.2 L152.8 50.0 L168.6 45.0 L170.6 61.4 L187.0 60.9 L184.5 77.1 L200.5 80.5 L194.2 95.6 L209.0 102.5 L199.3 115.7 L212.0 124.9 L200.3 134.3 L213.0 138.4 L202.8 146.0 L215.1 143.8 L208.0 154.2 L208.7 163.1 L201.2 171.1 L195.5 165.7 L190.6 159.4 L187.0 152.3 L184.6 144.5 L183.4 135.8 L183.0 126.4 L182.5 117.9 L180.9 109.7 L178.3 101.7 L174.8 94.0 L170.5 86.7 L165.3 80.1 L159.4 74.3 L152.9 69.4 L145.8 65.5 L137.7 62.6 Z" fill="#1D1A17" stroke="#1D1A17" stroke-width="6" stroke-linejoin="round"></path>
+              <path d="M124 140 C114 168 110 196 116 222 L206 222 C192 168 184 150 186 124 L140 110 Z" fill="#FFFBF2" stroke="#1D1A17" stroke-width="4" stroke-linejoin="round"></path>
+              <g transform="rotate(-24 82 58)"><ellipse cx="82" cy="40" rx="15" ry="27" fill="#FFFBF2" stroke="#1D1A17" stroke-width="4"></ellipse><ellipse cx="82" cy="44" rx="7.5" ry="17" fill="#F5A9B8"></ellipse></g>
+              <g transform="rotate(24 158 58)"><ellipse cx="158" cy="40" rx="15" ry="27" fill="#FFFBF2" stroke="#1D1A17" stroke-width="4"></ellipse><ellipse cx="158" cy="44" rx="7.5" ry="17" fill="#F5A9B8"></ellipse></g>
+              <ellipse cx="120" cy="98" rx="60" ry="54" fill="#1D1A17" stroke="#1D1A17" stroke-width="8"></ellipse><ellipse cx="120" cy="140" rx="42" ry="28" fill="#1D1A17" stroke="#1D1A17" stroke-width="8"></ellipse>
+              <ellipse cx="120" cy="98" rx="60" ry="54" fill="#FFFBF2"></ellipse>
+              <ellipse cx="120" cy="140" rx="42" ry="28" fill="#9B9590"></ellipse><ellipse cx="120" cy="134" rx="30" ry="12" fill="#ABA59F" opacity="0.7"></ellipse>
+              <path d="M104 136 q-3 6 2 9 M136 136 q3 6 -2 9" stroke="#3C3833" stroke-width="4" fill="none" stroke-linecap="round"></path>
+              <ellipse cx="76" cy="118" rx="12" ry="7.5" fill="#F7A8BC"></ellipse><ellipse cx="164" cy="118" rx="12" ry="7.5" fill="#F7A8BC"></ellipse>
+              <path d="M88 100 q9 -11 18 0 M134 100 q9 -11 18 0" stroke="#1D1A17" stroke-width="5.5" fill="none" stroke-linecap="round"></path>
+              <path d="M100 52 C96 40 102 30 112 28 C110 36 116 40 120 34 C120 26 128 20 138 22 C132 30 136 38 144 38 C140 50 124 58 100 52 Z" fill="#1D1A17" stroke="#1D1A17" stroke-width="3" stroke-linejoin="round"></path>
+            </svg>
+            <span class="bubble" style="position: absolute; left: 126px; top: 4px; background: #FFE4F1; color: #7A1347; font-size: 13px; font-weight: 700; border-radius: 16px 16px 16px 4px; padding: 8px 12px; white-space: nowrap">psst, add your receipts</span>
+          </sc-if>
+          <span style="position: relative; width: 64px; height: 64px; border-radius: 32px; background: #FFFFFF; border: 2px dashed #D3CDC3; box-sizing: border-box; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin-right: 60px">JT</span>
+        </div>
+        <button onClick="{{t6play}}" style="height: 44px; padding: 0 20px; border-radius: 999px; border: none; background: #FF4FA3; color: #1D1A17; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Nudge Jordan</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1208,"height":904}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.timers = [];
+    this.loopCount = 0;
+    this.state = {
+      t1: false,
+      t2: false, t2n: 0,
+      t3n: 0, t3p: 0,
+      t4: [0, 0, 0, 0, 0], t4last: -1,
+      t5: 0,
+      t6: false
+    };
+  }
+  componentDidMount() {
+    this.runLoop();
+    this.loopId = setInterval(() => this.runLoop(), 4200);
+  }
+  componentWillUnmount() {
+    clearInterval(this.loopId);
+    this.timers.forEach((t) => { clearTimeout(t); clearInterval(t); });
+    this.timers = [];
+  }
+  later(fn, ms) {
+    const id = setTimeout(fn, ms);
+    this.timers.push(id);
+    if (this.timers.length > 80) this.timers = this.timers.slice(-40);
+  }
+  runLoop() {
+    this.loopCount += 1;
+    this.later(() => this.toggle1(), 0);
+    this.later(() => this.play2(), 250);
+    this.later(() => this.play3(), 500);
+    this.later(() => this.step4(), 750);
+    this.later(() => this.step4(), 1500);
+    this.later(() => this.play5(), 1000);
+    this.later(() => this.play6(), 1250);
+  }
+  count(key, pKey, target, ms) {
+    const start = Date.now();
+    const id = setInterval(() => {
+      const t = Math.min(1, (Date.now() - start) / ms);
+      const e = 1 - Math.pow(1 - t, 3);
+      const patch = {}; patch[key] = target * e; if (pKey) patch[pKey] = e;
+      this.setState(patch);
+      if (t >= 1) clearInterval(id);
+    }, 30);
+    this.timers.push(id);
+  }
+  toggle1() { this.setState({ t1: !this.state.t1 }); }
+  play2() {
+    this.setState({ t2: false, t2n: 0 });
+    this.later(() => { this.setState({ t2: true }); this.count('t2n', null, 164, 900); }, 450);
+  }
+  play3() { this.setState({ t3n: 0, t3p: 0 }); this.count('t3n', 't3p', 2193.1, 1300); }
+  step4() {
+    const cur = this.state.t4;
+    const next = cur.indexOf(0);
+    if (next === -1) { this.setState({ t4: [0, 0, 0, 0, 0], t4last: -1 }); return; }
+    const n = cur.slice(); n[next] = 1;
+    this.setState({ t4: n, t4last: next });
+  }
+  play5() {
+    this.setState({ t5: 1 });
+    this.later(() => this.setState({ t5: 2 }), 1300);
+    this.later(() => this.setState({ t5: 0 }), 3400);
+  }
+  play6() {
+    this.setState({ t6: false });
+    this.later(() => this.setState({ t6: true }), 40);
+    this.later(() => this.setState({ t6: false }), 3000);
+  }
+  renderVals() {
+    const s = this.state;
+    const money = (v) => '$' + v.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    const days = ['FRI', 'SAT', 'SUN', 'MON', 'TUE'];
+    const t5labels = ['Pay Mike in Venmo', 'Opening Venmo…', 'Paid, nice'];
+    return {
+      t1: s.t1,
+      t1x: s.t1 ? 1 : 0,
+      t1fg: s.t1 ? '#E2FF2B' : '#1D1A17',
+      t1label: s.t1 ? 'Done adding' : 'Still adding',
+      t1track: s.t1 ? '#1D1A17' : '#DDD8CE',
+      t1knob: s.t1 ? '#E2FF2B' : '#FFFFFF',
+      t1kx: s.t1 ? '22px' : '0px',
+      t1toggle: () => this.toggle1(),
+      t2y: s.t2 ? '0%' : '-100%',
+      t2total: money(s.t2n),
+      t2play: () => this.play2(),
+      t3val: money(s.t3n),
+      t3bar: s.t3p,
+      t3play: () => this.play3(),
+      t4: s.t4.map((on, i) => ({
+        on: !!on,
+        day: days[i],
+        sy: on ? 1 : 0,
+        moon: on ? '#1D1A17' : '#D3CDC3',
+        cls: s.t4last === i && on ? 'pop' : '',
+        label: days[i] + (on ? ', stayed' : ', not there'),
+        toggle: () => { const n = s.t4.slice(); n[i] = n[i] ? 0 : 1; this.setState({ t4: n, t4last: i }); }
+      })),
+      t5cls: s.t5 === 1 ? 'sending' : '',
+      t5m0: s.t5 === 2 ? 0 : 1,
+      t5m1: s.t5 === 2 ? 1 : 0,
+      t5z: s.t5 === 2 ? 1.12 : 1,
+      t5bg: s.t5 === 2 ? '#E2FF2B' : '#1D1A17',
+      t5fg: s.t5 === 0 ? '#FFFFFF' : '#1D1A17',
+      t5labelBg: s.t5 === 1 ? '#FFFFFF' : 'transparent',
+      t5scale: s.t5 === 1 ? 0.97 : 1,
+      t5label: t5labels[s.t5],
+      t5play: () => this.play5(),
+      t6: s.t6,
+      t6play: () => this.play6()
+    };
+  }
+}
+</script>
+</body>
+</html>

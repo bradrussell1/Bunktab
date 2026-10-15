@@ -3,13 +3,16 @@ import { CATEGORIES, COMMON_CURRENCIES, SplitError, computeNightsShares, compute
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Avatar } from "./Avatar";
+import { ZebraBust } from "./Zebra";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { activeMembers, useTrip, type Expense } from "@/lib/trip";
 
 /**
- * Add or edit an expense on the web (spec: Add or edit expense). Same
- * fields and the same @bunktab/core arithmetic as the app; saved through
- * save_expense in one transaction, re-checked on the server.
+ * Add or edit an expense on the web (ticket B5/B9): big amount entry with a
+ * currency pill, who paid and who's involved as avatar chips, split control,
+ * category pills, tip, Lodging toggle with night stripes. Same fields and the
+ * same @bunktab/core arithmetic as the app; saved through save_expense in one
+ * transaction, re-checked on the server. No logic changed; surfaces only.
  */
 const SPLITS: { key: SplitType; label: string }[] = [{ key: "equal", label: "Equal" }, { key: "exact", label: "Exact" }, { key: "percent", label: "%" }, { key: "shares", label: "Shares" }];
 
@@ -28,6 +31,7 @@ export function ExpenseForm({ tripId, expenseId, me }: { tripId: string; expense
   const [exact, setExact] = useState<Record<string, string>>({}); const [percents, setPercents] = useState<Record<string, string>>({}); const [weights, setWeights] = useState<Record<string, string>>({});
   const [lodging, setLodging] = useState(false); const [nights, setNights] = useState("1"); const [presence, setPresence] = useState<Record<string, boolean[]>>({});
   const [error, setError] = useState<string | null>(null); const [busy, setBusy] = useState(false); const [seeded, setSeeded] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const members = useMemo(() => (data ? activeMembers(data) : []), [data]);
   const cat = CATEGORIES.find((c) => c.key === category)!;
@@ -37,7 +41,7 @@ export function ExpenseForm({ tripId, expenseId, me }: { tripId: string; expense
     if (expenseId && !existing) return; // wait for the expense row
     const ids = members.map((m) => m.user_id);
     if (existing) {
-      setAmount(String(existing.amount_cents / 100)); setTip(existing.tip_cents ? String(existing.tip_cents / 100) : "");
+      setAmount((existing.amount_cents / 100).toFixed(2)); setTip(existing.tip_cents ? (existing.tip_cents / 100).toFixed(2) : "");
       setCurrency(existing.currency); setFx(String(existing.fx_rate)); setDescription(existing.description);
       setCategory(existing.category); setSubcategory(existing.subcategory);
       setPayers(Object.fromEntries(existing.expense_payers.map((p) => [p.user_id, String(p.amount_cents / 100)])));
@@ -100,84 +104,135 @@ export function ExpenseForm({ tripId, expenseId, me }: { tripId: string; expense
     router.push(`/t/${tripId}`); router.refresh();
   }
   async function remove() {
-    if (!existing || !confirm("Delete this expense? It comes out of every balance and stays in the history.")) return;
+    if (!existing) return;
     await supabaseBrowser().rpc("delete_expense", { p_id: existing.id });
     router.push(`/t/${tripId}`); router.refresh();
   }
 
-  if (!data || !seeded) return <p className="t-cap" style={{ padding: "32px 0" }}>{data && expenseId && !existing ? "That expense isn't here." : "Loading…"}</p>;
+  if (!data || !seeded) return (
+    <div className="stack-loose" style={{ paddingTop: "var(--zs-space-32)" }} aria-busy="true">
+      {data && expenseId && !existing ? <div className="error-panel"><ZebraBust mood="worried" size={40} decorative /><span>That expense isn&apos;t here.</span></div> : <div className="skeleton"><i style={{ width: "50%", height: 36 }} /><i style={{ height: 52 }} /><i style={{ height: 52 }} /><i style={{ height: 52 }} /></div>}
+    </div>
+  );
   const name = (uid: string) => (uid === me ? "You" : members.find((m) => m.user_id === uid)?.display_name ?? "Member");
+  const first = (uid: string) => name(uid).split(/\s+/)[0]!;
   const base = data.trip.base_currency;
+  const multiPayer = Object.keys(payers).length > 1;
 
   return (
-    <form className="stack" style={{ gap: 20, paddingTop: 16 }} onSubmit={save}>
+    <form className="stack-loose" style={{ paddingTop: "var(--zs-space-12)", paddingBottom: "var(--zs-space-40)" }} onSubmit={save}>
       <div className="row between">
         <button type="button" className="btn text" onClick={() => router.push(`/t/${tripId}`)}>Cancel</button>
-        <h1 className="h-title2">{existing ? "Edit expense" : "Add expense"}</h1>
-        {existing ? <button type="button" className="btn danger" onClick={remove}>Delete</button> : <span style={{ width: 60 }} />}
+        <h1 className="t-headline">{existing ? "Edit expense" : "Add expense"}</h1>
+        <span style={{ width: 72 }} />
       </div>
-      <div className="row" style={{ alignItems: "flex-end" }}>
-        <div className="field" style={{ flex: 2 }}><label htmlFor="amount">Amount</label><input id="amount" className="input" inputMode="decimal" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus={!existing} /></div>
-        <div className="field" style={{ flex: 1 }}><label htmlFor="tip">Tip</label><input id="tip" className="input" inputMode="decimal" placeholder="0.00" value={tip} onChange={(e) => setTip(e.target.value)} /></div>
+
+      <div className="hero-card stack" style={{ gap: "var(--zs-space-12)" }}>
+        <div className="row" style={{ gap: "var(--zs-space-12)", alignItems: "center" }}>
+          <label htmlFor="currency" className="pill outline" style={{ padding: "var(--zs-space-8) var(--zs-space-12)" }}>
+            <select id="currency" value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ border: 0, background: "transparent", font: "inherit", appearance: "none", paddingRight: "var(--zs-space-4)" }} aria-label="Currency">
+              {[base, ...COMMON_CURRENCIES.filter((c) => c !== base)].map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <span aria-hidden="true">⌄</span>
+          </label>
+          <input id="amount" className="input amount grow" inputMode="decimal" placeholder="0.00" aria-label="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus={!existing} />
+        </div>
+        <div className="row" style={{ gap: "var(--zs-space-12)" }}>
+          <div className="field grow"><label htmlFor="tip">Tip</label><input id="tip" className="input" inputMode="decimal" placeholder="0.00" value={tip} onChange={(e) => setTip(e.target.value)} /></div>
+          {currency !== base && <div className="field grow"><label htmlFor="fx">1 {currency} in {base}</label><input id="fx" className="input" inputMode="decimal" value={fx} onChange={(e) => setFx(e.target.value)} /></div>}
+        </div>
+        {currency !== base && <p className="help">{formatCents(total, currency)} = {formatCents(toBaseCents(total, fxRate), base)} · locked on save</p>}
       </div>
-      <div className="field">
-        <label>Currency</label>
-        <div className="chips">{[base, ...COMMON_CURRENCIES.filter((c) => c !== base)].map((c) => <button key={c} type="button" role="radio" aria-checked={currency === c} className="chip" onClick={() => setCurrency(c)}>{c}</button>)}</div>
-        {currency !== base && <div className="field"><label htmlFor="fx">Rate: 1 {currency} in {base}</label><input id="fx" className="input" inputMode="decimal" value={fx} onChange={(e) => setFx(e.target.value)} /><p className="help">{formatCents(total, currency)} = {formatCents(toBaseCents(total, fxRate), base)} · locked on save</p></div>}
-      </div>
+
       <div className="field"><label htmlFor="desc">Description</label><input id="desc" className="input" placeholder="Dinner at Rosa's" maxLength={140} value={description} onChange={(e) => setDescription(e.target.value)} /></div>
+
       <div className="field">
-        <label>Category</label>
+        <span className="field-label">Category</span>
         <div className="chips">{CATEGORIES.map((c) => <button key={c.key} type="button" role="radio" aria-checked={category === c.key} className="chip" onClick={() => pickCategory(c.key)}>{c.label}</button>)}</div>
         {cat.subcategories.length > 0 && <div className="chips">{cat.subcategories.map((s) => <button key={s.key} type="button" role="radio" aria-checked={subcategory === s.key} className="chip" onClick={() => pickSub(s.key)}>{s.label}</button>)}</div>}
       </div>
 
-      <div className="card flush">
-        <p className="t-caps" style={{ padding: "12px 16px 4px" }}>Who paid</p>
-        {members.map((m) => (
-          <div key={m.user_id} className="item" onClick={() => togglePayer(m.user_id)} role="checkbox" aria-checked={m.user_id in payers} tabIndex={0} onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); togglePayer(m.user_id); } }}>
-            <span className="check" data-on={m.user_id in payers}>{m.user_id in payers && "✓"}</span><Avatar name={m.display_name ?? "?"} uri={m.photo_url} size={28} /><span className="grow h-headline">{name(m.user_id)}</span>
-            {Object.keys(payers).length > 1 && m.user_id in payers && <input className="input small" inputMode="decimal" placeholder="0.00" value={payers[m.user_id]} onClick={(e) => e.stopPropagation()} onChange={(e) => setPayers((p) => ({ ...p, [m.user_id]: e.target.value }))} />}
+      <div className="field">
+        <span className="field-label">Who paid</span>
+        <div className="row" style={{ flexWrap: "wrap", gap: "var(--zs-space-8)" }}>
+          {members.map((m) => (
+            <button key={m.user_id} type="button" className="chip-avatar" role="checkbox" aria-checked={m.user_id in payers} onClick={() => togglePayer(m.user_id)}>
+              <Avatar name={m.display_name ?? "?"} uri={m.photo_url} pending={!(m.user_id in payers)} className={m.user_id in payers ? "selected" : ""} />
+              <span className="name">{first(m.user_id)}</span>
+            </button>
+          ))}
+        </div>
+        {multiPayer && (
+          <div className="stack-tight">
+            {Object.keys(payers).map((uid) => <div key={uid} className="row between"><span className="t-caption">{name(uid)} paid</span><input className="input inline" inputMode="decimal" placeholder="0.00" aria-label={`${name(uid)} paid`} value={payers[uid]} onChange={(e) => setPayers((p) => ({ ...p, [uid]: e.target.value }))} /></div>)}
           </div>
-        ))}
+        )}
       </div>
 
-      <div className="card flush">
-        <div className="row between" style={{ padding: "8px 16px 0" }}><p className="t-caps">Who&apos;s involved</p><button type="button" className="btn text small" onClick={() => setInvolved(involved.length === members.length ? [] : members.map((m) => m.user_id))}>{involved.length === members.length ? "None" : "Everyone"}</button></div>
-        {members.map((m) => {
-          const on = involved.includes(m.user_id);
-          return (
-            <div key={m.user_id}>
-              <div className="item" onClick={() => toggleInvolved(m.user_id)} role="checkbox" aria-checked={on} tabIndex={0} onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggleInvolved(m.user_id); } }}>
-                <span className="check" data-on={on}>{on && "✓"}</span><Avatar name={m.display_name ?? "?"} uri={m.photo_url} size={28} /><span className="grow h-headline">{name(m.user_id)}</span>
-                {on && !lodging && split === "exact" && <input className="input small" inputMode="decimal" placeholder="0.00" value={exact[m.user_id] ?? ""} onClick={(e) => e.stopPropagation()} onChange={(e) => setExact((x) => ({ ...x, [m.user_id]: e.target.value }))} />}
-                {on && !lodging && split === "percent" && <input className="input small" inputMode="decimal" placeholder="%" style={{ width: 72 }} value={percents[m.user_id] ?? ""} onClick={(e) => e.stopPropagation()} onChange={(e) => setPercents((x) => ({ ...x, [m.user_id]: e.target.value }))} />}
-                {on && !lodging && split === "shares" && <input className="input small" inputMode="numeric" placeholder="1" style={{ width: 64 }} value={weights[m.user_id] ?? ""} onClick={(e) => e.stopPropagation()} onChange={(e) => setWeights((x) => ({ ...x, [m.user_id]: e.target.value }))} />}
-                {on && preview?.shares && <span className="t-cap-strong t-muted">{formatCents(preview.shares[m.user_id] ?? 0, currency)}</span>}
+      <div className="field">
+        <div className="row between"><span className="field-label">Who&apos;s involved</span><button type="button" className="btn text" onClick={() => setInvolved(involved.length === members.length ? [] : members.map((m) => m.user_id))}>{involved.length === members.length ? "None" : "Everyone"}</button></div>
+        <div className="row" style={{ flexWrap: "wrap", gap: "var(--zs-space-8)" }}>
+          {members.map((m) => {
+            const on = involved.includes(m.user_id);
+            return (
+              <button key={m.user_id} type="button" className="chip-avatar" role="checkbox" aria-checked={on} onClick={() => toggleInvolved(m.user_id)}>
+                <Avatar name={m.display_name ?? "?"} uri={m.photo_url} pending={!on} className={on ? "selected" : ""} />
+                <span className="name">{first(m.user_id)}</span>
+                {on && preview?.shares && <span className="t-small t-muted num">{formatCents(preview.shares[m.user_id] ?? 0, currency)}</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="field">
+        <span className="field-label">Split</span>
+        {!lodging && <div className="seg" role="radiogroup">{SPLITS.map((s) => <button key={s.key} type="button" role="radio" aria-checked={split === s.key} onClick={() => setSplit(s.key)}>{s.label}</button>)}</div>}
+        {!lodging && split !== "equal" && (
+          <div className="stack-tight">
+            {involved.map((uid) => (
+              <div key={uid} className="row between">
+                <span className="t-caption">{name(uid)}</span>
+                {split === "exact" && <input className="input inline" inputMode="decimal" placeholder="0.00" aria-label={`${name(uid)} exact share`} value={exact[uid] ?? ""} onChange={(e) => setExact((x) => ({ ...x, [uid]: e.target.value }))} />}
+                {split === "percent" && <input className="input inline" inputMode="decimal" placeholder="%" aria-label={`${name(uid)} percent`} value={percents[uid] ?? ""} onChange={(e) => setPercents((x) => ({ ...x, [uid]: e.target.value }))} />}
+                {split === "shares" && <input className="input inline" inputMode="numeric" placeholder="1" aria-label={`${name(uid)} shares`} value={weights[uid] ?? ""} onChange={(e) => setWeights((x) => ({ ...x, [uid]: e.target.value }))} />}
               </div>
-              {on && lodging && (
-                <div className="chips" style={{ padding: "0 16px 10px 64px" }}>
-                  {Array.from({ length: nightsN }, (_, i) => { const stayed = presence[m.user_id]?.[i] ?? true; return <button key={i} type="button" role="checkbox" aria-checked={stayed} className="chip" style={{ minHeight: 28, padding: "0 10px", borderRadius: 4 }} onClick={() => setPresence((p) => ({ ...p, [m.user_id]: Array.from({ length: nightsN }, (_, k) => (k === i ? !stayed : p[m.user_id]?.[k] ?? true)) }))}>N{i + 1}</button>; })}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="stack" style={{ gap: 8 }}>
-        <div className="row between"><span className="t-cap-strong t-muted">Split</span><label className="row" style={{ gap: 8 }}><span className="t-cap">Lodging (by nights)</span><button type="button" role="switch" aria-checked={lodging} className="switch" onClick={() => setLodging((v) => !v)} aria-label="Lodging split by nights" /></label></div>
-        {lodging ? (
-          <div className="field"><label htmlFor="nights">Nights</label><input id="nights" className="input" inputMode="numeric" value={nights} onChange={(e) => setNightsCount(e.target.value)} /><p className="help">{formatCents(Math.round(total / nightsN), currency)} a night, split among the people ticked for each night.</p></div>
-        ) : (
-          <div className="seg" role="radiogroup">{SPLITS.map((s) => <button key={s.key} type="button" role="radio" aria-selected={split === s.key} aria-checked={split === s.key} onClick={() => setSplit(s.key)}>{s.label}</button>)}</div>
+            ))}
+          </div>
+        )}
+        <div className="card row between" style={{ padding: "var(--zs-space-12) var(--zs-space-16)" }}>
+          <span className="stack-tight"><span className="t-body-strong">Split by nights stayed</span><span className="t-small t-muted">Every night you stayed is a stripe.</span></span>
+          <button type="button" role="switch" aria-checked={lodging} className="switch" onClick={() => setLodging((v) => !v)} aria-label="Split by nights stayed" />
+        </div>
+        {lodging && (
+          <div className="card stack" style={{ gap: "var(--zs-space-12)" }}>
+            <div className="row between"><label htmlFor="nights" className="t-caption-strong">Nights</label><input id="nights" className="input inline" inputMode="numeric" value={nights} onChange={(e) => setNightsCount(e.target.value)} /></div>
+            <p className="help">{formatCents(Math.round(total / nightsN), currency)} a night, split among the people with a stripe that night.</p>
+            {involved.map((uid) => (
+              <div key={uid} className="row" style={{ gap: "var(--zs-space-10)" }}>
+                <span className="t-caption-strong" style={{ width: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{first(uid)}</span>
+                <span className="row" style={{ gap: "var(--zs-space-4)", flexWrap: "wrap" }}>
+                  {Array.from({ length: nightsN }, (_, i) => { const stayed = presence[uid]?.[i] ?? true; return <button key={i} type="button" role="checkbox" aria-checked={stayed} aria-label={`${name(uid)}, night ${i + 1}, ${stayed ? "stayed" : "away"}`} className="night" onClick={() => setPresence((p) => ({ ...p, [uid]: Array.from({ length: nightsN }, (_, k) => (k === i ? !stayed : p[uid]?.[k] ?? true)) }))}><i /></button>; })}
+                </span>
+                {preview?.shares && <span className="t-small t-muted num" style={{ marginLeft: "auto" }}>{formatCents(preview.shares[uid] ?? 0, currency)}</span>}
+              </div>
+            ))}
+          </div>
         )}
         {preview?.error && <p className="err">{preview.error}</p>}
         {!lodging && split === "equal" && <p className="help">Leftover cents go to the payer so the total always matches.</p>}
       </div>
-      <div className="divider" />
-      {error && <p className="err">{error}</p>}
-      <button className="btn primary" type="submit" disabled={busy}>{busy ? "Saving…" : existing ? "Save changes" : `Add ${total ? formatCents(total, currency) : "expense"}`}</button>
+
+      {error && <div className="error-panel"><ZebraBust mood="worried" size={40} decorative /><span>{error}</span></div>}
+      <button className="btn primary" type="submit" disabled={busy}>{busy ? "Saving…" : existing ? "Save changes" : "Add expense"}</button>
+      {existing && !confirmDelete && <button type="button" className="btn text destructive" style={{ justifySelf: "center" }} onClick={() => setConfirmDelete(true)}>Delete this expense</button>}
+      {existing && confirmDelete && (
+        <div className="card stack" role="alertdialog" aria-labelledby="del-title">
+          <p id="del-title" className="t-body-strong">Delete this expense?</p>
+          <p className="t-caption t-muted">It comes out of every balance and stays in the history.</p>
+          <div className="row"><button type="button" className="btn secondary on-white" onClick={() => setConfirmDelete(false)}>Keep it</button><button type="button" className="btn ink" style={{ color: "var(--zs-color-text-on-ink)" }} onClick={remove}>Delete</button></div>
+        </div>
+      )}
     </form>
   );
 }

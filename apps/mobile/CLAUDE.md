@@ -3,15 +3,18 @@
 - The spec is `docs/checkm8-v1-spec.md` at the repo root. Screens, copy and
   arithmetic come from it; the arithmetic itself lives in `@bunktab/core`
   (tested) and the tokens in `@bunktab/theme` - never restyle inline.
-- Colour rule (Gold & Navy, light only): gold `fill.primary` ONLY on
-  actions (primary buttons, selected chips/segments, switches on) and on
-  "owed to you" figures, always with black text, never white. Exactly one
-  navy `Hero` per screen (Home = your position, trip = Your Check,
-  close-out = your payments, recap = the card); text on it uses `HeroText`
-  / `colors.hero.*` (white, gold = owed, red = owe). Everything else is a
-  white `Tile` with a gray hairline. Red = you owe / destructive; navy
-  `text.accent` = links, Done badge, large titles; small "owed" captions
-  use `text.successDeep` (gold on white is too faint at caption size).
+- Design system (2026-10-14): `design/DESIGN_SYSTEM.md` wins on anything visual;
+  tokens in `@bunktab/theme` (`packages/theme/src/tokens.ts`), primitives in
+  `src/ui/` (import from `@/ui`), the zebra in `src/ui/zebra/`, motion in
+  `src/ui/motion/`. Black and white first: volt = money coming to you and the one
+  primary action per screen, pink/blush = money you owe, nudges, attention;
+  settled = no colour. Figtree everywhere (IBM Plex Mono only in the receipt).
+  No raw hex, font size, radius or shadow outside the theme and the zebra.
+  Never a `transform` string in a Reanimated animated prop on an SVG element
+  (it throws on the UI thread and aborts the app) - animate `rotation`/
+  `scaleY`/`translateY` with `originX/originY` instead. Review the kit on
+  device at `exp://<ip>:8081/--/design` (DEV only). There is no legacy
+  theme any more: `src/components/ui.tsx` and the Gold & Navy tokens are gone.
 - Money is integer cents end to end. Never a float in state or a request.
 - Every read and write goes through `src/lib/supabase.ts` under row-level
   security; money-changing writes that need cross-row checks are RPCs.
