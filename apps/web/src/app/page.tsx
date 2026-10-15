@@ -1,46 +1,46 @@
 import Link from "next/link";
+import { ZebraBust } from "@/components/Zebra";
 
-/** Landing: light canvas, one navy hero carrying the pitch with a gold arrow, white tiles for the steps. */
+/** Landing: the zebra over the lowercase wordmark and the line, three plain steps, the store note. Black and white; one volt action. */
 export default function Landing() {
   return (
     <main className="col">
-      <header className="landing-top">
-        <span className="wordmark"><i />Zebrasplit</span>
-        <Link href="#get" className="t-cap-strong">Get the app</Link>
+      <header className="topbar">
+        <span className="t-wordmark">zebrasplit</span>
+        <Link href="#get" className="pill white">Get the app</Link>
       </header>
 
-      <section className="hero landing-hero" aria-labelledby="pitch">
-        <span className="hero-art" aria-hidden="true" />
-        <h1 id="pitch" className="pitch">Split the trip.<br />Settle in Venmo.</h1>
-        <p className="sub">Everyone logs what they covered, taps Done, and Zebrasplit works out the fewest payments to make it even.</p>
-        <a href="#how" className="hero-cta" aria-label="See how it works">↗</a>
+      <section className="landing-hero" aria-labelledby="pitch">
+        <ZebraBust mood="hi" size={160} label="Zebra" bob />
+        <h1 id="pitch" className="t-title1" style={{ marginTop: "var(--zs-space-8)" }}>Split the trip.<br />Keep it black and white.</h1>
+        <p className="t-body t-soft" style={{ maxWidth: "36ch" }}>Everyone logs what they covered, taps Done to earn their stripe, and Zebrasplit works out the fewest payments to make it even.</p>
       </section>
 
-      <section className="stack" style={{ gap: 12, marginTop: 28 }} id="how">
-        <h2 className="h-title2">How it works</h2>
+      <section className="stack" style={{ marginTop: "var(--zs-space-24)" }} id="how">
+        <h2 className="t-title2 col-text">How it works</h2>
         <ol className="steps">
-          <li className="step"><b>1</b><div><p className="h-headline">Start a trip and invite the group</p><p className="t-cap">Pick people from your contacts. They get a text with a link and can join from the web without installing anything.</p></div></li>
-          <li className="step"><b>2</b><div><p className="h-headline">Log what you paid as you go</p><p className="t-cap">Snap the receipt, choose who&apos;s in, split equally, exactly, by percent or shares, or by nights for lodging.</p></div></li>
-          <li className="step"><b>3</b><div><p className="h-headline">Tap Done, then settle in Venmo</p><p className="t-cap">When everyone&apos;s done, close-out unlocks with the fewest payments possible. Each one opens Venmo already filled in.</p></div></li>
+          <li className="step card"><span className="n">1</span><div className="stack-tight"><p className="t-headline">Start a dazzle and invite the group</p><p className="t-caption t-muted">Pick people from your contacts. They get a text with a link and can join from the web without installing anything.</p></div></li>
+          <li className="step card"><span className="n">2</span><div className="stack-tight"><p className="t-headline">Log what you paid as you go</p><p className="t-caption t-muted">Snap the receipt, choose who&apos;s in, split equally, exactly, by percent or shares, or by nights for lodging.</p></div></li>
+          <li className="step card"><span className="n">3</span><div className="stack-tight"><p className="t-headline">Earn your stripes, then settle in Venmo</p><p className="t-caption t-muted">When everyone&apos;s done, close-out unlocks with the fewest payments possible. Each one opens Venmo already filled in.</p></div></li>
         </ol>
       </section>
 
-      <section className="card stack" style={{ marginTop: 20 }} id="get">
-        <p className="h-headline">Get the app</p>
-        <p className="t-cap">Notifications, receipt scanning and Venmo close-out live in the app. Coming soon to both stores.</p>
-        <div className="badges">
-          <span className="storebadge" aria-disabled="true"><span><small>Coming soon on the</small>App Store</span></span>
-          <span className="storebadge" aria-disabled="true"><span><small>Coming soon on</small>Google Play</span></span>
+      <section className="card stack" style={{ marginTop: "var(--zs-space-20)" }} id="get">
+        <p className="t-headline">Get the app</p>
+        <p className="t-caption t-muted">Nudges, receipt reading and Venmo close-out live in the app. Coming soon to both stores.</p>
+        <div className="chips">
+          <span className="pill outline" aria-disabled="true">App Store · coming soon</span>
+          <span className="pill outline" aria-disabled="true">Google Play · coming soon</span>
         </div>
       </section>
 
-      <section className="card stack" style={{ marginTop: 12 }}>
-        <p className="h-headline">Got an invite text?</p>
-        <p className="t-cap">Open the link in the message. You&apos;ll verify your phone number and land straight on the trip.</p>
+      <section className="card stack" style={{ marginTop: "var(--zs-space-12)" }}>
+        <p className="t-headline">Got an invite text?</p>
+        <p className="t-caption t-muted">Open the link in the message. You&apos;ll verify your phone number and land straight on the dazzle.</p>
       </section>
 
-      <footer className="t-cap" style={{ paddingTop: 40, display: "flex", gap: 16 }}>
-        <span>© {new Date().getFullYear()} Zebrasplit</span><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/sms">Texting</Link>
+      <footer className="t-caption t-muted row" style={{ paddingTop: "var(--zs-space-40)", gap: "var(--zs-space-16)", flexWrap: "wrap" }}>
+        <span>© {new Date().getFullYear()} Zebrasplit</span><Link href="/privacy" className="t-link">Privacy</Link><Link href="/terms" className="t-link">Terms</Link><Link href="/sms" className="t-link">Texting</Link>
       </footer>
     </main>
   );
