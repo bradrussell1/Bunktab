@@ -3,7 +3,7 @@
  * zebra at 0/3/6 of 6, 2 of 4, 7 of 10, and every animation with a replay button.
  * Open with exp://<lan-ip>:8081/--/design. Not registered in production builds.
  */
-import { color, layout, palette, space } from "@bunktab/theme";
+import { color, layout, palette, space, radius } from "@bunktab/theme";
 import { Redirect, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -220,6 +220,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: space[10], flexWrap: "wrap" },
   heroZebra: { position: "absolute", right: -2, bottom: -12 },
   stage: { alignItems: "center", justifyContent: "center", paddingVertical: space[20], backgroundColor: palette.white, borderRadius: 30, overflow: "visible" },
-  bigStripe: { width: 16, height: 60, borderRadius: 8, backgroundColor: palette.ink, transform: [{ rotate: "10deg" }] },
+  bigStripe: { width: 16, height: 60, borderRadius: radius.stripe, backgroundColor: palette.ink, transform: [{ rotate: "10deg" }] },
   boopStage: { alignItems: "center", paddingTop: 120, paddingBottom: 10 },
 });

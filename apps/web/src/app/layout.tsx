@@ -1,4 +1,4 @@
-import { cssVariables } from "@bunktab/theme";
+import { cssVariables } from "./legacyVars";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "../styles/tokens.css";

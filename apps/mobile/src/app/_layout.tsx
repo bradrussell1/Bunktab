@@ -1,7 +1,6 @@
 import { palette } from "@bunktab/theme";
 import { Stack } from "expo-router";
-import { Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, useFonts } from "@expo-google-fonts/inter";
-import { Figtree_400Regular, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold } from "@expo-google-fonts/figtree";
+import { Figtree_400Regular, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold, useFonts } from "@expo-google-fonts/figtree";
 import { IBMPlexMono_400Regular, IBMPlexMono_700Bold } from "@expo-google-fonts/ibm-plex-mono";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -65,12 +64,10 @@ function Routes() {
 
 export default function RootLayout() {
   // Zebrasplit design system (2026-10-14): Figtree for everything, IBM Plex Mono for the
-  // receipt read-out. Inter stays loaded only until Part B has moved every screen off the
-  // legacy wrappers; it is removed with them.
+  // receipt read-out.
   const [fontsReady, fontError] = useFonts({
     Figtree_400Regular, Figtree_600SemiBold, Figtree_700Bold, Figtree_800ExtraBold,
     IBMPlexMono_400Regular, IBMPlexMono_700Bold,
-    Inter_300Light, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold,
   });
   const [waited, setWaited] = useState(false);
   useEffect(() => { const t = setTimeout(() => setWaited(true), 3000); return () => clearTimeout(t); }, []);

@@ -1,5 +1,5 @@
 import { addDays, divideEvenly, formatCents, weekdayIndex, zebraMoodFor } from "@bunktab/core";
-import { color, layout, palette, radius, shadow, size, space } from "@bunktab/theme";
+import { color, fonts, layout, palette, radius, shadow, size, space } from "@bunktab/theme";
 import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "flex-end", gap: space[4], paddingBottom: space[4] },
   nameCol: { width: 72, flexDirection: "row", alignItems: "center", gap: space[6] },
   nightCol: { width: size.nightCell.width, alignItems: "center", gap: space[2] },
-  day: { fontWeight: "800" },
+  day: { fontFamily: fonts.extrabold },
   costPill: { backgroundColor: palette.volt, borderRadius: radius.pill, paddingHorizontal: 6, paddingVertical: 1, minWidth: size.nightCell.width, alignItems: "center" },
   costPillEmpty: { backgroundColor: "transparent" },
   row: { flexDirection: "row", alignItems: "center", gap: space[4], paddingVertical: 3, borderTopWidth: 1, borderTopColor: color.divider },

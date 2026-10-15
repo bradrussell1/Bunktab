@@ -1,4 +1,4 @@
-import { color, layout, space } from "@bunktab/theme";
+import { color, layout, space, radius } from "@bunktab/theme";
 import type { ReactNode } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -82,5 +82,5 @@ const styles = StyleSheet.create({
   error: { flexDirection: "row", alignItems: "center", gap: space[8], paddingHorizontal: layout.textGutter - layout.screenGutter },
   errorText: { flex: 1 },
   or: { flexDirection: "row", alignItems: "center", gap: space[12], paddingHorizontal: space[4] },
-  rule: { flex: 1, height: 1.5, backgroundColor: color.outline, borderRadius: 1 },
+  rule: { flex: 1, height: 1.5, backgroundColor: color.outline, borderRadius: radius.pill },
 });

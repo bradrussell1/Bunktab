@@ -13,8 +13,8 @@
   Never a `transform` string in a Reanimated animated prop on an SVG element
   (it throws on the UI thread and aborts the app) - animate `rotation`/
   `scaleY`/`translateY` with `originX/originY` instead. Review the kit on
-  device at `exp://<ip>:8081/--/design` (DEV only). The old Gold & Navy
-  exports are `legacy*` and go away when Part B of the reskin lands.
+  device at `exp://<ip>:8081/--/design` (DEV only). There is no legacy
+  theme any more: `src/components/ui.tsx` and the Gold & Navy tokens are gone.
 - Money is integer cents end to end. Never a float in state or a request.
 - Every read and write goes through `src/lib/supabase.ts` under row-level
   security; money-changing writes that need cross-row checks are RPCs.

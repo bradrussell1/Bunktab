@@ -289,6 +289,6 @@ const styles = StyleSheet.create({
   consentRow: { flexDirection: "row", alignItems: "center", gap: space[12], minHeight: layout.minTapTarget, paddingHorizontal: space[4] },
   inlineLink: { textDecorationLine: "underline" },
   smsLink: { alignSelf: "flex-start", marginLeft: 26 + space[12] + space[4] },
-  check: { width: 26, height: 26, borderRadius: 13, borderWidth: 1.5, borderColor: color.outline, backgroundColor: palette.white, alignItems: "center", justifyContent: "center" },
+  check: { width: 26, height: 26, borderRadius: radius.pill, borderWidth: 1.5, borderColor: color.outline, backgroundColor: palette.white, alignItems: "center", justifyContent: "center" },
   checkOn: { backgroundColor: palette.ink, borderColor: palette.ink },
 });

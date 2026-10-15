@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   underline: { height: 6, borderRadius: 3, backgroundColor: palette.volt, marginTop: 4, transformOrigin: "0% 50%" },
   zip: { height: size.ctaHeight, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", overflow: "hidden", alignSelf: "stretch" },
   zipStripes: { position: "absolute", top: -20, bottom: -20, left: 0, right: -200, flexDirection: "row" },
-  zipStripe: { position: "absolute", top: 0, bottom: 0, width: 14, backgroundColor: "rgba(255,255,255,0.18)", transform: [{ rotate: "25deg" }] },
+  zipStripe: { position: "absolute", top: 0, bottom: 0, width: 14, backgroundColor: color.glassOnInk, transform: [{ rotate: "25deg" }] },
   boopHost: { alignItems: "center" },
   boopBubble: { position: "absolute", bottom: "100%", left: "55%" },
 });

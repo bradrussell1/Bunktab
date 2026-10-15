@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   toastVolt: { backgroundColor: palette.volt, ...shadow.voltGlow },
   toastBust: { width: 28, height: 26, alignItems: "center", justifyContent: "center" },
   toastText: { flexShrink: 1 },
-  backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(29,26,23,0.28)" },
+  backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: color.scrim },
   sheet: { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: palette.white, borderTopLeftRadius: radius.hero, borderTopRightRadius: radius.hero, paddingTop: 10, paddingHorizontal: layout.screenGutter, ...shadow.sheet },
   grabber: { width: 36, height: 5, borderRadius: 3, backgroundColor: color.surfaceTile, alignSelf: "center", marginBottom: 14 },
   sheetTitle: { marginBottom: 12 },

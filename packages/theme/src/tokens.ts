@@ -72,6 +72,8 @@ export const color = {
   errorBg: palette.blush,
   success: palette.volt,         // success is volt + ink, never green
 
+  scrim: 'rgba(29,26,23,0.28)',      // behind sheets and the expense sheet (ink at 28%)
+  glassOnInk: 'rgba(255,255,255,0.18)', // the moving stripes on an ink button
   stripeOn: palette.ink,
   stripeOff: palette.ghost,
   stripeOffZebra: palette.ghostZebra,
