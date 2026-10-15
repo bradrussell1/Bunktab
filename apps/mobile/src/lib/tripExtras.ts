@@ -1,3 +1,4 @@
+import type { IconName } from "@/ui/icons";
 import { CATEGORIES, categoryLabel, formatCents } from "@bunktab/core";
 import { activeMembers, paidBy, type Expense, type TripData } from "./trips";
 
@@ -7,10 +8,17 @@ import { activeMembers, paidBy, type Expense, type TripData } from "./trips";
  * base cents throughout.
  */
 
-/** Two-letter glyph per top-level category, for the feed rows. */
-export const CATEGORY_GLYPH: Record<string, string> = {
-  travel: "TR", dining: "DI", groceries: "GR", alcohol: "BW", transportation: "TP", recreation: "RC", other: "OT",
+/** Stroke icon per category and subcategory, for the expense tiles (DESIGN_SYSTEM §6 RowCard). */
+export const CATEGORY_ICON: Record<string, IconName> = {
+  travel: "plane", "travel.airfare": "plane", "travel.hotels": "bed", "travel.rentals": "home", "travel.vacation-misc": "plane",
+  dining: "utensils", "dining.restaurants": "utensils", "dining.bars": "cocktail", "dining.delivery": "bag", "dining.catering": "dish",
+  groceries: "cart", alcohol: "bottle",
+  transportation: "car", "transportation.rideshare": "car", "transportation.parking": "parking", "transportation.misc": "car",
+  recreation: "ticket", other: "tag",
 };
+export function categoryIcon(category: string, subcategory: string | null): IconName {
+  return CATEGORY_ICON[subcategory ? `${category}.${subcategory}` : category] ?? CATEGORY_ICON[category] ?? "tag";
+}
 
 export function biggestExpense(d: TripData): Expense | null {
   return d.expenses.reduce<Expense | null>((best, e) => (!best || e.base_amount_cents > best.base_amount_cents ? e : best), null);

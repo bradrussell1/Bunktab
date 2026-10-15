@@ -2,7 +2,7 @@ import { color, fonts, motion, palette, radius, shadow, space, type } from "@bun
 import { useEffect, useState } from "react";
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-import Svg, { Polygon } from "react-native-svg";
+import Svg, { Polygon, Polyline } from "react-native-svg";
 import { formatMoney, ZText } from "./Text";
 import { useReducedMotion } from "./motion/useReducedMotion";
 
@@ -54,6 +54,7 @@ export function Receipt({ merchant, lines, totalCents, print = true, width = 280
           </View>
           <Svg width="100%" height={10} viewBox="0 0 100 10" preserveAspectRatio="none" style={styles.tear}>
             <Polygon points={zigzag()} fill={palette.white} />
+            <Polyline points={zigzagEdge()} fill="none" stroke={color.outline} strokeWidth={1.2} strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
           </Svg>
         </Animated.View>
       </View>
@@ -61,6 +62,11 @@ export function Receipt({ merchant, lines, totalCents, print = true, width = 280
   );
 }
 
+function zigzagEdge(): string {
+  const pts: string[] = [];
+  for (let x = 0; x <= 100; x += 5) pts.push(`${x},${x % 10 === 0 ? 10 : 2}`);
+  return pts.join(" ");
+}
 function zigzag(): string {
   const pts = ["0,0"];
   for (let x = 0; x <= 100; x += 5) pts.push(`${x},${x % 10 === 0 ? 10 : 2}`);

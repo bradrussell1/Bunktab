@@ -158,7 +158,7 @@ export function ReceiptPrint({ children, play }: { children: ReactNode; play: nu
 }
 
 /** CountUp: money counts up from 0 over 1.3 s (ease-out cubic) with a volt underline stripe growing with it. */
-export function CountUp({ cents, variant = "display", color: c, underline = true, play = 1 }: { cents: number; variant?: "display" | "amountL" | "amountRow"; color?: string; underline?: boolean; play?: number }) {
+export function CountUp({ cents, variant = "display", color: c, underline = true, underlineColor = palette.volt, play = 1 }: { cents: number; variant?: "display" | "amountL" | "amountRow"; color?: string; underline?: boolean; /** volt for owed to you, blush for you owe (DESIGN_SYSTEM §3) */ underlineColor?: string; play?: number }) {
   const reduced = useReducedMotion();
   const [shown, setShown] = useState(reduced ? cents : 0);
   const w = useSharedValue(0);
@@ -178,7 +178,7 @@ export function CountUp({ cents, variant = "display", color: c, underline = true
   return (
     <View style={styles.countUp}>
       <ZText variant={variant} tabular color={c} accessibilityLabel={formatMoney(cents)}>{formatMoney(shown)}</ZText>
-      {underline ? <Animated.View style={[styles.underline, line]} /> : null}
+      {underline ? <Animated.View style={[styles.underline, { backgroundColor: underlineColor }, line]} /> : null}
     </View>
   );
 }

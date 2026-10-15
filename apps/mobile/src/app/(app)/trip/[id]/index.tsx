@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { uploadPrivateImage, useSignedUrl } from "@/lib/media";
 import { pickImage } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
-import { biggestExpense, CATEGORY_GLYPH, frontedMost, topCategory } from "@/lib/tripExtras";
+import { biggestExpense, categoryIcon, frontedMost, topCategory } from "@/lib/tripExtras";
 import { activeMembers, memberName, membersWithNoExpenses, myDelta, nets, paidBy, previewPayments, shareOf, tripTotal, useTrip, type Expense, type TripData } from "@/lib/trips";
 
 /**
@@ -173,7 +173,7 @@ export default function TripScreen() {
           <View style={styles.heroRow}>
             <View style={[styles.flex, styles.heroText]}>
               <ZText variant="caption" color={color.textMuted}>Your balance</ZText>
-              {balanceState === "amount" ? <CountUp cents={Math.abs(figures.mine)} variant="amountL" /> : <ZText variant="amountL">{balanceState === "settled" ? "Settled up" : balanceState === "none" ? "Nothing yet" : "All square"}</ZText>}
+              {balanceState === "amount" ? <CountUp cents={Math.abs(figures.mine)} variant="amountL" underline={figures.mine !== 0} underlineColor={figures.mine > 0 ? color.owedToYou : color.youOwe} /> : <ZText variant="amountL">{balanceState === "settled" ? "Settled up" : balanceState === "none" ? "Nothing yet" : "All square"}</ZText>}
               {balanceState === "amount" ? <LabelPill tone={figures.mine > 0 ? "volt" : "blush"} label={figures.mine > 0 ? "owed to you" : "you owe"} /> : null}
             </View>
             <Press onPress={openStripes} disabled={!openStripes} scaleTo={0.97} accessibilityRole="button" accessibilityLabel={`Zebra with ${doneCount} of ${figures.members.length} stripes, ${mood}. Opens Earn your stripes`}>
@@ -345,7 +345,7 @@ function ExpenseRow({ e, me, data, settled, onOpen, onHistory }: { e: Expense; m
   const caption = `${payer} paid${e.expense_payers.length > 1 ? ` +${e.expense_payers.length - 1}` : ""} · ${split}`;
   const tile = thumb
     ? <Image source={{ uri: thumb }} style={styles.thumb} accessibilityLabel="Receipt" accessibilityIgnoresInvertColors />
-    : e.split_type === "nights" ? <Icon name="moon" size={20} /> : <ZText variant="micro" color={color.textMuted}>{CATEGORY_GLYPH[e.category] ?? "OT"}</ZText>;
+    : e.split_type === "nights" ? <Icon name="moon" size={20} /> : <Icon name={categoryIcon(e.category, e.subcategory)} size={20} />;
   return (
     <RowCard
       tile={tile}

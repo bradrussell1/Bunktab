@@ -95,7 +95,7 @@ export default function HomeScreen() {
           </ZText>
           {position.main && position.main.currency !== "USD"
             ? <Money variant="display" cents={Math.abs(overall)} currency={`${position.main.currency} `} />
-            : <CountUp cents={Math.abs(overall)} />}
+            : <CountUp cents={Math.abs(overall)} underline={overall !== 0} underlineColor={overall > 0 ? color.owedToYou : color.youOwe} />}
           {overall !== 0 ? <LabelPill tone={overall > 0 ? "volt" : "blush"} label={overall > 0 ? "owed to you" : "you owe"} /> : null}
           {position.others.map((o) => (
             <ZText key={o.currency} variant="caption" color={color.textMuted}>
