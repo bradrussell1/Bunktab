@@ -20,13 +20,13 @@ export async function inviteOg({ inviter, trip, members, done }: { inviter: stri
       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "64px 72px", background: palette.volt, color: palette.ink, fontFamily: "Figtree", position: "relative", overflow: "hidden" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 22, flex: 1, minWidth: 0, maxWidth: 740 }}>
           <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.9 }}>zebrasplit</span>
-          <div style={{ fontSize: 34, fontWeight: 600 }}>{truncate(inviter, 24)} invited you to</div>
+          <div style={{ fontSize: 34, fontWeight: 600, display: "flex" }}>{`${truncate(inviter, 24)} invited you to`}</div>
           <div style={{ fontSize: nameSize, lineHeight: 0.95, fontWeight: 800, letterSpacing: -nameSize * 0.045, display: "flex", flexWrap: "wrap" }}>{name}</div>
           <div style={{ display: "flex", alignItems: "center", gap: 18, paddingTop: 6 }}>
             <div style={{ display: "flex", gap: 8 }}>
               {stripes.map((st, i) => <span key={i} style={{ width: 26, height: 64, borderRadius: 13, background: z.ink, opacity: st.done ? 1 : 0.16 }} />)}
             </div>
-            <span style={{ fontSize: 28, fontWeight: 700 }}>{members} people · {done} done</span>
+            <span style={{ fontSize: 28, fontWeight: 700 }}>{`${members} people · ${done} done`}</span>
           </div>
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element */}

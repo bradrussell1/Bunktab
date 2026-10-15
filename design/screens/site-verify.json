@@ -1,0 +1,270 @@
+[
+ {
+  "path": "/",
+  "name": "home",
+  "width": 390,
+  "status": 200,
+  "title": "Zebrasplit · Split the trip. Not the friendship.",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/",
+  "name": "home",
+  "width": 1440,
+  "status": 200,
+  "title": "Zebrasplit · Split the trip. Not the friendship.",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/faq",
+  "name": "faq",
+  "width": 390,
+  "status": 200,
+  "title": "FAQ · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/faq",
+  "name": "faq",
+  "width": 1440,
+  "status": 200,
+  "title": "FAQ · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/privacy",
+  "name": "privacy",
+  "width": 390,
+  "status": 200,
+  "title": "Privacy Policy · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/privacy",
+  "name": "privacy",
+  "width": 1440,
+  "status": 200,
+  "title": "Privacy Policy · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/terms",
+  "name": "terms",
+  "width": 390,
+  "status": 200,
+  "title": "Terms of Service · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/terms",
+  "name": "terms",
+  "width": 1440,
+  "status": 200,
+  "title": "Terms of Service · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/this-page-does-not-exist",
+  "name": "404",
+  "width": 390,
+  "status": 404,
+  "title": "Page not found · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/this-page-does-not-exist",
+  "name": "404",
+  "width": 1440,
+  "status": 404,
+  "title": "Page not found · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/design",
+  "name": "design",
+  "width": 390,
+  "status": 200,
+  "title": "Design system · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/design",
+  "name": "design",
+  "width": 1440,
+  "status": 200,
+  "title": "Design system · Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/join/3949fa616dcaba837a49121d2206e35d7cecd6e169e175ae",
+  "name": "join-valid",
+  "width": 390,
+  "status": 200,
+  "title": "Bradley invited you to Tahoe weekend on Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/join/3949fa616dcaba837a49121d2206e35d7cecd6e169e175ae",
+  "name": "join-valid",
+  "width": 1440,
+  "status": 200,
+  "title": "Bradley invited you to Tahoe weekend on Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/join/c28df3583cf5c80a6ee01e41789858f38d0f89719dbe42c2",
+  "name": "join-expired",
+  "width": 390,
+  "status": 200,
+  "title": "Bradley invited you to Sonoma Weekend on Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/join/c28df3583cf5c80a6ee01e41789858f38d0f89719dbe42c2",
+  "name": "join-expired",
+  "width": 1440,
+  "status": 200,
+  "title": "Bradley invited you to Sonoma Weekend on Zebrasplit",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/join/not-a-real-code",
+  "name": "join-invalid",
+  "width": 390,
+  "status": 200,
+  "title": "This invite link isn't working",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "path": "/join/not-a-real-code",
+  "name": "join-invalid",
+  "width": 1440,
+  "status": 200,
+  "title": "This invite link isn't working",
+  "h1": 1,
+  "errors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Refused to execute script from 'http://localhost:3100/_vercel/insights/script.js' because its MIME type ('text/html') is not executable, and strict MIME type checking is enabled."
+  ]
+ },
+ {
+  "check": "stripes-demo",
+  "reduced": false,
+  "before": "4 of 6 stripes earned",
+  "moodBefore": "happy",
+  "after": "6 of 6 stripes earned",
+  "moodAfter": "starry",
+  "pressed": 6,
+  "cta": "Close out · pay Mike $84.50 in Venmo",
+  "dancing": "zebra_dance__MEJbL",
+  "reducedAttr": null,
+  "confetti": 16,
+  "afterKey": "5 of 6 stripes earned"
+ },
+ {
+  "check": "stripes-demo",
+  "reduced": true,
+  "before": "4 of 6 stripes earned",
+  "moodBefore": "happy",
+  "after": "6 of 6 stripes earned",
+  "moodAfter": "starry",
+  "pressed": 6,
+  "cta": "Close out · pay Mike $84.50 in Venmo",
+  "dancing": "none",
+  "reducedAttr": "",
+  "confetti": 0,
+  "afterKey": "5 of 6 stripes earned"
+ },
+ {
+  "check": "faq+keyboard",
+  "deepLinkOpen": "true",
+  "firstQuestionOpen": "true",
+  "venmoAfterEnter": "true",
+  "jsonld": 1,
+  "tabStops": [
+   "A:Skip to content [skip]",
+   "A:zebrasplit",
+   "A:Features",
+   "A:FAQ",
+   "A:Get the app",
+   "BUTTON:ApolloDone · Stripe earn",
+   "BUTTON:JenDone · Stripe earned",
+   "BUTTON:MikeDone · Stripe earned",
+   "BUTTON:PPriyaStill adding expen",
+   "BUTTON:SamDone · Stripe earned",
+   "BUTTON:DDevStill adding expense",
+   "BUTTON:Is Zebrasplit free?−"
+  ],
+  "focusRing": "solid 2px"
+ }
+]
