@@ -227,6 +227,8 @@ export function VenmoZipButton({ label, openingLabel = "Opening Venmo…", paidL
     return () => cancelAnimation(shift);
   }, [opening, paid, reduced, shift]);
   useEffect(() => { if (paid) { setOpening(false); haptic.success(); } }, [paid]);
+  // Venmo has the user now; if they come back without marking it paid, offer the button again
+  useEffect(() => { if (!opening || paid) return; const t = setTimeout(() => setOpening(false), motion.venmoZip.landDelay * 3); return () => clearTimeout(t); }, [opening, paid]);
   const stripes = useAnimatedStyle(() => ({ transform: [{ translateX: shift.value - motion.venmoZip.travelPx }] }));
   const text = paid ? paidLabel : opening ? openingLabel : label;
   return (
