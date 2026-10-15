@@ -1,26 +1,30 @@
 import { CATEGORIES, formatCents, isValidVenmoUsername, venmoProfileUrl } from "@bunktab/core";
-import { legacyTheme as theme } from "@bunktab/theme";
+import { color, layout, palette, radius, size, space } from "@bunktab/theme";
 import { useFocusEffect, useRouter } from "expo-router";
 import { openBrowserAsync } from "expo-web-browser";
 import { useCallback, useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TripHistoryList } from "@/components/TripHistoryList";
-import { Avatar, Button, Card, Input, ListItem, Screen, Segmented, Text } from "@/components/ui";
+import { ActionSheet, Avatar, Button, Card, Icon, Input, InsetPanel, Press, RowCard, ScreenBackground, SegmentedControl, Skeleton, TextLink, TopBar, ZText, useToast } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { pickImage, uploadImage } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { loadTripSummaries, type TripSummary } from "@/lib/trips";
 
 /**
- * Profile (user: hierarchy). Photo → Add/Replace photo → Name → the login
- * identifier (email, else phone; read-only) → Password (read-only, with a
- * "Change Password" link to the reset screen) → Venmo Handle → Save →
- * Stats | History tabs → FAQ → Sign out → Delete account.
+ * Profile (user: hierarchy). Photo → Add/Replace photo → Name → the login identifier
+ * (email, else phone; read-only) → Password (read-only, with a "Change password" link
+ * to the reset screen) → Venmo username → Save → Stats | History → FAQ → Sign out →
+ * Delete account. Delete confirms in an action sheet (never a system alert) and still
+ * calls delete_my_account.
  */
 type StatsRow = { id: string; description: string; category: string; base_amount_cents: number; expense_payers: { user_id: string; base_amount_cents: number }[] };
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { show } = useToast();
   const { session, profile, refreshProfile, signOut } = useAuth();
   const uid = session!.user.id;
   const [name, setName] = useState(profile?.display_name ?? "");
@@ -28,7 +32,7 @@ export default function ProfileScreen() {
   const [busy, setBusy] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [tab, setTab] = useState<"stats" | "history">("stats");
   const [trips, setTrips] = useState<TripSummary[]>([]);
   const [rows, setRows] = useState<StatsRow[]>([]);
@@ -81,100 +85,117 @@ export default function ProfileScreen() {
 
   async function save() {
     if (name.trim().length < 2) { setError("Enter the name your friends know you by."); return; }
-    if (venmo.trim() && !isValidVenmoUsername(venmo)) { setError("Venmo handles are 5–30 letters, numbers, hyphens or underscores."); return; }
-    setBusy(true); setError(null); setSaved(false);
+    if (venmo.trim() && !isValidVenmoUsername(venmo)) { setError("Venmo usernames are 5–30 letters, numbers, hyphens or underscores."); return; }
+    setBusy(true); setError(null);
     const { error: e } = await supabase.from("users").update({ display_name: name.trim(), venmo_username: venmo.trim().replace(/^@/, "") || null }).eq("id", uid);
     setBusy(false);
     if (e) { setError(e.message); return; }
-    await refreshProfile(); setSaved(true);
+    await refreshProfile();
+    show({ message: "Saved", tone: "volt", duration: 2000 });
   }
 
-  function deleteAccount() {
-    Alert.alert("Delete your account?", "Your name comes off every trip as \"Former member\" so the group's totals still add up. Your phone, photo and Venmo handle are removed and you're signed out. This can't be undone.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete account", style: "destructive", onPress: async () => {
-        await supabase.storage.from("avatars").remove([`${uid}/avatar.jpg`]).catch(() => null);
-        const { error: e } = await supabase.rpc("delete_my_account");
-        if (e) { setError(e.message); return; }
-        await signOut();
-      } },
-    ]);
+  async function deleteAccount() {
+    await supabase.storage.from("avatars").remove([`${uid}/avatar.jpg`]).catch(() => null);
+    const { error: e } = await supabase.rpc("delete_my_account");
+    if (e) { setError(e.message); return; }
+    await signOut();
   }
 
   return (
-    <Screen>
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: theme.spacing.sm }}>
-        <Button title="‹ Trips" kind="text" size="small" onPress={() => router.back()} />
-        <Text variant="title2">Profile</Text>
-        <View style={{ width: 60 }} />
-      </View>
-      <ScrollView contentContainerStyle={{ gap: theme.spacing.xl, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
-        {/* 1–2: photo */}
-        <View style={{ alignItems: "center", gap: theme.spacing.sm }}>
-          <Pressable onPress={changePhoto} accessibilityRole="button" accessibilityLabel={profile?.photo_url ? "Replace photo" : "Add a photo"} disabled={photoBusy}>
-            <Avatar name={profile?.display_name ?? "?"} uri={profile?.photo_url} size={88} />
-          </Pressable>
-          <Button title={photoBusy ? "Uploading…" : profile?.photo_url ? "Replace photo" : "Add a photo"} kind="text" size="small" onPress={changePhoto} loading={photoBusy} />
-        </View>
+    <View style={styles.screen}>
+      <ScreenBackground />
+      <TopBar onBack={() => router.back()} />
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + space[32] }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
+          <ZText variant="title1" accessibilityRole="header" style={styles.title}>Profile</ZText>
 
-        {/* 3–6: fields */}
-        <Card style={{ gap: theme.spacing.lg }}>
-          <Input label="Name" value={name} onChangeText={setName} autoCapitalize="words" textContentType="name" />
-          <View>
-            <Input label={identifierLabel} value={identifier} editable={false} helper="Used to sign in; can't be changed here." />
-          </View>
-          <View style={{ gap: theme.spacing.xs }}>
+          {/* 1–2: photo */}
+          <Press onPress={changePhoto} disabled={photoBusy} scaleTo={0.98} accessibilityRole="button" accessibilityLabel={profile?.photo_url ? "Replace photo" : "Add a photo"} accessibilityState={{ busy: photoBusy }} style={styles.photoRow}>
             <View>
-              <Input label="Password" value="••••••••" editable={false} secureTextEntry />
+              <Avatar name={profile?.display_name ?? "?"} uri={profile?.photo_url} size={72} />
+              <View style={styles.plus} accessibilityElementsHidden><Icon name={profile?.photo_url ? "camera" : "plus"} size={14} stroke={2.4} /></View>
             </View>
-            {/* the reset-password route is built alongside the account flows */}
-            <Button title="Change Password" kind="text" size="small" style={{ alignSelf: "flex-start" }} onPress={() => router.push("/(auth)/reset-password?mode=change" as Parameters<typeof router.push>[0])} />
+            <ZText variant="label" color={color.textSecondary}>{photoBusy ? "Uploading…" : profile?.photo_url ? "Replace photo" : "Add a photo"}</ZText>
+          </Press>
+
+          {/* 3–6: fields */}
+          <Card style={styles.form}>
+            <Input label="Name" value={name} onChangeText={setName} autoCapitalize="words" textContentType="name" />
+            <Input label={identifierLabel} value={identifier} editable={false} helper="Used to sign in; can't be changed here." />
+            <View style={styles.fieldWithLink}>
+              <Input label="Password" value="••••••••" editable={false} secureTextEntry />
+              {/* the reset-password route is built alongside the account flows */}
+              <TextLink label="Change password" onPress={() => router.push("/(auth)/reset-password?mode=change" as Parameters<typeof router.push>[0])} />
+            </View>
+            <View style={styles.fieldWithLink}>
+              <Input label="Venmo username" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} error={error} />
+              {venmo.trim().length >= 5 ? <TextLink label="View on Venmo" onPress={() => openBrowserAsync(venmoProfileUrl(venmo))} /> : null}
+            </View>
+            <Button kind="ink" label="Save" height={size.buttonHeight} onPress={save} loading={busy} />
+          </Card>
+
+          {/* 7: Stats | History */}
+          <View style={styles.tabs}>
+            <SegmentedControl options={[{ key: "stats", label: "Stats" }, { key: "history", label: "History" }]} value={tab} onChange={setTab} />
+            {tab === "stats" ? (
+              <Card style={styles.stats}>
+                <Stat k="Dazzles" v={`${stats.trips}${stats.settledTrips ? ` · ${stats.settledTrips} settled` : ""}`} loading={loading} />
+                <Stat k="You've paid" v={formatCents(stats.totalPaid)} sub={`${stats.logged} ${stats.logged === 1 ? "expense" : "expenses"} logged`} loading={loading} />
+                <Stat k="Settled through Zebrasplit" v={formatCents(settledCents)} loading={loading} />
+                <Stat k="Biggest expense you paid" v={stats.biggest ? `${stats.biggest.r.description} · ${formatCents(stats.biggest.paid)}` : "—"} loading={loading} />
+                <Stat k="Most frequent category" v={stats.top ?? "—"} loading={loading} />
+              </Card>
+            ) : (
+              <TripHistoryList trips={trips} loading={loading} />
+            )}
           </View>
-          <View style={{ gap: theme.spacing.xs }}>
-            <Input label="Venmo Handle" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} />
-            {venmo.trim().length >= 5 && <Button title="View on Venmo" kind="text" size="small" style={{ alignSelf: "flex-start" }} onPress={() => openBrowserAsync(venmoProfileUrl(venmo))} />}
-          </View>
-          {error && <Text variant="caption1" color={theme.colors.text.destructive}>{error}</Text>}
-          {saved && !error && <Text variant="caption1" color={theme.colors.text.success}>Saved.</Text>}
-          <Button title="Save" size="medium" onPress={save} loading={busy} />
-        </Card>
 
-        {/* 7: Stats | History */}
-        <View style={{ gap: theme.spacing.md }}>
-          <Segmented options={[{ key: "stats", label: "Stats" }, { key: "history", label: "History" }]} value={tab} onChange={setTab} />
-          {tab === "stats" ? (
-            <Card style={{ gap: theme.spacing.md }}>
-              <StatRow k="Trips" v={loading ? "…" : `${stats.trips}${stats.settledTrips ? ` · ${stats.settledTrips} settled` : ""}`} />
-              <StatRow k="You've paid" v={loading ? "…" : formatCents(stats.totalPaid)} sub={loading ? undefined : `${stats.logged} ${stats.logged === 1 ? "expense" : "expenses"} logged`} />
-              <StatRow k="Settled through Zebrasplit" v={loading ? "…" : formatCents(settledCents)} />
-              <StatRow k="Biggest expense you paid" v={loading ? "…" : stats.biggest ? `${stats.biggest.r.description} · ${formatCents(stats.biggest.paid)}` : "—"} />
-              <StatRow k="Most frequent category" v={loading ? "…" : stats.top ?? "—"} />
-            </Card>
-          ) : (
-            <TripHistoryList trips={trips} loading={loading} />
-          )}
-        </View>
+          {/* 8: FAQ */}
+          <RowCard title="FAQ" caption="How splitting, Done and close-out work" right={<Icon name="chevronRight" size={18} color={color.textMuted} />} onPress={() => router.push("/(app)/faq")} />
 
-        {/* 8: FAQ */}
-        <Card style={{ padding: 0, overflow: "hidden" }}>
-          <ListItem title="FAQ" subtitle="How splitting, Done and close-out work" onPress={() => router.push("/(app)/faq")} right={<Text variant="title2" color={theme.colors.text.onBackground.accent}>›</Text>} />
-        </Card>
+          {/* 9–10 */}
+          <Button kind="secondary" label="Sign out" height={size.buttonHeight} onPress={signOut} />
+          <Press onPress={() => setConfirmDelete(true)} scaleTo={0.98} accessibilityRole="button" accessibilityLabel="Delete account" style={styles.delete}>
+            <ZText variant="label" color={color.destructive} style={styles.deleteText}>Delete account</ZText>
+          </Press>
+          <ZText variant="caption" color={color.textMuted} style={styles.note}>Deleting removes your personal data and anonymises you on shared dazzles.</ZText>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
-        {/* 9–10 */}
-        <Button title="Sign out" kind="secondary" size="medium" onPress={signOut} />
-        <Button title="Delete account" kind="text" size="small" onPress={deleteAccount} />
-        <Text variant="caption1" color={theme.colors.text.onBackground.tertiary} style={{ textAlign: "center" }}>Deleting removes your personal data and anonymises you on shared trips.</Text>
-      </ScrollView>
-    </Screen>
-  );
-}
-
-function StatRow({ k, v, sub }: { k: string; v: string; sub?: string }) {
-  return (
-    <View style={{ gap: 2 }}>
-      <Text variant="captionCaps2" color={theme.colors.text.onBackground.secondary}>{k}</Text>
-      <Text variant="headline">{v}</Text>
-      {sub ? <Text variant="caption1" color={theme.colors.text.onBackground.tertiary}>{sub}</Text> : null}
+      <ActionSheet
+        open={confirmDelete}
+        onClose={() => setConfirmDelete(false)}
+        title={"Delete your account? Your name comes off every dazzle as \"Former member\" so the group's totals still add up. Your phone, photo and Venmo username are removed and you're signed out. This can't be undone."}
+        actions={[{ label: "Delete account", destructive: true, onPress: deleteAccount }]}
+      />
     </View>
   );
 }
+
+function Stat({ k, v, sub, loading }: { k: string; v: string; sub?: string; loading: boolean }) {
+  return (
+    <InsetPanel style={styles.stat}>
+      <ZText variant="small" color={color.textMuted}>{k}</ZText>
+      {loading ? <Skeleton width="50%" height={16} style={styles.statSkeleton} /> : <ZText variant="bodyStrong">{v}</ZText>}
+      {sub && !loading ? <ZText variant="caption" color={color.textMuted}>{sub}</ZText> : null}
+    </InsetPanel>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: palette.bgMid },
+  flex: { flex: 1 },
+  content: { paddingHorizontal: layout.screenGutter, gap: space[14] },
+  title: { paddingHorizontal: space[4] },
+  photoRow: { flexDirection: "row", alignItems: "center", gap: space[12], alignSelf: "flex-start", paddingHorizontal: space[4] },
+  plus: { position: "absolute", right: -2, bottom: -2, width: 26, height: 26, borderRadius: radius.pill, backgroundColor: color.surfaceTile, borderWidth: 2, borderColor: color.surface, alignItems: "center", justifyContent: "center" },
+  form: { gap: space[14] },
+  fieldWithLink: { gap: space[6] },
+  tabs: { gap: space[10] },
+  stats: { gap: space[8] },
+  stat: { gap: 2 },
+  statSkeleton: { marginVertical: 2 },
+  delete: { alignSelf: "center", minHeight: layout.minTapTarget, justifyContent: "center", paddingHorizontal: space[12] },
+  deleteText: { textDecorationLine: "underline" },
+  note: { textAlign: "center", paddingHorizontal: layout.textGutter },
+});
