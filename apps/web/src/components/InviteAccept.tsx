@@ -2,13 +2,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PhoneVerify } from "./PhoneVerify";
+import { ZebraBust } from "./Zebra";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
 /**
  * Invite landing (spec: Invite links and web guests). Trip data is hidden
  * until the phone is verified, so we can't show the title first; after
  * verification accept_invite_token adds the member (it checks the invite
- * was sent to this number) and we land on the trip.
+ * was sent to this number) and we land on the dazzle. RPCs unchanged.
  */
 export function InviteAccept({ token, signedIn }: { token: string; signedIn: boolean }) {
   const router = useRouter();
@@ -33,11 +34,12 @@ export function InviteAccept({ token, signedIn }: { token: string; signedIn: boo
   useEffect(() => { if (signedIn) accept(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [signedIn]);
 
   if (signedIn || busy) return (
-    <div className="stack" style={{ paddingTop: 48 }}>
-      <h1 className="h-title2">{error ? "Couldn't open this invite" : "Opening your invite…"}</h1>
-      {error && <p className="err">{error}</p>}
+    <div className="stack col-text" style={{ paddingTop: "var(--zs-space-40)" }}>
+      <ZebraBust mood={error ? "worried" : "wink"} size={88} label={error ? "Zebra, worried" : "Zebra, winking"} />
+      <h1 className="t-title2">{error ? "Couldn't open this invite" : "Opening your invite…"}</h1>
+      {error && <div className="error-panel"><span>{error}</span></div>}
       {error && <button className="btn secondary" type="button" onClick={async () => { await supabaseBrowser().auth.signOut(); router.refresh(); setBusy(false); }}>Sign in with a different number</button>}
     </div>
   );
-  return <PhoneVerify title="You're invited to a trip" body="Verify your phone number to open it. No app needed; you can add expenses and tap Done right here." onDone={accept} />;
+  return <PhoneVerify title="You're invited to a dazzle" body="Verify your phone number to open it. No app needed; you can add expenses and tap Done right here." onDone={accept} />;
 }
