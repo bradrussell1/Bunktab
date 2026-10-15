@@ -1,6 +1,7 @@
-// Generates apps/web/src/styles/tokens.css from packages/theme/src/tokens.ts
-// (the same values the mobile app reads), as --zs-* custom properties.
-// Run: node packages/theme/scripts/build-css.mjs
+// Generates a tokens.css of --zs-* custom properties from packages/theme/src/tokens.ts
+// (the same values the mobile app reads). Default destination is apps/web's tokens.css;
+// pass another path to write elsewhere (apps/site runs it as a predev/prebuild step).
+// Run: node packages/theme/scripts/build-css.mjs [dest.css]
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +11,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const src = readFileSync(resolve(here, "../src/tokens.ts"), "utf8");
 const js = ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.ES2020, target: ts.ScriptTarget.ES2020 } }).outputText;
 const mod = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
-const { palette, color, zebra, type, space, layout, radius, shadow, size, motion } = mod;
+const { palette, color, zebra, type, space, layout, radius, shadow, size, motion, siteType, siteText } = mod;
 
 const kebab = (s) => s.replace(/([A-Z])/g, "-$1").toLowerCase();
 const lines = [];
@@ -27,24 +28,44 @@ for (const [k, v] of Object.entries(shadow)) {
   const rgb = v.shadowColor === palette.ink ? "29,26,23" : v.shadowColor === "#8CA000" ? "140,160,0" : "0,0,0";
   lines.push(`--zs-shadow-${kebab(k)}: 0 ${v.shadowOffset.height}px ${v.shadowRadius * 2}px rgba(${rgb},${v.shadowOpacity});`);
 }
-for (const [k, v] of Object.entries(size)) if (typeof v === "number") lines.push(`--zs-size-${kebab(k)}: ${v}px;`);
+for (const [k, v] of Object.entries(size)) {
+  if (typeof v === "number") lines.push(`--zs-size-${kebab(k)}: ${v}px;`);
+  else for (const [sk, sv] of Object.entries(v)) lines.push(`--zs-size-${kebab(k)}-${kebab(sk)}: ${sv}${/deg$/i.test(sk) ? "deg" : "px"};`);
+}
 for (const [k, v] of Object.entries(type)) {
   const weight = { Figtree_400Regular: 400, Figtree_600SemiBold: 600, Figtree_700Bold: 700, Figtree_800ExtraBold: 800, IBMPlexMono_400Regular: 400, IBMPlexMono_700Bold: 700 }[v.fontFamily];
   const family = v.fontFamily.startsWith("IBM") ? "var(--zs-font-mono)" : "var(--zs-font-sans)";
   lines.push(`--zs-type-${kebab(k)}: ${weight} ${v.fontSize}px/${v.lineHeight}px ${family};`);
+  lines.push(`--zs-fs-${kebab(k)}: ${v.fontSize}px;`, `--zs-lh-${kebab(k)}: ${v.lineHeight}px;`);
   if (v.letterSpacing) lines.push(`--zs-tracking-${kebab(k)}: ${v.letterSpacing}px;`);
+}
+// Site display scale (fluid) and fixed web text sizes, when the tokens export them.
+for (const [k, v] of Object.entries(siteType ?? {})) {
+  lines.push(`--zs-fs-${kebab(k)}: clamp(${v.min}px, ${v.vw}vw, ${v.max}px);`, `--zs-lh-${kebab(k)}: ${v.lineHeight};`, `--zs-tracking-${kebab(k)}: ${v.tracking}em;`);
+}
+for (const [k, v] of Object.entries(siteText ?? {})) {
+  lines.push(`--zs-fs-${kebab(k)}: ${v.size}px;`, `--zs-lh-${kebab(k)}: ${v.lineHeight};`, `--zs-tracking-${kebab(k)}: ${v.tracking}em;`);
 }
 for (const [k, v] of Object.entries(motion)) {
   if (typeof v === "number") lines.push(`--zs-motion-${kebab(k)}: ${v}ms;`);
-  else if (v.bezier) lines.push(`--zs-ease-${kebab(k)}: cubic-bezier(${v.bezier.join(",")});`, `--zs-motion-${kebab(k)}: ${v.duration}ms;`);
+  else {
+    if (v.bezier) lines.push(`--zs-ease-${kebab(k)}: cubic-bezier(${v.bezier.join(",")});`);
+    if (v.duration != null) lines.push(`--zs-motion-${kebab(k)}: ${v.duration}ms;`);
+    for (const [sk, sv] of Object.entries(v)) {
+      if (sk === "bezier" || sk === "duration" || typeof sv !== "number") continue;
+      const ms = /period|delay|duration|ms$/i.test(sk);
+      lines.push(`--zs-motion-${kebab(k)}-${kebab(sk)}: ${sv}${ms ? "ms" : ""};`);
+    }
+  }
 }
-lines.push(`--zs-font-sans: "Figtree", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;`);
-lines.push(`--zs-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;`);
+// next/font sets --font-figtree / --font-plex-mono on <html>; without it the plain family names apply.
+lines.push(`--zs-font-sans: var(--font-figtree, "Figtree"), -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;`);
+lines.push(`--zs-font-mono: var(--font-plex-mono, "IBM Plex Mono"), ui-monospace, SFMono-Regular, Menlo, monospace;`);
 lines.push(`--zs-bg: radial-gradient(120% 55% at 100% 0%, ${palette.washPink} 0%, transparent 60%), radial-gradient(100% 45% at 0% 22%, ${palette.washVolt} 0%, transparent 55%), linear-gradient(180deg, ${palette.bgTop} 0%, ${palette.bgMid} 50%, ${palette.bgBottom} 100%);`);
 lines.push(`--zs-bg-wide: radial-gradient(70% 50% at 100% 0%, ${palette.washPink} 0%, transparent 60%), radial-gradient(60% 45% at 0% 22%, ${palette.washVolt} 0%, transparent 55%), linear-gradient(180deg, ${palette.bgTop} 0%, ${palette.bgMid} 50%, ${palette.bgBottom} 100%);`);
 
 const out = `/* Generated by packages/theme/scripts/build-css.mjs from packages/theme/src/tokens.ts. Do not edit. */\n:root {\n  ${lines.join("\n  ")}\n}\n`;
-const dest = resolve(here, "../../../apps/web/src/styles/tokens.css");
+const dest = process.argv[2] ? resolve(process.cwd(), process.argv[2]) : resolve(here, "../../../apps/web/src/styles/tokens.css");
 mkdirSync(dirname(dest), { recursive: true });
 writeFileSync(dest, out);
 console.log(`tokens.css: ${lines.length} properties → ${dest}`);
