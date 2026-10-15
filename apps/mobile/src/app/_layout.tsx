@@ -29,7 +29,9 @@ function Routes() {
   const signedIn = !!session;
   const needsPhone = signedIn && !session.user.phone;
   const needsPassword = signedIn && !needsPhone && pendingPasswordReset;
-  const needsProfile = signedIn && !needsPhone && !needsPassword && !profile?.display_name;
+  // the profile step: no name yet (old text-code logins), or an existing account without a last
+  // name, asked once (feedback round 1, item 18)
+  const needsProfile = signedIn && !needsPhone && !needsPassword && (!profile?.display_name || !profile?.last_name);
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bgMid } }}>
       <Stack.Protected guard={!signedIn}>
@@ -40,8 +42,12 @@ function Routes() {
         <Stack.Screen name="(auth)/signup" />
         <Stack.Screen name="(auth)/phone" />
       </Stack.Protected>
-      <Stack.Protected guard={!signedIn || needsPhone}>
+      {/* add-phone is for a signed-in account with no number: signing out from it must make it
+          unavailable so the router falls back to the landing screen (feedback round 1, item 2) */}
+      <Stack.Protected guard={needsPhone}>
         <Stack.Screen name="(auth)/add-phone" />
+      </Stack.Protected>
+      <Stack.Protected guard={!signedIn || needsPhone}>
         <Stack.Screen name="(auth)/code" />
       </Stack.Protected>
       <Stack.Protected guard={needsProfile}>

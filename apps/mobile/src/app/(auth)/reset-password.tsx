@@ -26,7 +26,7 @@ export default function ResetPasswordScreen() {
 
   async function confirm() {
     if (p1.length < 8) return setError("Use at least 8 characters.");
-    if (p1 !== p2) return setError("The two passwords don't match.");
+    if (p1 !== p2) return setError("The two passwords don't match. Type the new password again.");
     setBusy(true); setError(null);
     const { error: e } = await supabase.auth.updateUser({ password: p1 });
     setBusy(false);
@@ -52,7 +52,7 @@ export default function ResetPasswordScreen() {
     >
       <Input label="Email or phone" value={who} editable={false} selectTextOnFocus={false} />
       <Input label="New password" placeholder="At least 8 characters" value={p1} onChangeText={setP1} secureTextEntry textContentType="newPassword" autoComplete="new-password" autoFocus returnKeyType="next" />
-      <Input label="Confirm password" placeholder="Same again" value={p2} onChangeText={setP2} secureTextEntry textContentType="newPassword" autoComplete="new-password" error={error} onSubmitEditing={confirm} returnKeyType="done" />
+      <Input label="Confirm new password" placeholder="Same again" value={p2} onChangeText={setP2} secureTextEntry textContentType="newPassword" autoComplete="new-password" error={error} onSubmitEditing={confirm} returnKeyType="done" />
     </AuthScreen>
   );
 }

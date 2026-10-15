@@ -158,7 +158,7 @@ export function ReceiptPrint({ children, play }: { children: ReactNode; play: nu
 }
 
 /** CountUp: money counts up from 0 over 1.3 s (ease-out cubic) with a volt underline stripe growing with it. */
-export function CountUp({ cents, variant = "display", color: c, underline = true, underlineColor = palette.volt, play = 1 }: { cents: number; variant?: "display" | "amountL" | "amountRow"; color?: string; underline?: boolean; /** volt for owed to you, blush for you owe (DESIGN_SYSTEM §3) */ underlineColor?: string; play?: number }) {
+export function CountUp({ cents, variant = "display", color: c, underline = true, underlineColor = palette.volt, play = 1, fit, style }: { cents: number; variant?: "display" | "amountL" | "amountRow"; color?: string; underline?: boolean; /** volt for owed to you, blush for you owe (DESIGN_SYSTEM §3) */ underlineColor?: string; play?: number; /** One line always: the type steps down (to 60 %) rather than wrapping, so $XX,XXX.XX fits (feedback round 1, item 3). */ fit?: boolean; style?: StyleProp<ViewStyle> }) {
   const reduced = useReducedMotion();
   const [shown, setShown] = useState(reduced ? cents : 0);
   const w = useSharedValue(0);
@@ -176,8 +176,8 @@ export function CountUp({ cents, variant = "display", color: c, underline = true
   }, [cents, play, reduced, w]);
   const line = useAnimatedStyle(() => ({ transform: [{ scaleX: w.value }] }));
   return (
-    <View style={styles.countUp}>
-      <ZText variant={variant} tabular color={c} accessibilityLabel={formatMoney(cents)}>{formatMoney(shown)}</ZText>
+    <View style={[styles.countUp, fit ? styles.countUpFit : null, style]}>
+      <ZText variant={variant} tabular color={c} accessibilityLabel={formatMoney(cents)} numberOfLines={fit ? 1 : undefined} adjustsFontSizeToFit={fit} minimumFontScale={fit ? 0.6 : undefined}>{formatMoney(shown)}</ZText>
       {underline ? <Animated.View style={[styles.underline, { backgroundColor: underlineColor }, line]} /> : null}
     </View>
   );
@@ -286,6 +286,7 @@ const styles = StyleSheet.create({
   piece: { position: "absolute", width: 8, height: 22, borderRadius: 4 },
   clip: { overflow: "hidden" },
   countUp: { alignSelf: "flex-start" },
+  countUpFit: { alignSelf: "stretch" },
   underline: { height: 6, borderRadius: 3, backgroundColor: palette.volt, marginTop: 4, transformOrigin: "0% 50%" },
   zip: { height: size.ctaHeight, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", overflow: "hidden", alignSelf: "stretch" },
   zipStripes: { position: "absolute", top: -20, bottom: -20, left: 0, right: -200, flexDirection: "row" },

@@ -1,7 +1,6 @@
-import { CATEGORIES, formatCents, isValidVenmoUsername, venmoProfileUrl } from "@bunktab/core";
+import { CATEGORIES, formatCents, isValidNamePart, isValidVenmoUsername, joinName, splitName } from "@bunktab/core";
 import { color, layout, palette, radius, size, space } from "@bunktab/theme";
 import { useFocusEffect, useRouter } from "expo-router";
-import { openBrowserAsync } from "expo-web-browser";
 import { useCallback, useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,6 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { pickImage, uploadImage } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
 import { loadTripSummaries, type TripSummary } from "@/lib/trips";
+import { openVenmoProfile } from "@/lib/venmo";
 
 /**
  * Profile (user: hierarchy). Photo → Add/Replace photo → Name → the login identifier
@@ -27,7 +27,9 @@ export default function ProfileScreen() {
   const { show } = useToast();
   const { session, profile, refreshProfile, signOut } = useAuth();
   const uid = session!.user.id;
-  const [name, setName] = useState(profile?.display_name ?? "");
+  const prefill = splitName(profile?.display_name);
+  const [first, setFirst] = useState(profile?.first_name ?? prefill.first ?? "");
+  const [last, setLast] = useState(profile?.last_name ?? prefill.last ?? "");
   const [venmo, setVenmo] = useState(profile?.venmo_username ?? "");
   const [busy, setBusy] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -84,10 +86,13 @@ export default function ProfileScreen() {
   }
 
   async function save() {
-    if (name.trim().length < 2) { setError("Enter the name your friends know you by."); return; }
+    if (!isValidNamePart(first)) { setError("Enter your first name."); return; }
+    if (!isValidNamePart(last)) { setError("Enter your last name."); return; }
     if (venmo.trim() && !isValidVenmoUsername(venmo)) { setError("Venmo usernames are 5–30 letters, numbers, hyphens or underscores."); return; }
     setBusy(true); setError(null);
-    const { error: e } = await supabase.from("users").update({ display_name: name.trim(), venmo_username: venmo.trim().replace(/^@/, "") || null }).eq("id", uid);
+    const f = first.trim(), l = last.trim();
+    // first_name / last_name are the source; display_name stays the composed name every reader uses
+    const { error: e } = await supabase.from("users").update({ first_name: f, last_name: l, display_name: joinName(f, l), venmo_username: venmo.trim().replace(/^@/, "") || null }).eq("id", uid);
     setBusy(false);
     if (e) { setError(e.message); return; }
     await refreshProfile();
@@ -120,7 +125,10 @@ export default function ProfileScreen() {
 
           {/* 3–6: fields */}
           <Card style={styles.form}>
-            <Input label="Name" value={name} onChangeText={setName} autoCapitalize="words" textContentType="name" />
+            <View style={styles.names}>
+              <Input label="First name" value={first} onChangeText={setFirst} autoCapitalize="words" textContentType="givenName" autoComplete="given-name" returnKeyType="next" style={styles.flex} />
+              <Input label="Last name" value={last} onChangeText={setLast} autoCapitalize="words" textContentType="familyName" autoComplete="family-name" returnKeyType="done" style={styles.flex} />
+            </View>
             <Input label={identifierLabel} value={identifier} editable={false} helper="Used to sign in; can't be changed here." />
             <View style={styles.fieldWithLink}>
               <Input label="Password" value="••••••••" editable={false} secureTextEntry />
@@ -128,8 +136,8 @@ export default function ProfileScreen() {
               <TextLink label="Change password" onPress={() => router.push("/(auth)/reset-password?mode=change" as Parameters<typeof router.push>[0])} />
             </View>
             <View style={styles.fieldWithLink}>
-              <Input label="Venmo username" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} error={error} />
-              {venmo.trim().length >= 5 ? <TextLink label="View on Venmo" onPress={() => openBrowserAsync(venmoProfileUrl(venmo))} /> : null}
+              <Input label="Venmo username" placeholder="your-venmo" value={venmo} onChangeText={setVenmo} autoCapitalize="none" autoCorrect={false} error={error} returnKeyType="done" />
+              {venmo.trim().length >= 5 ? <TextLink label="View on Venmo" onPress={() => openVenmoProfile(venmo)} /> : null}
             </View>
             <Button kind="ink" label="Save" height={size.buttonHeight} onPress={save} loading={busy} />
           </Card>
@@ -190,6 +198,7 @@ const styles = StyleSheet.create({
   photoRow: { flexDirection: "row", alignItems: "center", gap: space[12], alignSelf: "flex-start", paddingHorizontal: space[4] },
   plus: { position: "absolute", right: -2, bottom: -2, width: 26, height: 26, borderRadius: radius.pill, backgroundColor: color.surfaceTile, borderWidth: 2, borderColor: color.surface, alignItems: "center", justifyContent: "center" },
   form: { gap: space[14] },
+  names: { flexDirection: "row", gap: space[10] },
   fieldWithLink: { gap: space[6] },
   tabs: { gap: space[10] },
   stats: { gap: space[8] },

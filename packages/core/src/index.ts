@@ -8,3 +8,5 @@ export * from "./currency";
 export * from "./dates";
 export * from "./phone";
 export * from "./zebra";
+export * from "./names";
+export * from "./nudge";

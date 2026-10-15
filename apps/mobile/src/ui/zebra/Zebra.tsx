@@ -1,7 +1,7 @@
 import { stripeLayout, zebraLabel, type ZebraMood, ZEBRA_STRIPE } from "@bunktab/core";
 import { motion, zebra as z } from "@bunktab/theme";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { View, type StyleProp, type ViewStyle } from "react-native";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { Easing, cancelAnimation, useAnimatedProps, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming, type SharedValue } from "react-native-reanimated";
 import Svg, { G, Rect } from "react-native-svg";
 import { useReducedMotion } from "../motion/useReducedMotion";
@@ -11,6 +11,8 @@ const AG = Animated.createAnimatedComponent(G);
 const ARect = Animated.createAnimatedComponent(Rect);
 const bez = (b: readonly number[]) => Easing.bezier(b[0], b[1], b[2], b[3]);
 const MOODS: ZebraMood[] = ["hi", "happy", "wink", "sleepy", "starry", "love", "worried"];
+/** Moods whose open eyes blink. The others (arcs, stars, hearts) don't. */
+const BLINKING: ZebraMood[] = ["hi", "worried", "wink"];
 
 export type ZebraProps = {
   variant?: "full" | "bust";
@@ -33,16 +35,34 @@ export type ZebraProps = {
  * The zebra (DESIGN_SYSTEM.md §7). Geometry from the masters; one stripe per member
  * on the full body (ink = done, ghost = not). Moods crossfade their eye groups over
  * 250 ms. Blink, bob, swish and dance are opt-in and all stop under Reduce Motion.
+ *
+ * Why the moving parts are layered (feedback round 1, items 8 and 9): react-native-svg
+ * turns `rotation` / `scaleY` / `translateY` into a transform matrix *during render* and
+ * the native view never sees those names. Driving them from a Reanimated animated prop
+ * therefore does nothing after the first frame (the tail and the eyes sat still in the
+ * TestFlight build), and a `scaleY` of 0 is read as "unset", so the ink stripe drew at
+ * full size on every member before anyone tapped Done. So:
+ *  - the tail and the blinking eyes are their own tiny <Svg> layers inside Animated.Views
+ *    whose *view* transform (a real native style) rotates about the tail root / scales
+ *    about the eye line, pinned with transformOrigin;
+ *  - a stripe fill animates the Rect's `height` (a genuine native prop) from the top
+ *    edge, and its first frame is a plain prop, so "0 of 5" renders five ghost stripes
+ *    even if no animation ever ran;
+ *  - the z's float the same way.
+ * Opacity crossfades stay on the G (opacity is a native prop).
  */
 export function Zebra({ variant = "full", mood = "hi", members = 6, done = 0, size = 244, animate, tailUp, accessibilityLabel, decorative, style }: ZebraProps) {
   const reduced = useReducedMotion();
   const vb = variant === "bust" ? BUST_VIEWBOX : FULL_VIEWBOX;
+  const scale = size / vb.w;
   const height = size * (vb.h / vb.w);
   // Outline stays crisp at small sizes: thicker strokes below ~200 px.
   const sw = size >= 200 ? 1 : size >= 120 ? 1.25 : 1.6;
   const stripes = useMemo(() => stripeLayout(members, done), [members, done]);
   const allIn = members > 0 && done >= members;
   const up = tailUp ?? (variant === "full" && mood === "starry");
+  // a viewBox point → pixels inside this component (for transformOrigin)
+  const px = (x: number, y: number) => [(x - vb.x) * scale, (y - vb.y) * scale] as const;
 
   // ── mood crossfade: every mood's eye group is mounted; opacity animates ──
   const opac = MOODS.map((m) => useSharedValue(m === mood ? 1 : 0)); // eslint-disable-line react-hooks/rules-of-hooks
@@ -52,24 +72,26 @@ export function Zebra({ variant = "full", mood = "hi", members = 6, done = 0, si
 
   // ── blink (hi, worried, wink's open eye): scaleY → 0.1 at 94 % of a 3.8 s cycle ──
   const blink = useSharedValue(1);
-  const blinks = !!animate?.blink && !reduced && (mood === "hi" || mood === "worried" || mood === "wink");
+  const blinks = !!animate?.blink && !reduced && BLINKING.includes(mood);
   useEffect(() => {
     if (!blinks) { cancelAnimation(blink); blink.value = 1; return; }
     const p = motion.blink.period;
     blink.value = withRepeat(withSequence(withTiming(1, { duration: p * motion.blink.closeAt }), withTiming(motion.blink.closedScaleY, { duration: p * 0.03 }), withTiming(1, { duration: p * 0.03 })), -1, false);
     return () => cancelAnimation(blink);
   }, [blinks, blink]);
-  const blinkProps = useAnimatedProps(() => ({ scaleY: blink.value }));
+  const blinkStyle = useAnimatedStyle(() => ({ transform: [{ scaleY: blink.value }] }));
+  const [eyeOx, eyeOy] = px(120, EYE_CY);
 
   // ── tail swish: rotate −8° ↔ 14° about the tail root, 2.2 s ──
   const swish = useSharedValue<number>(motion.swish.fromDeg);
   const swishes = !!animate?.swish && !reduced && variant === "full";
   useEffect(() => {
-    if (!swishes) { cancelAnimation(swish); swish.value = 0; return; }
+    if (!swishes) { cancelAnimation(swish); swish.value = withTiming(0, { duration: 200 }); return; }
     swish.value = withRepeat(withSequence(withTiming(motion.swish.toDeg, { duration: motion.swish.period / 2, easing: Easing.inOut(Easing.ease) }), withTiming(motion.swish.fromDeg, { duration: motion.swish.period / 2, easing: Easing.inOut(Easing.ease) })), -1, false);
     return () => cancelAnimation(swish);
   }, [swishes, swish]);
-  const tailProps = useAnimatedProps(() => ({ rotation: swish.value }));
+  const tailStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${swish.value}deg` }] }));
+  const [tailOx, tailOy] = px(TAIL_ROOT.x, TAIL_ROOT.y);
 
   // ── bob: translateY 0 → −5 → 0, rotate −2° ↔ 2°, 3.4 s, origin bottom centre ──
   const bob = useSharedValue(0);
@@ -108,9 +130,11 @@ export function Zebra({ variant = "full", mood = "hi", members = 6, done = 0, si
     zz.value = withRepeat(withSequence(withTiming(1, { duration: motion.zz.period / 2, easing: Easing.inOut(Easing.ease) }), withTiming(0, { duration: motion.zz.period / 2, easing: Easing.inOut(Easing.ease) })), -1, false);
     return () => cancelAnimation(zz);
   }, [floats, zz]);
-  const zzProps = useAnimatedProps(() => ({ translateY: zz.value * motion.zz.travelY, opacity: 1 - zz.value * 0.5 }));
+  const zzStyle = useAnimatedStyle(() => ({ transform: [{ translateY: zz.value * motion.zz.travelY * scale }], opacity: 1 - zz.value * 0.5 }));
 
   const label = accessibilityLabel ?? zebraLabel(mood, variant === "full" ? members : undefined, variant === "full" ? done : undefined);
+  const viewBox = `${vb.x} ${vb.y} ${vb.w} ${vb.h}`;
+  const layer = (children: ReactNode) => <Svg width={size} height={height} viewBox={viewBox}>{children}</Svg>;
 
   return (
     <Animated.View
@@ -121,12 +145,18 @@ export function Zebra({ variant = "full", mood = "hi", members = 6, done = 0, si
       accessibilityElementsHidden={decorative}
       importantForAccessibility={decorative ? "no-hide-descendants" : "auto"}
     >
-      <Svg width={size} height={height} viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}>
+      {/* layer 1 (behind the body): the tail, rotated as a view about the tail root */}
+      {variant === "full" ? (
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { transformOrigin: [tailOx, tailOy, 0] }, tailStyle]}>
+          {layer(<><Defs_ /><Tail up={up} sw={sw} /></>)}
+        </Animated.View>
+      ) : null}
+      {/* layer 2: the body and the still parts of the face */}
+      <Svg width={size} height={height} viewBox={viewBox}>
         <Defs_ />
         {variant === "full" ? (
           <>
             <Shadow />
-            <AG animatedProps={tailProps} originX={TAIL_ROOT.x} originY={TAIL_ROOT.y}><Tail up={up} sw={sw} /></AG>
             <Legs sw={sw} />
           </>
         ) : null}
@@ -142,30 +172,41 @@ export function Zebra({ variant = "full", mood = "hi", members = 6, done = 0, si
         <G>
           <Ears mood={mood} sw={sw} />
           <Head mood={mood} sw={sw} />
-          {MOODS.map((m, i) => (
-            <MoodEyes key={m} mood={m} opacity={opac[i]} blinkProps={m === "hi" || m === "worried" || m === "wink" ? blinkProps : undefined} sw={sw} />
-          ))}
+          {MOODS.map((m, i) => (BLINKING.includes(m) ? (
+            // the blinking eyes live in layer 3; the sweat drop (worried) stays here under the same fade
+            m === "worried" ? <MoodFade key={m} opacity={opac[i]}><SweatDrop sw={sw} /></MoodFade> : null
+          ) : (
+            <MoodFade key={m} opacity={opac[i]}><Eyes mood={m} sw={sw} /></MoodFade>
+          )))}
           <Tuft sw={sw} />
-          <AG animatedProps={zzProps}>{mood === "sleepy" ? <Zs /> : null}</AG>
         </G>
         {variant === "full" && (animate?.sparkles || (allIn && mood === "starry")) ? <Sparkles sw={sw} /> : null}
       </Svg>
+      {/* layer 3: the eyes that blink, scaled as a view about the eye line */}
+      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { transformOrigin: [eyeOx, eyeOy, 0] }, blinkStyle]}>
+        {layer(MOODS.map((m, i) => (BLINKING.includes(m) ? <MoodFade key={m} opacity={opac[i]}><Eyes mood={m} sw={sw} /></MoodFade> : null)))}
+      </Animated.View>
+      {/* layer 4: the floating z's (sleepy) */}
+      {mood === "sleepy" ? (
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, zzStyle]}>
+          {layer(<Zs />)}
+        </Animated.View>
+      ) : null}
     </Animated.View>
   );
 }
 
-function MoodEyes({ mood, opacity, blinkProps, sw }: { mood: ZebraMood; opacity: SharedValue<number>; blinkProps?: ReturnType<typeof useAnimatedProps>; sw: number }) {
+/** One mood's group, faded in or out over 250 ms (opacity is a native SVG prop). */
+function MoodFade({ opacity, children }: { opacity: SharedValue<number>; children: ReactNode }) {
   const fade = useAnimatedProps(() => ({ opacity: opacity.value }));
-  const inner = <Eyes mood={mood} sw={sw} />;
-  return (
-    <AG animatedProps={fade}>
-      {blinkProps ? <AG animatedProps={blinkProps} originX={120} originY={EYE_CY}>{inner}</AG> : inner}
-      {mood === "worried" ? <SweatDrop sw={sw} /> : null}
-    </AG>
-  );
+  return <AG animatedProps={fade}>{children}</AG>;
 }
 
-/** One body stripe: grows down from its top edge (460 ms spring-pop) when it becomes done. */
+/**
+ * One body stripe: ghost underneath, ink on top growing down from its top edge (460 ms
+ * spring-pop) when it becomes done. The ink Rect's `height` is what animates: a real
+ * native prop, 0 on the first frame when the member isn't done.
+ */
 function BodyStripe({ cx, width, done, index, reduced }: { cx: number; width: number; done: boolean; index: number; reduced: boolean }) {
   const grow = useSharedValue(done ? 1 : 0);
   const first = useRef(true);
@@ -175,12 +216,12 @@ function BodyStripe({ cx, width, done, index, reduced }: { cx: number; width: nu
   }, [done, index, reduced, grow]);
   const x = cx - width / 2;
   const top = ZEBRA_STRIPE.top;
-  const fillProps = useAnimatedProps(() => ({ scaleY: Math.max(0, grow.value) }));
-  // The 10° rotation is static on the wrapping G; only scaleY (from the top edge) animates.
+  const fillProps = useAnimatedProps(() => ({ height: Math.max(0, Math.min(1, grow.value)) * ZEBRA_STRIPE.height }));
+  // The 10° rotation is static on the wrapping G; only the ink height animates.
   return (
     <G transform={`rotate(${ZEBRA_STRIPE.angleDeg} ${cx} ${ZEBRA_STRIPE.pivotY})`}>
       <Rect x={x} y={top} width={width} height={ZEBRA_STRIPE.height} rx={width / 2} fill={z.ghostStripe} />
-      <ARect x={x} y={top} width={width} height={ZEBRA_STRIPE.height} rx={width / 2} originX={cx} originY={top} animatedProps={fillProps} fill={z.ink} />
+      <ARect x={x} y={top} width={width} height={done ? ZEBRA_STRIPE.height : 0} rx={width / 2} animatedProps={fillProps} fill={z.ink} />
     </G>
   );
 }

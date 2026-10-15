@@ -125,8 +125,8 @@ export function WhoSleptWhere({ context, startDate, nights, totalCents, currency
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + layout.bottomCtaPadding }]}>
         <InsetPanel tone={unclaimed === 0 ? "cream" : "blush"} style={[styles.check, unclaimed === 0 ? styles.checkWhite : null]}>
-          <ZText variant="captionStrong" color={unclaimed === 0 ? color.text : color.youOweText}>{stripes} {stripes === 1 ? "stripe" : "stripes"} over {nights} {nights === 1 ? "night" : "nights"}</ZText>
-          <ZText variant="amountRow" tabular color={unclaimed === 0 ? color.text : color.youOweText}>{unclaimed === 0 ? `${formatCents(assigned, currency)} adds up` : `${formatCents(unclaimed, currency)} unclaimed`}</ZText>
+          <ZText variant="captionStrong" color={unclaimed === 0 ? color.text : color.youOweText} accessibilityLabel={`${stripes} ${stripes === 1 ? "stripe" : "stripes"} over ${nights} ${nights === 1 ? "night" : "nights"}; one stripe is one night`}>1 stripe = 1 night</ZText>
+          <ZText variant="amountRow" tabular color={unclaimed === 0 ? color.text : color.youOweText}>{unclaimed === 0 ? formatCents(assigned, currency) : `${formatCents(unclaimed, currency)} unclaimed`}</ZText>
         </InsetPanel>
         <Button label="Save the stripes" onPress={() => onSave(draft)} disabled={unclaimed !== 0} accessibilityLabel={unclaimed !== 0 ? "Save the stripes, unavailable until every night has someone in it" : "Save the stripes"} />
       </View>

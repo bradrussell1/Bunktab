@@ -1,4 +1,4 @@
-import { formatCents, formatDateRange, zebraMoodFor, type ZebraMood } from "@bunktab/core";
+import { countDone, formatCents, formatDateRange, zebraMoodFor, type ZebraMood } from "@bunktab/core";
 import { color, layout, radius, size, space } from "@bunktab/theme";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -8,6 +8,7 @@ import { AmountPill, Button, Card, CountUp, Icon, IconButton, Input, InsetPanel,
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/media";
 import { supabase } from "@/lib/supabase";
+import { fetchUnseenNotifications, markNotificationsSeen } from "@/lib/notifications";
 import { sortMembers } from "@/lib/trips";
 
 /**
@@ -58,6 +59,17 @@ export default function HomeScreen() {
     setLoading(false);
   }, [me]);
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  // the in-app surface for nudges and invites: the newest unseen one shows as a toast on open
+  useEffect(() => {
+    let live = true;
+    fetchUnseenNotifications().then((rows) => {
+      if (!live || rows.length === 0) return;
+      const top = rows[0]!;
+      show({ message: top.body, duration: 5000, bust: <Zebra variant="bust" mood="happy" size={28} decorative />, action: top.trip_id ? { label: "Open", onPress: () => router.push(`/(app)/trip/${top.trip_id}`) } : undefined });
+      markNotificationsSeen(top.id);
+    }).catch(() => undefined);
+    return () => { live = false; };
+  }, [show, router]);
 
   const open = useMemo(() => trips.filter((t) => t.status === "open"), [trips]);
   // one figure per currency: the hero shows the currency with the most open dazzles (ties → USD), the rest as captions
@@ -95,7 +107,7 @@ export default function HomeScreen() {
           </ZText>
           {position.main && position.main.currency !== "USD"
             ? <Money variant="display" cents={Math.abs(overall)} currency={`${position.main.currency} `} />
-            : <CountUp cents={Math.abs(overall)} underline={overall !== 0} underlineColor={overall > 0 ? color.owedToYou : color.youOwe} />}
+            : <CountUp cents={Math.abs(overall)} fit underline={overall !== 0} underlineColor={overall > 0 ? color.owedToYou : color.youOwe} />}
           {overall !== 0 ? <LabelPill tone={overall > 0 ? "volt" : "blush"} label={overall > 0 ? "owed to you" : "you owe"} /> : null}
           {position.others.map((o) => (
             <ZText key={o.currency} variant="caption" color={color.textMuted}>
@@ -104,7 +116,7 @@ export default function HomeScreen() {
           ))}
         </View>
         <View style={styles.heroZebra}>
-          <Zebra variant="bust" mood={heroMood} size={112} animate={{ bob: true }} accessibilityLabel={`Zebra, ${heroMood}`} />
+          <Zebra variant="bust" mood={heroMood} size={108} animate={{ bob: true }} accessibilityLabel={`Zebra, ${heroMood}`} />
         </View>
       </HeroCard>
       <View style={styles.titleRow}>
@@ -188,7 +200,7 @@ function DazzleCard({ trip, me, onPress }: { trip: TripRow; me: string; onPress:
   const cover = useSignedUrl("covers", trip.cover_photo_url); // object path in the private bucket
   const settled = trip.status === "settled";
   const youOwe = !settled && trip.net_cents < 0;
-  const done = trip.members.filter((m) => m.done_at).length;
+  const { done } = countDone(trip.members);
   const notDone = trip.members.length - done;
   const cardMood = zebraMoodFor({ place: "home-card", youOwe });
   const caption = `${shortRange(trip.start_date, trip.end_date)} · ${trip.members.length} in the dazzle`;
@@ -232,9 +244,11 @@ const styles = StyleSheet.create({
   search: { paddingHorizontal: layout.screenGutter, paddingBottom: space[12] },
   list: { paddingHorizontal: layout.screenGutter, flexGrow: 1 },
   header: { gap: space[16], paddingTop: space[4], paddingBottom: space[12] },
-  hero: { minHeight: 172, justifyContent: "center" },
-  heroText: { gap: space[8], alignItems: "flex-start", paddingRight: 112 },
-  heroZebra: { position: "absolute", right: -2, bottom: -12 },
+  hero: { minHeight: 176, justifyContent: "center" },
+  heroText: { gap: space[8], alignItems: "flex-start", paddingRight: 118 },
+  // the bust sits in the bottom-right corner with its whole head (ears included) inside the
+  // card; the amount column stops 118 px short of the edge so the two never overlap
+  heroZebra: { position: "absolute", right: 2, bottom: -2 },
   labelPill: { borderRadius: radius.pill, paddingVertical: 5, paddingHorizontal: 11 },
   titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: layout.textGutter - layout.screenGutter, gap: space[12] },
   segment: { width: 150 },

@@ -1,12 +1,12 @@
-import { closeoutUnlocked, formatCents, venmoChargeLink, venmoPayLink, zebraLabel, zebraMoodFor } from "@bunktab/core";
+import { closeoutUnlocked, countDone, formatCents, venmoChargeLink, venmoPayLink, zebraLabel, zebraMoodFor } from "@bunktab/core";
 import { color, layout, palette, radius, shadow, size, space } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Linking, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ActionSheet, Banner, Button, Card, Confetti, Dance, HeroCard, Icon, InsetPanel, PersonPill, Press, Rise, ScreenBackground, StatusPill, TextLink, Toggle, TopBar, VenmoZipButton, Zebra, ZText, haptic, ScreenSkeleton } from "@/ui";
+import { ActionSheet, Banner, Button, Card, Confetti, Dance, HeroCard, Icon, InsetPanel, PersonPill, Press, Rise, ScreenBackground, StatusPill, TextLink, Toggle, TopBar, VenmoZipButton, Zebra, ZText, haptic, ScreenSkeleton, useToast } from "@/ui";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
+import { isNetworkError, supabase } from "@/lib/supabase";
 import { activeMembers, memberName, useTrip } from "@/lib/trips";
 
 /**
@@ -15,8 +15,12 @@ import { activeMembers, memberName, useTrip } from "@/lib/trips";
  *
  * Not everyone done: "Earn your stripes", the zebra stage (one stripe per member
  * who's Done, mood by the progress rule), a person pill per member (yours toggles
- * set_done), a locked "Close out at N stripes · K to go" button and, for the owner,
- * "Skip ahead: everyone's done" (owner_closeout, confirmed in an action sheet).
+ * set_done), a locked "Close out at N stripes · K to go" button and, for the creator,
+ * a "Close out remaining zebras" toggle (force_close_out: every remaining member is
+ * marked Done and told; confirmed in an action sheet). `?nudge=1` (the creator's Nudge
+ * button on the dazzle page) adds a small Nudge CTA beside each person still adding:
+ * send_nudge writes one notification + push per person per day, never a text.
+ * Feedback round 1, items 13 and 14.
  *
  * Everyone done: "Stripes are even. Time to settle." The zebra dances and confetti
  * fires the moment the last stripe lands; the payment plan (written by the database
@@ -30,14 +34,16 @@ function friendly(m: string): string {
   const s = m.toLowerCase();
   if (s.includes("still locked")) return "Close out is locked until everyone has tapped Done.";
   if (s.includes("not a member")) return "You're not on this dazzle any more.";
-  if (s.includes("network")) return "Connection hiccup. Pull to try again.";
+  if (isNetworkError(m) || s.includes("network")) return "Connection lost. Check your signal and try again.";
+  if (s.includes("42501") || s.includes("only the")) return "Only the dazzle creator can do that.";
   return m;
 }
 
 export default function CloseoutScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, nudge: nudgeParam } = useLocalSearchParams<{ id: string; nudge?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { show } = useToast();
   const { session } = useAuth();
   const me = session!.user.id;
   const { data, loading, reload } = useTrip(id);
@@ -46,6 +52,9 @@ export default function CloseoutScreen() {
   const [settling, setSettling] = useState(false);
   const [busyDone, setBusyDone] = useState(false);
   const [confirmSkip, setConfirmSkip] = useState(false);
+  const [closingOut, setClosingOut] = useState(false);
+  const [nudging, setNudging] = useState<string | null>(null);
+  const [nudged, setNudged] = useState<Record<string, boolean>>({}); // user_id → sent this session
   const [play, setPlay] = useState({ dance: 0, confetti: 0 });
   const wasUnlocked = useRef<boolean | null>(null);
 
@@ -69,13 +78,14 @@ export default function CloseoutScreen() {
   }
   const { trip, settlements } = data;
   const members = activeMembers(data);
-  const doneCount = members.filter((m) => m.done_at).length;
+  const doneCount = countDone(members).done;
   const toGo = members.length - doneCount;
   const closed = trip.status !== "open";
   const cur = trip.base_currency;
   const isOwner = members.find((m) => m.user_id === me)?.role === "owner";
   const myDone = !!members.find((m) => m.user_id === me)?.done_at;
   const mood = zebraMoodFor({ place: "stripes", members: members.length, done: doneCount }) ?? "hi";
+  const nudgeMode = nudgeParam === "1" && isOwner && !closed;
 
   const mine = settlements.filter((s) => s.from_user === me);
   const owed = settlements.filter((s) => s.to_user === me);
@@ -97,10 +107,22 @@ export default function CloseoutScreen() {
     if (e) setError(friendly(e.message));
     await reload(); setBusyDone(false);
   }
-  async function skipAhead() {
-    const { error: e } = await supabase.rpc("owner_closeout", { p_trip: trip.id });
+  // the creator closes out for everyone: every remaining member is marked Done and told
+  async function closeOutRemaining() {
+    setClosingOut(true);
+    const { error: e } = await supabase.rpc("force_close_out", { p_trip: trip.id });
     if (e) setError(friendly(e.message));
-    reload();
+    await reload();
+    setClosingOut(false);
+  }
+  // one nudge per person per day: the database dedupes (notification_log) and says so
+  async function nudgeMember(uid: string, name: string) {
+    setNudging(uid);
+    const { data: sent, error: e } = await supabase.rpc("send_nudge", { p_trip: trip.id, p_user: uid });
+    setNudging(null);
+    if (e) { show({ message: friendly(e.message) }); return; }
+    setNudged((n) => ({ ...n, [uid]: true }));
+    show({ message: sent ? `Nudged ${name}. They'll get a push and see it next time they open the app.` : `${name} was already nudged today. One a day keeps it friendly.`, duration: 3500, bust: <Zebra variant="bust" mood="wink" size={28} decorative /> });
   }
   async function toggleSettledUp(v: boolean) {
     setSettling(true);
@@ -154,6 +176,9 @@ export default function CloseoutScreen() {
                   stripeIndex={done ? members.slice(0, i + 1).filter((x) => x.done_at).length : undefined}
                   bust={done ? <Zebra variant="bust" mood="happy" size={44} decorative /> : undefined}
                   onPress={isMe && !closed && !busyDone ? () => toggleDone(!myDone) : undefined}
+                  action={nudgeMode && !done && !isMe ? (
+                    <Button kind="nudge" label={nudged[m.user_id] ? "Nudged" : "Nudge"} loading={nudging === m.user_id} disabled={!!nudged[m.user_id] || !!nudging} onPress={() => nudgeMember(m.user_id, (m.display_name ?? "them").split(/\s+/)[0]!)} accessibilityLabel={`Nudge ${m.display_name ?? "this member"} to add their receipts`} />
+                  ) : undefined}
                 />
               );
             })}
@@ -251,7 +276,16 @@ export default function CloseoutScreen() {
       {/* footer */}
       {!gateOpen ? (
         <View style={[styles.footer, { paddingBottom: insets.bottom + layout.bottomCtaPadding }]}>
-          {isOwner && !closed ? <TextLink label="Skip ahead: everyone's done" muted onPress={() => setConfirmSkip(true)} style={styles.skip} /> : null}
+          {isOwner && !closed ? (
+            // creator only: force every remaining member Done (confirmed below)
+            <View style={styles.forceRow}>
+              <View style={styles.flex}>
+                <ZText variant="bodyStrong">Close out remaining zebras</ZText>
+                <ZText variant="small" color={color.textMuted}>Marks the {toGo} still adding as Done and tells them.</ZText>
+              </View>
+              <Toggle value={false} onChange={() => setConfirmSkip(true)} disabled={closingOut} label="Close out remaining zebras" />
+            </View>
+          ) : null}
           <Button kind="locked" label={`Close out at ${members.length} stripes · ${toGo} to go`} accessibilityLabel={`Close out, locked, ${toGo} still adding expenses`} />
         </View>
       ) : canRequest ? (
@@ -263,8 +297,8 @@ export default function CloseoutScreen() {
       <ActionSheet
         open={confirmSkip}
         onClose={() => setConfirmSkip(false)}
-        title="Close out anyway? Not everyone has tapped Done. Everyone will be notified, the override is logged, and expenses already logged still count."
-        actions={[{ label: "Close out", destructive: true, onPress: skipAhead }]}
+        title={`Close out the remaining ${toGo === 1 ? "zebra" : "zebras"}? Everyone still adding is marked Done and notified, the override is logged, and expenses already logged still count.`}
+        actions={[{ label: "Close out for everyone", destructive: true, onPress: closeOutRemaining }]}
       />
     </View>
   );
@@ -289,5 +323,5 @@ const styles = StyleSheet.create({
   settledCard: { gap: space[8] },
   settledRow: { flexDirection: "row", alignItems: "center", gap: space[12] },
   footer: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: layout.screenGutter, paddingTop: space[10], gap: space[4], backgroundColor: color.surfaceTranslucentStrong, borderTopLeftRadius: radius.hero, borderTopRightRadius: radius.hero, ...shadow.sheet },
-  skip: { alignSelf: "center" },
+  forceRow: { flexDirection: "row", alignItems: "center", gap: space[12], paddingHorizontal: space[4], paddingBottom: space[6], minHeight: layout.minTapTarget },
 });
