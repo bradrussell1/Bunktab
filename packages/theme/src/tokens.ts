@@ -198,6 +198,7 @@ export const motion = {
   boop: { duration: 900, bezier: [0.3, 1.4, 0.5, 1], bubbleDelay: 350, bubbleDuration: 450 },
   pop: { duration: 450, scale: 1.4 },
   venmoZip: { stripePx: 14, angleDeg: 115, loopMs: 500, travelPx: 56, landDelay: 1300 },
+  skeleton: { period: 1400 },                                     // loading bars shimmer ghost ↔ cream
   twinkle: { period: 2600, minOpacity: 0.45 },
   zz: { period: 2400, travelY: -6 },
   liveDot: { period: 1400, minOpacity: 0.35 },

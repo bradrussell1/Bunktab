@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  ActionSheet, AmountPill, Avatar, AvatarRow, Banner, Boop, BottomSheet, Button, Card, Chip, Confetti, ContextPill, CountUp, Dance, HeroCard, Icon, IconButton, InsetPanel, Input, LiveDot, Money, MoonPop, NightCell, PersonPill, Receipt, Rise, RowCard, ScreenBackground, SegmentedControl, SpeechBubble, StatusPill, StripeGrow, StripeMeter, TextArea, Toggle, TopBar, Twinkle, VenmoZipButton, Zebra, ZText, ZzFloat, useToast, type IconName,
+  ActionSheet, AmountPill, Avatar, AvatarRow, Banner, Boop, BottomSheet, Button, Card, Chip, Confetti, ContextPill, CountUp, Dance, HeroCard, Icon, IconButton, InsetPanel, Input, LiveDot, Money, MoonPop, NightCell, PersonPill, Receipt, Rise, RowCard, ScreenBackground, SegmentedControl, SpeechBubble, StatusPill, StripeGrow, StripeMeter, TextArea, Toggle, TopBar, Twinkle, VenmoZipButton, Zebra, ZText, ZzFloat, useToast, ErrorPanel, HeroSkeleton, RowSkeleton, type IconName,
 } from "@/ui";
 
 const MOODS = ["hi", "happy", "wink", "sleepy", "starry", "love", "worried"] as const;
@@ -151,6 +151,16 @@ function Sheet() {
           <Row><LiveDot /><ZText variant="caption" color={color.textMuted}>live</ZText></Row>
         </Section>
 
+        <Section title="System UI">
+          <Row>
+            <Button label="Volt toast" kind="secondary" height={40} onPress={() => show({ message: "Synced", tone: "volt", duration: 2000 })} />
+            <Button label="Toast + action" kind="secondary" height={40} onPress={() => show({ message: "Expense deleted", action: { label: "Undo", onPress: () => {} } })} />
+          </Row>
+          <ErrorPanel message="Couldn't load the dazzle. Check your connection." onRetry={() => {}} />
+          <HeroSkeleton />
+          <RowSkeleton />
+          <RowSkeleton />
+        </Section>
         <Section title="Receipt">
           <Row><Button label="Print again" kind="secondary" height={40} onPress={() => replay("receipt")} /></Row>
           <Receipt key={play.receipt} merchant="Taqueria El Fogón" lines={[{ label: "Tacos al pastor ×6", cents: 7200 }, { label: "Micheladas ×4", cents: 4800 }, { label: "Tip", cents: 4400 }]} totalCents={16400} />

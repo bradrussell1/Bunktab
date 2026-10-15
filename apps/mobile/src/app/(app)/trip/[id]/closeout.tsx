@@ -2,9 +2,9 @@ import { closeoutUnlocked, formatCents, venmoChargeLink, venmoPayLink, zebraLabe
 import { color, layout, palette, radius, shadow, size, space } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Linking, ScrollView, StyleSheet, View } from "react-native";
+import { Linking, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ActionSheet, Banner, Button, Card, Confetti, Dance, HeroCard, Icon, InsetPanel, PersonPill, Press, Rise, ScreenBackground, StatusPill, TextLink, Toggle, TopBar, VenmoZipButton, Zebra, ZText, haptic } from "@/ui";
+import { ActionSheet, Banner, Button, Card, Confetti, Dance, HeroCard, Icon, InsetPanel, PersonPill, Press, Rise, ScreenBackground, StatusPill, TextLink, Toggle, TopBar, VenmoZipButton, Zebra, ZText, haptic, ScreenSkeleton } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { activeMembers, memberName, useTrip } from "@/lib/trips";
@@ -65,7 +65,7 @@ export default function CloseoutScreen() {
   }, [data, gateOpen]);
 
   if (loading || !data) {
-    return <View style={styles.screen}><ScreenBackground /><View style={styles.center}><ActivityIndicator /></View></View>;
+    return <View style={styles.screen}><ScreenBackground /><TopBar onBack={() => router.back()} /><ScreenSkeleton rows={3} /></View>;
   }
   const { trip, settlements } = data;
   const members = activeMembers(data);
@@ -272,7 +272,6 @@ export default function CloseoutScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bgMid },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
   flex: { flex: 1 },
   content: { gap: space[12] },
   gutter: { marginHorizontal: layout.screenGutter },

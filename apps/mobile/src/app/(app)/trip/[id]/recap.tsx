@@ -3,10 +3,10 @@ import { color, layout, palette, radius, shadow, space } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, Share, StyleSheet, View } from "react-native";
+import { Image, ScrollView, Share, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ViewShot from "react-native-view-shot";
-import { Button, InsetPanel, Money, ScreenBackground, StatusPill, TopBar, Wordmark, Zebra, ZText, useToast } from "@/ui";
+import { Button, InsetPanel, Money, ScreenBackground, StatusPill, TopBar, Wordmark, Zebra, ZText, useToast, ScreenSkeleton } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { useSignedUrl } from "@/lib/media";
 import { biggestExpense, frontedMost, topCategory } from "@/lib/tripExtras";
@@ -36,7 +36,7 @@ export default function RecapScreen() {
   const openTrip = !!data && data.trip.status === "open";
   useEffect(() => { if (openTrip && data) router.replace(`/(app)/trip/${data.trip.id}`); }, [openTrip, data, router]);
   if (loading || !data || openTrip) {
-    return <View style={styles.screen}><ScreenBackground /><View style={styles.center}><ActivityIndicator /></View></View>;
+    return <View style={styles.screen}><ScreenBackground /><TopBar onBack={() => router.back()} /><ScreenSkeleton rows={3} /></View>;
   }
   const { trip } = data;
   const cur = trip.base_currency;
@@ -110,7 +110,6 @@ function Stat({ label, value, amount }: { label: string; value: string; amount?:
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: palette.bgMid },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
   flex: { flex: 1 },
   content: { paddingHorizontal: layout.screenGutter, paddingTop: space[4] },
   card: { backgroundColor: palette.white, borderRadius: radius.hero, padding: layout.heroPadding, gap: space[14], ...shadow.hero },

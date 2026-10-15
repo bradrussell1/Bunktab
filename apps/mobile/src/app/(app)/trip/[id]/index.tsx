@@ -2,9 +2,9 @@ import { CATEGORIES, categoryLabel, closeoutUnlocked, formatCents, formatDateRan
 import { color, layout, palette, radius, shadow, size, space } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, View } from "react-native";
+import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ActionSheet, AmountPill, Avatar, AvatarRow, Button, Card, CountUp, Icon, IconButton, InsetPanel, HeroCard, LiveDot, Money, Press, Rise, RowCard, ScreenBackground, SegmentedControl, Toggle, TopBar, Zebra, ZText, useToast, type SheetAction } from "@/ui";
+import { ActionSheet, AmountPill, Avatar, AvatarRow, Button, Card, CountUp, Icon, IconButton, InsetPanel, HeroCard, LiveDot, Money, Press, Rise, RowCard, ScreenBackground, SegmentedControl, Toggle, TopBar, Zebra, ZText, useToast, type SheetAction, ErrorPanel, ScreenSkeleton } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { uploadPrivateImage, useSignedUrl } from "@/lib/media";
 import { pickImage } from "@/lib/storage";
@@ -73,7 +73,7 @@ export default function TripScreen() {
       <View style={styles.screen}>
         <ScreenBackground />
         <TopBar onBack={() => router.back()} />
-        <View style={styles.center}>{error ? <ZText color={color.error}>{error}</ZText> : <ActivityIndicator color={color.text} />}</View>
+        {error ? <ErrorPanel message={error} onRetry={reload} style={styles.errorPanel} /> : <ScreenSkeleton rows={4} label="Loading the dazzle" />}
       </View>
     );
   }
@@ -396,6 +396,7 @@ function FunFacts({ data, me }: { data: TripData; me: string }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
+  errorPanel: { marginHorizontal: layout.screenGutter },
   flex: { flex: 1 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
   content: { paddingHorizontal: layout.screenGutter, gap: space[16] },

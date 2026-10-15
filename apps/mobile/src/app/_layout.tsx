@@ -7,7 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
-import { ToastProvider } from "@/ui";
+import { OfflineBanner, ToastProvider } from "@/ui";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -81,6 +81,7 @@ export default function RootLayout() {
       <ToastProvider>
         <StatusBar style="dark" />
         <Routes />
+        <OfflineBanner />
       </ToastProvider>
     </AuthProvider>
   );

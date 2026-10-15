@@ -11,7 +11,7 @@ const rise = Easing.bezier(...(motion.rise.bezier as [number, number, number, nu
 
 /* ───────────── Toast ───────────── */
 
-type ToastSpec = { message: string; action?: { label: string; onPress: () => void }; bust?: ReactNode; duration?: number };
+type ToastSpec = { message: string; action?: { label: string; onPress: () => void }; bust?: ReactNode; duration?: number; /** volt = a good-news confirmation ("Synced", "Paid, nice") */ tone?: "ink" | "volt" };
 const ToastCtx = createContext<{ show: (t: ToastSpec) => void }>({ show: () => {} });
 
 /** `const { show } = useToast(); show({ message: "Invites sent", bust: <Zebra variant="bust" mood="wink" size={28} /> })` */
@@ -49,12 +49,12 @@ export function ToastView({ toast, bottomOffset, onDismiss }: { toast: ToastSpec
   const style = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }], opacity: o.value }));
   return (
     <Animated.View pointerEvents="box-none" accessibilityLiveRegion="polite" style={[styles.toastHost, { bottom: (bottomOffset ?? layout.bottomCtaPadding + 58 + 12) + insets.bottom }, style]}>
-      <View style={styles.toast}>
+      <View style={[styles.toast, toast.tone === "volt" ? styles.toastVolt : null]}>
         {toast.bust ? <View style={styles.toastBust}>{toast.bust}</View> : null}
-        <ZText variant="bodyStrong" color={color.textOnInk} style={styles.toastText}>{toast.message}</ZText>
+        <ZText variant="bodyStrong" color={toast.tone === "volt" ? color.textOnVolt : color.textOnInk} style={styles.toastText}>{toast.message}</ZText>
         {toast.action ? (
           <Press onPress={() => { toast.action?.onPress(); onDismiss?.(); }} scaleTo={0.97} accessibilityRole="button" accessibilityLabel={toast.action.label} hitSlop={8}>
-            <ZText variant="buttonS" color={color.accentOnInk}>{toast.action.label}</ZText>
+            <ZText variant="buttonS" color={toast.tone === "volt" ? color.textOnVolt : color.accentOnInk}>{toast.action.label}</ZText>
           </Press>
         ) : null}
       </View>
@@ -143,6 +143,7 @@ export function Banner({ children, dot = "muted", style }: { children: ReactNode
 const styles = StyleSheet.create({
   toastHost: { position: "absolute", left: layout.screenGutter, right: layout.screenGutter, alignItems: "center" },
   toast: { flexDirection: "row", alignItems: "center", gap: space[10], backgroundColor: palette.ink, borderRadius: radius.pill, paddingVertical: 12, paddingHorizontal: 18, maxWidth: "100%", ...shadow.hero },
+  toastVolt: { backgroundColor: palette.volt, ...shadow.voltGlow },
   toastBust: { width: 28, height: 26, alignItems: "center", justifyContent: "center" },
   toastText: { flexShrink: 1 },
   backdrop: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(29,26,23,0.28)" },
