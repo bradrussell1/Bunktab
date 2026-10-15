@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   sectionBody: { gap: space[10] },
   row: { flexDirection: "row", alignItems: "center", gap: space[10], flexWrap: "wrap" },
   heroZebra: { position: "absolute", right: -2, bottom: -12 },
-  stage: { alignItems: "center", justifyContent: "center", paddingVertical: space[20], backgroundColor: palette.white, borderRadius: 30, overflow: "visible" },
+  stage: { alignItems: "center", justifyContent: "center", paddingVertical: space[20], backgroundColor: palette.white, borderRadius: radius.hero, overflow: "visible" },
   bigStripe: { width: 16, height: 60, borderRadius: radius.stripe, backgroundColor: palette.ink, transform: [{ rotate: "10deg" }] },
   boopStage: { alignItems: "center", paddingTop: 120, paddingBottom: 10 },
 });
