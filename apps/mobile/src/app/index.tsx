@@ -7,6 +7,6 @@ export default function Index() {
   if (!session) return <Redirect href="/(auth)/landing" />;
   if (!session.user.phone) return <Redirect href="/(auth)/add-phone" />;
   if (pendingPasswordReset) return <Redirect href="/(auth)/reset-password" />;
-  if (!profile?.display_name) return <Redirect href="/(auth)/profile" />;
+  if (!profile?.display_name || !profile?.last_name) return <Redirect href="/(auth)/profile" />;
   return <Redirect href="/(app)/home" />;
 }

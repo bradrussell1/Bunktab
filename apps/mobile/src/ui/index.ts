@@ -14,6 +14,8 @@ export { ToastProvider, ToastView, useToast, BottomSheet, ActionSheet, SpeechBub
 export { TopBar, Wordmark } from "./TopBar";
 export { Skeleton, RowSkeleton, HeroSkeleton, ScreenSkeleton } from "./Skeleton";
 export { ErrorPanel, OfflineBanner } from "./Feedback";
+export { useKeyboard, useKeyboardVisible, KeyboardDoneBar, KEYBOARD_BAR_HEIGHT } from "./keyboard";
+export { MemberPill } from "./Pills";
 export { Receipt } from "./Receipt";
 export { Zebra, useDanceTrigger } from "./zebra/Zebra";
 export * from "./motion";

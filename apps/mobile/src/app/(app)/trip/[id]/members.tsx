@@ -1,7 +1,6 @@
-import { formatCents, venmoProfileUrl } from "@bunktab/core";
+import { formatCents } from "@bunktab/core";
 import { color, layout, palette, space } from "@bunktab/theme";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { openBrowserAsync } from "expo-web-browser";
 import { useState, type ReactNode } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,6 +8,7 @@ import { ActionSheet, AmountPill, Avatar, Card, Press, ScreenBackground, ScreenS
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { hasNoExpenses } from "@/lib/tripExtras";
+import { openVenmoProfile } from "@/lib/venmo";
 import { nets, paidBy, shareOf, useTrip } from "@/lib/trips";
 
 /**
@@ -64,7 +64,7 @@ export default function MemberScreen() {
 
         <Card style={styles.list}>
           <Row label="Phone" value={m.phone ? `+${m.phone}` : "Not shared"} />
-          <Row label="Venmo" value={m.venmo_username ? `@${m.venmo_username}` : "Not added yet"} rule right={m.venmo_username ? <TextLink label="Open" onPress={() => openBrowserAsync(venmoProfileUrl(m.venmo_username!))} /> : null} />
+          <Row label="Venmo" value={m.venmo_username ? `@${m.venmo_username}` : "Not added yet"} rule right={m.venmo_username ? <TextLink label="Open" onPress={() => openVenmoProfile(m.venmo_username!)} /> : null} />
         </Card>
 
         <Card style={styles.list}>

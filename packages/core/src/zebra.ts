@@ -29,6 +29,23 @@ export const ZEBRA_STRIPE = {
 export type Stripe = { cx: number; width: number; done: boolean };
 
 /**
+ * Done ⇄ stripes mapping (feedback round 1, item 9). A stripe is ink only for an active
+ * member whose done_at is set; removed members don't count and nobody-done means zero
+ * ink stripes. The dazzle page, Earn your stripes and the Home cards all count this way.
+ */
+export function countDone<T extends { done_at: string | null; removed_at?: string | null }>(members: T[]): { members: number; done: number } {
+  const active = members.filter((m) => !m.removed_at);
+  return { members: active.length, done: active.filter((m) => !!m.done_at).length };
+}
+
+/** A member pill's state on the dazzle page: quiet (nothing added), adding (≥ 1 expense), done. */
+export type MemberState = "quiet" | "adding" | "done";
+export function memberState(m: { done_at: string | null }, hasAdded: boolean): MemberState {
+  if (m.done_at) return "done";
+  return hasAdded ? "adding" : "quiet";
+}
+
+/**
  * One stripe per member (2–12); 6 members use the fixed centres; above 12 members
  * draw 12 and fill them proportionally (round down; all 12 only when everyone is done).
  * `done` stripes fill left to right.

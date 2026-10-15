@@ -21,6 +21,8 @@ export type Profile = {
   phone: string | null;
   email: string | null;
   display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   photo_url: string | null;
   venmo_username: string | null;
 };
@@ -49,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = useCallback(async (userId: string) => {
     try {
-      const { data } = await supabase.from("users").select("id, phone, email, display_name, photo_url, venmo_username").eq("id", userId).maybeSingle();
+      const { data } = await supabase.from("users").select("id, phone, email, display_name, first_name, last_name, photo_url, venmo_username").eq("id", userId).maybeSingle();
       if (data) setProfile(data as Profile);
     } catch { /* keep whatever we had; the next focus reloads */ }
   }, []);
@@ -101,7 +103,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshProfile: async () => { if (session) await loadProfile(session.user.id); },
     signOut: async () => {
       if (session) await unregisterPush(session.user.id).catch(() => undefined);
-      await supabase.auth.signOut().catch(() => undefined);
+      // a global sign-out revokes the refresh token on the server; if that call fails (no signal,
+      // a token the server no longer knows) the local session is still cleared, so the device is
+      // never left "signed out" in name only (feedback round 1, item 2)
+      const { error } = await supabase.auth.signOut().catch((e: unknown) => ({ error: e }));
+      if (error) await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
+      setSession(null);
+      setProfile(null);
+      setPendingPasswordReset(false);
     },
   }), [session, profile, loading, pendingPasswordReset, notice, loadProfile]);
 

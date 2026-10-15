@@ -166,7 +166,7 @@ export default function NewTripScreen() {
           </>
         }
       >
-        <Input label="Title" placeholder="Cabo crew: Casa Azul" value={title} onChangeText={setTitle} maxLength={80} returnKeyType="next" />
+        <Input label="Title" placeholder="Cabo crew: Casa Azul" value={title} onChangeText={setTitle} maxLength={80} returnKeyType="done" />
         <TextArea label="Description (optional)" placeholder="Who, where, what to remember" value={description} onChangeText={(v) => setDescription(v.slice(0, 250))} counter={{ value: description.length, max: 250 }} />
         <View style={styles.dates}>
           <View style={styles.flex}><DateField label="Start date" value={start} onChange={(d) => { setStart(d); if (end && end < d) setEnd(""); }} devOpen={__DEV__ && params.openDate === "start"} devJump={__DEV__ && params.jump === "1"} /></View>
@@ -228,7 +228,13 @@ export default function NewTripScreen() {
       />
       {contacts === null ? (
         <Button kind="secondary" height={40} label="Add from your contacts" icon="person" onPress={loadContacts} style={styles.contactsButton} />
-      ) : null}
+      ) : (
+        // the contacts list has a way back out: hide it and the picks stay (feedback round 1, item 6)
+        <View style={styles.contactsHead}>
+          <ZText variant="captionStrong" color={color.textMuted} style={styles.flex}>{peopleLoading ? "Reading your contacts…" : `${contacts.length} contacts · only numbers you pick are sent`}</ZText>
+          <TextLink label="Hide contacts" muted onPress={() => { setContacts(null); setPeopleError(null); }} />
+        </View>
+      )}
       {peopleError ? <ZText variant="small" color={color.error} style={styles.note}>{peopleError}</ZText> : null}
       <View style={styles.rows}>
         {typedRow ? (
@@ -282,6 +288,7 @@ const styles = StyleSheet.create({
   helper: { marginTop: 6, marginLeft: 4 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: space[8] },
   contactsButton: { alignSelf: "flex-start" },
+  contactsHead: { flexDirection: "row", alignItems: "center", gap: space[8], paddingHorizontal: space[4] },
   rows: { gap: space[8] },
   note: { paddingHorizontal: space[4], paddingVertical: space[8] },
   spinner: { paddingVertical: space[16] },

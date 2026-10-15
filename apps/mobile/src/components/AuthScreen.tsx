@@ -2,15 +2,17 @@ import { color, layout, space, radius } from "@bunktab/theme";
 import type { ReactNode } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ScreenBackground, TopBar, Zebra, ZText } from "@/ui";
+import { ScreenBackground, TopBar, Zebra, ZText, useKeyboardVisible } from "@/ui";
 
 /**
  * The auth funnel's frame (RESKIN_PROMPT B1): the gradient background, an optional
  * back TopBar, an optional zebra block above the title, title1 + lead, the form,
- * and a footer that stays above the keyboard. Gutters: 16 for controls, 20 for
- * headings and loose text (DESIGN_SYSTEM.md §5).
+ * and a footer. Gutters: 16 for controls, 20 for headings and loose text
+ * (DESIGN_SYSTEM.md §5). The footer (the screen's CTA) hides while the keyboard is up
+ * and returns on blur, so the keyboard never covers it; the focused field scrolls
+ * into view (feedback round 1, item 5).
  */
-export function AuthScreen({ onBack, hero, title, lead, children, footer, contentStyle, centered }: {
+export function AuthScreen({ onBack, hero, title, lead, children, footer, contentStyle, centered, keepFooter }: {
   onBack?: () => void;
   hero?: ReactNode;
   title?: string;
@@ -20,8 +22,12 @@ export function AuthScreen({ onBack, hero, title, lead, children, footer, conten
   contentStyle?: StyleProp<ViewStyle>;
   /** Vertically centre the content (landing, profile). */
   centered?: boolean;
+  /** Keep the footer visible while typing (screens with no field of their own). */
+  keepFooter?: boolean;
 }) {
   const insets = useSafeAreaInsets();
+  const keyboard = useKeyboardVisible();
+  const showFooter = !!footer && (keepFooter || !keyboard);
   return (
     <View style={styles.screen}>
       <ScreenBackground />
@@ -29,7 +35,7 @@ export function AuthScreen({ onBack, hero, title, lead, children, footer, conten
         {onBack ? <TopBar onBack={onBack} /> : <View style={{ height: insets.top + layout.topBarTopPadding }} />}
         <ScrollView
           style={styles.flex}
-          contentContainerStyle={[styles.content, centered ? styles.centered : null, { paddingBottom: footer ? space[16] : layout.bottomCtaPadding + insets.bottom }, contentStyle]}
+          contentContainerStyle={[styles.content, centered ? styles.centered : null, { paddingBottom: showFooter ? space[16] : layout.bottomCtaPadding + insets.bottom }, contentStyle]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
           contentInsetAdjustmentBehavior="never"
@@ -43,7 +49,7 @@ export function AuthScreen({ onBack, hero, title, lead, children, footer, conten
           ) : null}
           {children}
         </ScrollView>
-        {footer ? <View style={[styles.footer, { paddingBottom: layout.bottomCtaPadding + insets.bottom }]}>{footer}</View> : null}
+        {showFooter ? <View style={[styles.footer, { paddingBottom: layout.bottomCtaPadding + insets.bottom }]}>{footer}</View> : null}
       </KeyboardAvoidingView>
     </View>
   );

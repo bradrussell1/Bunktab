@@ -8,7 +8,7 @@ import { supabase } from "./supabase";
  * badges), expenses and settlements re-fetch so every member sees changes
  * live (spec: Stack → Supabase realtime for the Done badges).
  */
-export type Member = { user_id: string; role: "owner" | "member"; done_at: string | null; settled_up_at: string | null; removed_at: string | null; display_name: string | null; venmo_username: string | null; photo_url: string | null; phone: string | null };
+export type Member = { user_id: string; role: "owner" | "member"; done_at: string | null; settled_up_at: string | null; removed_at: string | null; display_name: string | null; first_name: string | null; last_name: string | null; venmo_username: string | null; photo_url: string | null; phone: string | null };
 export type Expense = {
   id: string; trip_id: string; description: string; category: string; subcategory: string | null;
   amount_cents: number; tip_cents: number; currency: string; fx_rate: number; base_amount_cents: number;
@@ -29,13 +29,13 @@ export type TripData = { trip: Trip; members: Member[]; expenses: Expense[]; set
 export async function fetchTrip(tripId: string): Promise<TripData | null> {
   const [t, m, e, s] = await Promise.all([
     supabase.from("trips").select("*").eq("id", tripId).maybeSingle(),
-    supabase.from("trip_members").select("user_id, role, done_at, settled_up_at, removed_at, users(display_name, venmo_username, photo_url, phone)").eq("trip_id", tripId),
+    supabase.from("trip_members").select("user_id, role, done_at, settled_up_at, removed_at, users(display_name, first_name, last_name, venmo_username, photo_url, phone)").eq("trip_id", tripId),
     supabase.from("expenses").select("*, expense_payers(user_id, amount_cents, base_amount_cents), expense_shares(user_id, share_cents, base_share_cents, nights, night_presence)").eq("trip_id", tripId).is("deleted_at", null).order("created_at", { ascending: false }),
     supabase.from("settlements").select("*").eq("trip_id", tripId).order("created_at"),
   ]);
   if (!t.data) return null;
-  type Row = { user_id: string; role: "owner" | "member"; done_at: string | null; settled_up_at: string | null; removed_at: string | null; users: { display_name: string | null; venmo_username: string | null; photo_url: string | null; phone: string | null } | null };
-  const members: Member[] = ((m.data ?? []) as unknown as Row[]).map((r) => ({ user_id: r.user_id, role: r.role, done_at: r.done_at, settled_up_at: r.settled_up_at, removed_at: r.removed_at, display_name: r.users?.display_name ?? null, venmo_username: r.users?.venmo_username ?? null, photo_url: r.users?.photo_url ?? null, phone: r.users?.phone ?? null }));
+  type Row = { user_id: string; role: "owner" | "member"; done_at: string | null; settled_up_at: string | null; removed_at: string | null; users: { display_name: string | null; first_name: string | null; last_name: string | null; venmo_username: string | null; photo_url: string | null; phone: string | null } | null };
+  const members: Member[] = ((m.data ?? []) as unknown as Row[]).map((r) => ({ user_id: r.user_id, role: r.role, done_at: r.done_at, settled_up_at: r.settled_up_at, removed_at: r.removed_at, display_name: r.users?.display_name ?? null, first_name: r.users?.first_name ?? null, last_name: r.users?.last_name ?? null, venmo_username: r.users?.venmo_username ?? null, photo_url: r.users?.photo_url ?? null, phone: r.users?.phone ?? null }));
   return { trip: t.data as Trip, members, expenses: (e.data ?? []) as Expense[], settlements: (s.data ?? []) as Settlement[] };
 }
 
@@ -100,6 +100,10 @@ export function shareOf(d: TripData, userId: string): number {
 }
 export function tripTotal(d: TripData): number {
   return d.expenses.reduce((s, e) => s + e.base_amount_cents, 0);
+}
+/** Has this member logged or paid for at least one expense? (the "adding" pill state) */
+export function hasAddedExpenses(d: TripData, userId: string): boolean {
+  return d.expenses.some((e) => e.created_by === userId || e.expense_payers.some((p) => p.user_id === userId));
 }
 export function membersWithNoExpenses(d: TripData): Member[] {
   const logged = new Set(d.expenses.map((e) => e.created_by));

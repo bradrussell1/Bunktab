@@ -21,11 +21,11 @@ import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, St
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FormError } from "@/components/AuthScreen";
 import { WhoSleptWhere } from "@/components/WhoSleptWhere";
-import { ActionSheet, Avatar, Button, Icon, Input, Press, Receipt, RowCard, SegmentedControl, TextLink, Toggle, ZText } from "@/ui";
+import { ActionSheet, Avatar, Button, Icon, Input, KEYBOARD_BAR_HEIGHT, KeyboardDoneBar, Press, Receipt, RowCard, SegmentedControl, TextLink, Toggle, ZText, useKeyboardVisible } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { fetchRate, formatFetchedAt } from "@/lib/fx";
 import { pickReceipt, readReceipt, signReceipt, uploadReceipt, type ReceiptRead } from "@/lib/receipts";
-import { supabase } from "@/lib/supabase";
+import { isNetworkError, supabase } from "@/lib/supabase";
 import { activeMembers, useTrip, type Expense } from "@/lib/trips";
 import { currencyLabel } from "@/lib/currencyLabels";
 
@@ -42,6 +42,12 @@ import { currencyLabel } from "@/lib/currencyLabels";
  * uploads to the private receipts bucket and the total is read server-side to
  * pre-fill the amount (tip stays separate); a non-base currency fetches its rate
  * on selection, editable, locked on save. Every read, RPC and target is unchanged.
+ *
+ * Feedback round 1: Cancel and the backdrop always work, even with no dazzle id (item 1);
+ * the Add expense button hides while the keyboard is up, number pads get a Done bar and
+ * the focused field scrolls into view (item 15); a dropped connection on save shows
+ * "Connection lost…" with Try again re-sending the same payload, never the raw fetch
+ * error (item 16). Full offline queueing is out of scope: the form stays as typed.
  */
 const SPLITS: { key: SplitType; label: string }[] = [
   { key: "equal", label: "Equal" }, { key: "exact", label: "Exact" }, { key: "percent", label: "%" },
@@ -84,7 +90,11 @@ export default function ExpenseScreen() {
   const [fxNote, setFxNote] = useState<string | null>(null);
   const [commentCount, setCommentCount] = useState<number | null>(null);
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [connLost, setConnLost] = useState(false);
   const amountRef = useRef<TextInput>(null);
+  const keyboard = useKeyboardVisible();
+  // always a way out: back when there is a page under the sheet, else the dazzle (or Home)
+  const close = () => { if (router.canGoBack()) router.back(); else router.replace(id ? `/(app)/trip/${id}` : "/(app)/home"); };
 
   const members = useMemo(() => (data ? activeMembers(data) : []), [data]);
   const cat = CATEGORIES.find((c) => c.key === category) ?? null;
@@ -111,6 +121,15 @@ export default function ExpenseScreen() {
     }
     setSeeded(true);
   }, [data, existing, members, me, seeded]);
+
+  // focus the amount once the sheet has settled: an autoFocus fires before the keyboard's
+  // Done bar (InputAccessoryView) is registered, and iOS then shows the pad without it
+  useEffect(() => {
+    if (!seeded || existing || read) return;
+    const t = setTimeout(() => amountRef.current?.focus(), 350);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seeded]);
 
   // signed link for the receipt thumbnail (private bucket)
   useEffect(() => {
@@ -241,15 +260,18 @@ export default function ExpenseScreen() {
     };
     const { error: e } = await supabase.rpc("save_expense", { p: payload });
     setBusy(false);
-    if (e) return setError(e.message);
-    router.back();
+    if (e) {
+      if (isNetworkError(e.message)) { setConnLost(true); return; } // form state kept; Try again re-submits
+      return setError(friendlySaveError(e.message));
+    }
+    close();
   }
   const isOwner = data?.members.find((m) => m.user_id === me)?.role === "owner";
   const canDelete = !!existing && (existing.created_by === me || isOwner); // user: only the owner or the person who created it
   async function remove() {
     const { error: e } = await supabase.rpc("delete_expense", { p_id: existing!.id });
-    if (e) { setError(/owner|created|allowed|42501/i.test(e.message) ? "Only the dazzle owner or the person who added this expense can delete it." : e.message); return; }
-    router.back();
+    if (e) { setError(isNetworkError(e.message) ? "Connection lost. Check your signal and try again." : /owner|created|allowed|42501/i.test(e.message) ? "Only the dazzle owner or the person who added this expense can delete it." : e.message); return; }
+    close();
   }
 
   const name = (uid: string) => (uid === me ? "You" : members.find((m) => m.user_id === uid)?.display_name ?? "Member");
@@ -262,17 +284,22 @@ export default function ExpenseScreen() {
 
   return (
     <View style={styles.host}>
-      <Pressable style={styles.backdrop} onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Close" />
+      <Pressable style={styles.backdrop} onPress={close} accessibilityRole="button" accessibilityLabel="Close" />
       <View style={[styles.sheet, { marginTop: insets.top + space[24] }]} accessibilityViewIsModal>
         <View style={styles.grabber} />
         <View style={styles.header}>
-          <TextLink label="Cancel" muted onPress={() => router.back()} style={styles.headerSide} />
+          <TextLink label="Cancel" muted onPress={close} style={styles.headerSide} />
           <ZText variant="headline" accessibilityRole="header">{existing ? "Edit expense" : "Add expense"}</ZText>
           <View style={styles.headerSide} />
         </View>
-        {!data || !seeded ? <View style={styles.flex} /> : (
-          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
-            <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
+        {!id ? (
+          <View style={styles.noTrip}>
+            <ZText variant="body" color={color.textMuted} style={styles.noTripText}>Open a dazzle first, then add the expense from there.</ZText>
+            <Button kind="secondary" onWhite height={size.pillButton} label="Back to your dazzles" onPress={close} style={styles.noTripButton} />
+          </View>
+        ) : !data || !seeded ? <View style={styles.flex} /> : (
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? undefined : "height"} style={styles.flex}>
+            <ScrollView contentContainerStyle={[styles.content, keyboard ? { paddingBottom: space[24] + KEYBOARD_BAR_HEIGHT } : null]} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" showsVerticalScrollIndicator={false} automaticallyAdjustKeyboardInsets>
               {/* amount */}
               <View style={styles.amountRow}>
                 <Press onPress={() => setSheet("currency")} scaleTo={0.97} accessibilityRole="button" accessibilityLabel={`Currency, ${currency}`} style={styles.currencyPill}>
@@ -286,8 +313,8 @@ export default function ExpenseScreen() {
                   placeholder="0.00"
                   placeholderTextColor={color.textMuted}
                   keyboardType="decimal-pad"
-                  autoFocus={!existing && !read}
                   accessibilityLabel="Amount"
+                 
                   style={styles.amountInput}
                 />
               </View>
@@ -369,7 +396,7 @@ export default function ExpenseScreen() {
                 {preview?.error ? <ZText variant="small" color={color.error}>{preview.error}</ZText> : null}
               </Section>
 
-              <Input label="Description" placeholder="Dinner at Rosa's" value={description} onChangeText={setDescription} maxLength={140} />
+              <Input label="Description" placeholder="Dinner at Rosa's" value={description} onChangeText={setDescription} maxLength={140} returnKeyType="done" />
 
               <View style={styles.pillRow}>
                 <DropdownPill label="Category" value={cat?.label ?? "Pick a category"} placeholder={!cat} onPress={() => setSheet("category")} />
@@ -389,13 +416,17 @@ export default function ExpenseScreen() {
                 </Press>
               ) : null}
             </ScrollView>
-            <View style={[styles.footer, { paddingBottom: insets.bottom + space[12] }]}>
-              <FormError>{error ?? amountError}</FormError>
-              <Button label={existing ? "Save changes" : "Add expense"} onPress={save} loading={busy} disabled={total <= 0 || receiptBusy} />
-            </View>
+            {/* the CTA hides while the keyboard is up (the Done bar / return key brings it back) */}
+            {!keyboard ? (
+              <View style={[styles.footer, { paddingBottom: insets.bottom + space[12] }]}>
+                <FormError>{error ?? amountError}</FormError>
+                <Button label={existing ? "Save changes" : "Add expense"} onPress={save} loading={busy} disabled={total <= 0 || receiptBusy} />
+              </View>
+            ) : null}
           </KeyboardAvoidingView>
         )}
       </View>
+      <KeyboardDoneBar />
 
       <ActionSheet open={sheet === "receipt"} onClose={() => setSheet(null)} title="Snap a receipt" actions={[{ label: "Take a photo", onPress: () => attachReceipt("camera") }, { label: "Choose from photos", onPress: () => attachReceipt("library") }]} />
       <ActionSheet open={sheet === "currency"} onClose={() => setSheet(null)} title="Currency" actions={currencies.map((c) => ({ label: currencyLabel(c), onPress: () => setCurrency(c) }))} />
@@ -418,8 +449,17 @@ export default function ExpenseScreen() {
         ) : null}
       </Modal>
       <ActionSheet open={sheet === "delete"} onClose={() => setSheet(null)} title="Delete this expense? It comes out of every balance and stays in the history." actions={[{ label: "Delete", destructive: true, onPress: remove }]} />
+      <ActionSheet open={connLost} onClose={() => setConnLost(false)} title="Connection lost. Check your signal and try again. Nothing you typed is lost." actions={[{ label: "Try again", onPress: save }]} cancelLabel="Not now" />
     </View>
   );
+}
+
+/** save_expense / Postgres wording → ours; the raw transport text never reaches the screen. */
+function friendlySaveError(m: string): string {
+  if (isNetworkError(m)) return "Connection lost. Check your signal and try again.";
+  if (/42501|not a member/i.test(m)) return "You're not on this dazzle any more.";
+  if (/sum|shares|payers/i.test(m)) return "The split doesn't add up to the total. Check the amounts.";
+  return m;
 }
 
 function Section({ label, right, children }: { label: string; right?: ReactNode; children: ReactNode }) {
@@ -469,6 +509,9 @@ const styles = StyleSheet.create({
   grabber: { width: 36, height: 5, borderRadius: radius.pill, backgroundColor: color.surfaceTile, alignSelf: "center", marginBottom: 10 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: layout.screenGutter, paddingBottom: space[4] },
   headerSide: { width: 72 },
+  noTrip: { flex: 1, alignItems: "center", justifyContent: "center", gap: space[12], paddingHorizontal: layout.textGutter },
+  noTripText: { textAlign: "center" },
+  noTripButton: { alignSelf: "center" },
   content: { paddingHorizontal: layout.screenGutter, paddingTop: space[8], paddingBottom: space[24], gap: space[16] },
   amountRow: { flexDirection: "row", alignItems: "center", gap: space[10], paddingHorizontal: space[4] },
   currencyPill: { flexDirection: "row", alignItems: "center", gap: space[4], borderRadius: radius.pill, borderWidth: 1.5, borderColor: color.outline, paddingHorizontal: 12, minHeight: size.pillButton, justifyContent: "center" },
