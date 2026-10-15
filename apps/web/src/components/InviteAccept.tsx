@@ -33,12 +33,12 @@ export function InviteAccept({ token, signedIn }: { token: string; signedIn: boo
   }
   useEffect(() => { if (signedIn) accept(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [signedIn]);
 
-  if (signedIn || busy) return (
+  if (signedIn || busy || error) return (
     <div className="stack col-text" style={{ paddingTop: "var(--zs-space-40)" }}>
       <ZebraBust mood={error ? "worried" : "wink"} size={88} label={error ? "Zebra, worried" : "Zebra, winking"} />
       <h1 className="t-title2">{error ? "Couldn't open this invite" : "Opening your invite…"}</h1>
       {error && <div className="error-panel"><span>{error}</span></div>}
-      {error && <button className="btn secondary" type="button" onClick={async () => { await supabaseBrowser().auth.signOut(); router.refresh(); setBusy(false); }}>Sign in with a different number</button>}
+      {error && <button className="btn secondary" type="button" onClick={async () => { await supabaseBrowser().auth.signOut(); setError(null); setBusy(false); router.refresh(); }}>Sign in with a different number</button>}
     </div>
   );
   return <PhoneVerify title="You're invited to a dazzle" body="Verify your phone number to open it. No app needed; you can add expenses and tap Done right here." onDone={accept} />;

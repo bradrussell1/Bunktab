@@ -41,7 +41,7 @@ export function ExpenseForm({ tripId, expenseId, me }: { tripId: string; expense
     if (expenseId && !existing) return; // wait for the expense row
     const ids = members.map((m) => m.user_id);
     if (existing) {
-      setAmount(String(existing.amount_cents / 100)); setTip(existing.tip_cents ? String(existing.tip_cents / 100) : "");
+      setAmount((existing.amount_cents / 100).toFixed(2)); setTip(existing.tip_cents ? (existing.tip_cents / 100).toFixed(2) : "");
       setCurrency(existing.currency); setFx(String(existing.fx_rate)); setDescription(existing.description);
       setCategory(existing.category); setSubcategory(existing.subcategory);
       setPayers(Object.fromEntries(existing.expense_payers.map((p) => [p.user_id, String(p.amount_cents / 100)])));

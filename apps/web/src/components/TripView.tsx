@@ -106,13 +106,13 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
 
         <div className="hero-card stack" style={{ gap: "var(--zs-space-10)" }}>
           <p className="t-caption t-muted">Your balance</p>
-          <p className="t-amount-l num" style={{ paddingRight: 120 }}>{fig.mine === 0 ? "$0.00" : formatCents(Math.abs(fig.mine), cur)}</p>
+          <p className="t-amount-l num" style={{ paddingRight: "var(--zs-space-24)" }}>{fig.mine === 0 ? "$0.00" : formatCents(Math.abs(fig.mine), cur)}</p>
           <div className="row" style={{ gap: "var(--zs-space-8)" }}>
             {fig.mine !== 0 && !settled && <span className={`amount-pill lg ${fig.mine > 0 ? "up" : "down"}`}>{fig.mine > 0 ? "owed to you" : "you owe"}</span>}
             {settled && <span className="pill outline">Settled</span>}
           </div>
           {!settled && (
-            <div className="inset row between" style={{ gap: "var(--zs-space-10)", marginRight: 100 }}>
+            <div className="inset row between" style={{ gap: "var(--zs-space-10)", marginRight: "var(--zs-space-40)", paddingRight: "var(--zs-space-40)" }}>
               <span className="t-caption"><b>{fig.done} of {fig.members.length} stripes.</b>{stillAdding.length > 0 && <span className="t-muted"> {stillAdding.join(", ")} still adding.</span>}</span>
             </div>
           )}
