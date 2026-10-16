@@ -41,5 +41,5 @@ export function InviteAccept({ token, signedIn }: { token: string; signedIn: boo
       {error && <button className="btn secondary" type="button" onClick={async () => { await supabaseBrowser().auth.signOut(); setError(null); setBusy(false); router.refresh(); }}>Sign in with a different number</button>}
     </div>
   );
-  return <PhoneVerify title="You're invited to a dazzle" body="Verify your phone number to open it. No app needed; you can add expenses and tap Done right here." onDone={accept} />;
+  return <PhoneVerify title="You're invited to a Dazzle" body="Verify your phone number to open it. No app needed; you can add expenses and tap Done right here." onDone={accept} />;
 }

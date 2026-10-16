@@ -124,7 +124,7 @@ export function PhoneVerify({ title, body, onDone }: { title: string; body?: str
       {step === "name" && (
         <form className="stack" onSubmit={saveName}>
           <div className="field"><label htmlFor="name">Your name</label><input id="name" className="input" autoComplete="name" placeholder="Jordan" value={name} onChange={(e) => setName(e.target.value)} autoFocus /></div>
-          <p className="help">How your dazzle will see you.</p>
+          <p className="help">How your Dazzle will see you.</p>
           {error && <ErrorLine text={error} />}
           <button className="btn primary" type="submit" disabled={busy}>{busy ? "Saving…" : "Continue"}</button>
         </form>

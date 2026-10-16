@@ -14,7 +14,7 @@ const S = (id: string, title: string, items: [string, string, string, (readonly 
 export const faqSections: FaqSection[] = [
   S("start", "Getting started", [
     ["what-is-zebrasplit", "What is Zebrasplit?", "An app for splitting group trip costs. Everyone logs what they paid, taps Done when they’re finished, and the group settles up in Venmo with the fewest payments possible."],
-    ["what-is-a-dazzle", "What’s a “dazzle”?", "A group of zebras is called a dazzle. In Zebrasplit, it’s your trip: the people, the expenses and the stripes."],
+    ["what-is-a-dazzle", "What’s a “Dazzle”?", "A group of zebras is called a Dazzle. In Zebrasplit, it’s your trip: the people, the expenses and the stripes."],
     ["what-do-the-stripes-mean", "What do the stripes mean?", "Each stripe on the zebra is a person who’s finished adding expenses. When the zebra has all its stripes, the group can settle up."],
     ["how-do-i-invite-people", "How do I invite people?", "Pick them from your contacts or type a phone number. They get a text with a link and can join from the app or straight from their browser."],
     ["do-my-friends-need-to-download-the-app", "Do my friends need to download the app?", "No. They can open the invite link in a browser, verify their phone number, add expenses and tap Done. The app adds nudges and the one-tap Venmo payments."],

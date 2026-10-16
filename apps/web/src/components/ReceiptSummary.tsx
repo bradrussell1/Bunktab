@@ -60,7 +60,7 @@ export function ReceiptSummary({ tripId, expenseId, me }: { tripId: string; expe
   }) : null, [receipt, items, charges]);
 
   if (!data || !expense) return <main className="stack"><p className="t-caption t-muted">Loading…</p></main>;
-  if (!expense.receipt_id || !model) return <main className="stack"><p className="t-body">This expense has no receipt.</p><Link className="t-link" href={`/t/${tripId}`}>Back to the dazzle</Link></main>;
+  if (!expense.receipt_id || !model) return <main className="stack"><p className="t-body">This expense has no receipt.</p><Link className="t-link" href={`/t/${tripId}`}>Back to the Dazzle</Link></main>;
 
   const method = expense.split_type === "itemized" ? "itemized" : expense.split_type === "exact" ? "exact" : "equal";
   const holder = expense.expense_payers[0]?.user_id ?? expense.created_by;

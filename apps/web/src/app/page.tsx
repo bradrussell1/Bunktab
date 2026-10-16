@@ -19,7 +19,7 @@ export default function Landing() {
       <section className="stack" style={{ marginTop: "var(--zs-space-24)" }} id="how">
         <h2 className="t-title2 col-text">How it works</h2>
         <ol className="steps">
-          <li className="step card"><span className="n">1</span><div className="stack-tight"><p className="t-headline">Start a dazzle and invite the group</p><p className="t-caption t-muted">Pick people from your contacts. They get a text with a link and can join from the web without installing anything.</p></div></li>
+          <li className="step card"><span className="n">1</span><div className="stack-tight"><p className="t-headline">Start a Dazzle and invite the group</p><p className="t-caption t-muted">Pick people from your contacts. They get a text with a link and can join from the web without installing anything.</p></div></li>
           <li className="step card"><span className="n">2</span><div className="stack-tight"><p className="t-headline">Log what you paid as you go</p><p className="t-caption t-muted">Snap the receipt, choose who&apos;s in, split equally, exactly, by percent or shares, or by nights for lodging.</p></div></li>
           <li className="step card"><span className="n">3</span><div className="stack-tight"><p className="t-headline">Earn your stripes, then settle in Venmo</p><p className="t-caption t-muted">When everyone&apos;s done, close-out unlocks with the fewest payments possible. Each one opens Venmo already filled in.</p></div></li>
         </ol>
@@ -36,7 +36,7 @@ export default function Landing() {
 
       <section className="card stack" style={{ marginTop: "var(--zs-space-12)" }}>
         <p className="t-headline">Got an invite text?</p>
-        <p className="t-caption t-muted">Open the link in the message. You&apos;ll verify your phone number and land straight on the dazzle.</p>
+        <p className="t-caption t-muted">Open the link in the message. You&apos;ll verify your phone number and land straight on the Dazzle.</p>
       </section>
 
       <footer className="t-caption t-muted row" style={{ paddingTop: "var(--zs-space-40)", gap: "var(--zs-space-16)", flexWrap: "wrap" }}>

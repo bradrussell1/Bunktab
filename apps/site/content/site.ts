@@ -7,8 +7,8 @@ export const site = {
   name: "Zebrasplit",
   tagline: "Split the trip. Not the friendship.",
   title: "Zebrasplit · Split the trip. Not the friendship.",
-  description: "Keep the dazzle organized. Track the tab, earn your stripes, and when it's time to close out, everyone pays exactly once via Venmo.",
-  joinDescription: "Join the dazzle to add expenses and settle up.",
+  description: "Keep the Dazzle organized. Track the tab, earn your stripes, and when it's time to close out, everyone pays exactly once via Venmo.",
+  joinDescription: "Join the Dazzle to add expenses and settle up.",
 } as const;
 
 export type LegalKey = "companyLegalName" | "mailingAddress" | "effectiveDate" | "lastUpdatedDate" | "supportEmail" | "privacyEmail" | "arbitrationProvider" | "deletionDays";
