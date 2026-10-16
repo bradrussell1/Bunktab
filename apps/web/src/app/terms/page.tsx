@@ -5,7 +5,7 @@ export default function Terms() {
     <main className="col legal">
       <p style={{ paddingTop: "var(--zs-space-24)" }}><Link href="/" className="t-link">‹ Zebrasplit</Link></p>
       <h1 className="t-title1" style={{ margin: "var(--zs-space-24) 0 var(--zs-space-8)" }}>Terms of service</h1>
-      <p className="t-caption t-muted">Placeholder. Replace before launch. Last updated {new Date().toISOString().slice(0, 10)}.</p>
+      <p className="t-caption t-muted">Bradley Russell, doing business as Zebrasplit · Effective October 16, 2026 · The full policy lives at <a href="https://zebrasplit.com/terms">zebrasplit.com/terms</a>.</p>
       <h2 className="t-title2">The service</h2>
       <p className="t-body">Zebrasplit helps groups track shared expenses and work out who owes whom. It prepares payments for Venmo but does not send, receive or hold money and cannot see whether a payment completed. Amounts marked paid are self-reported by members.</p>
       <h2 className="t-title2">Your account</h2>

@@ -11,17 +11,22 @@ export const site = {
   joinDescription: "Join the Dazzle to add expenses and settle up.",
 } as const;
 
-export type LegalKey = "companyLegalName" | "mailingAddress" | "effectiveDate" | "lastUpdatedDate" | "supportEmail" | "privacyEmail" | "arbitrationProvider" | "deletionDays";
+export type LegalKey = "companyLegalName" | "mailingAddress" | "effectiveDate" | "lastUpdatedDate" | "supportEmail" | "privacyEmail" | "arbitrationProvider" | "deletionDays" | "governingState" | "venueCounty";
 
 export const legal: Record<LegalKey, string | null> = {
-  companyLegalName: null,
+  // Launching as a sole proprietor (owner's decision, 2026-10-16). mailingAddress stays unset until
+  // the owner supplies a PO box or registered-agent address; the build warns while it is bracketed.
+  companyLegalName: "Bradley Russell, doing business as Zebrasplit",
   mailingAddress: null,
-  effectiveDate: null,
-  lastUpdatedDate: null,
-  supportEmail: null,
-  privacyEmail: null,
-  arbitrationProvider: null,
-  deletionDays: null,
+  effectiveDate: "October 16, 2026",
+  lastUpdatedDate: "October 16, 2026",
+  supportEmail: "support@zebrasplit.com",
+  privacyEmail: "privacy@zebrasplit.com",
+  arbitrationProvider: "the American Arbitration Association (AAA)",
+  deletionDays: "30",
+  // Governing law and venue: one place to change if the owner's state is not California.
+  governingState: "California",
+  venueCounty: "San Francisco County, California",
 };
 
 export const legalPlaceholders: Record<LegalKey, string> = {
@@ -33,6 +38,8 @@ export const legalPlaceholders: Record<LegalKey, string> = {
   privacyEmail: "[PRIVACY EMAIL]",
   arbitrationProvider: "[ARBITRATION PROVIDER]",
   deletionDays: "[30]",
+  governingState: "[GOVERNING STATE]",
+  venueCounty: "[VENUE COUNTY]",
 };
 
 export const legalValue = (k: LegalKey) => legal[k] ?? legalPlaceholders[k];

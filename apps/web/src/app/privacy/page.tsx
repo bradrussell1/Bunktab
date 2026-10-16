@@ -5,7 +5,7 @@ export default function Privacy() {
     <main className="col legal">
       <p style={{ paddingTop: "var(--zs-space-24)" }}><Link href="/" className="t-link">‹ Zebrasplit</Link></p>
       <h1 className="t-title1" style={{ margin: "var(--zs-space-24) 0 var(--zs-space-8)" }}>Privacy policy</h1>
-      <p className="t-caption t-muted">Placeholder. Replace before launch. Last updated {new Date().toISOString().slice(0, 10)}.</p>
+      <p className="t-caption t-muted">Bradley Russell, doing business as Zebrasplit · Effective October 16, 2026 · The full policy lives at <a href="https://zebrasplit.com/privacy">zebrasplit.com/privacy</a>.</p>
       <h2 className="t-title2">What we collect</h2>
       <p className="t-body">Your phone number (to sign you in and match invites), the display name and optional photo and Venmo username you enter, and the trips, expenses, receipts and comments you and your trip mates create.</p>
       <h2 className="t-title2">What we don&apos;t collect</h2>
