@@ -17,7 +17,7 @@ export default function Terms() {
       <h2 className="t-title2">No warranty</h2>
       <p className="t-body">Zebrasplit is provided as is. Check the figures before you pay; we are not liable for payments made in Venmo or elsewhere.</p>
       <h2 className="t-title2">Contact</h2>
-      <p className="t-body">brad@zebrasplit.com</p>
+      <p className="t-body"><a href="mailto:legal@zebrasplit.com">legal@zebrasplit.com</a></p>
     </main>
   );
 }
