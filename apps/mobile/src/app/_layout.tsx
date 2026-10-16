@@ -6,9 +6,11 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { initSentry, wrapRoot } from "@/lib/sentry";
 import { OfflineBanner, ToastProvider } from "@/ui";
 
 SplashScreen.preventAutoHideAsync();
+initSentry(); // no-op without EXPO_PUBLIC_SENTRY_DSN
 
 /**
  * Root: session provider + protected route groups.
@@ -68,7 +70,7 @@ function Routes() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   // Zebrasplit design system (2026-10-14): Figtree for everything, IBM Plex Mono for the
   // receipt read-out.
   const [fontsReady, fontError] = useFonts({
@@ -89,3 +91,6 @@ export default function RootLayout() {
     </AuthProvider>
   );
 }
+
+// Sentry's error boundary + navigation instrumentation wrap the root only when a DSN is configured.
+export default wrapRoot(RootLayout);

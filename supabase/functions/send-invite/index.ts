@@ -8,8 +8,9 @@
 // the attempt is logged in notification_log with the error, nothing throws.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders, internalOk, json } from "../_shared/cors.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
-Deno.serve(async (req) => {
+Deno.serve(withSentry("send-invite", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method" }, 405);
   const { invite_id } = await req.json().catch(() => ({}));
@@ -69,4 +70,4 @@ Deno.serve(async (req) => {
   }
   await admin.from("notification_log").upsert({ user_id: inv.invited_by, trip_id: inv.trip_id, kind: "invite.sms", dedupe_key: `invite.sms:${inv.id}`, payload: { to, text, ...result }, sent_at: new Date().toISOString() }, { onConflict: "dedupe_key" });
   return json({ ok: !("error" in result), ...result });
-});
+}));

@@ -13,6 +13,7 @@
 // (RECEIPT_MODEL, RECEIPT_RETRY_MODEL).
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders, internalOk, json } from "../_shared/cors.ts";
+import { withSentry } from "../_shared/sentry.ts";
 import { DEFAULT_MODEL, DEFAULT_RETRY_MODEL, EXTRACTION_SCHEMA_VERSION, runExtraction } from "../_shared/receipt/pipeline.ts";
 import { INSTRUCTIONS, PROMPT_VERSION } from "./prompts/receipt-extraction.v1.ts";
 import schema from "./schema.json" with { type: "json" };
@@ -36,7 +37,7 @@ function toBase64(bytes: Uint8Array): string {
   return btoa(s);
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withSentry("receipt-parse", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method" }, 405);
   const body = await req.json().catch(() => ({}));
@@ -147,4 +148,4 @@ Deno.serve(async (req) => {
     ...usage,
   }).eq("id", receiptId);
   return json({ ok: true, status, item_count: items?.length ?? 0, reconciled: rc.ok, suspect_position: rc.suspectPosition });
-});
+}));
