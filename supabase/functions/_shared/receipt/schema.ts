@@ -20,7 +20,7 @@ export const ExtractionSchema = z.object({
   items: z.array(z.object({
     raw_text: z.string().max(200),
     name: z.string().max(120),
-    quantity: z.number().finite().min(1).max(999).catch(1),
+    quantity: z.number().finite().min(1).max(99),   // 1–99 (Step 5.6); out of range is a bad read, not a clamp
     unit_price: decimalOrNull.catch(null),
     line_total: decimal,
     kind: z.enum(["food", "drink", "alcohol", "other"]).catch("other"),

@@ -12,7 +12,7 @@ export type Attempt = { model: string; latencyMs: number; inputTokens: number; o
 export type PipelineResult =
   | { outcome: "ready" | "needs_review"; extraction: Extraction; normalized: Normalized; reconciliation: Reconciliation; attempts: Attempt[]; model: string }
   | { outcome: "unreadable"; attempts: Attempt[]; notes: string | null }
-  | { outcome: "failed"; attempts: Attempt[]; error: string };
+  | { outcome: "failed"; attempts: Attempt[]; error: string; code: FailureCode };
 
 export type PipelineOptions = {
   apiKey: string;
@@ -26,13 +26,23 @@ export type PipelineOptions = {
   instructions: string;
   fetchImpl?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;
+  timeoutMs?: number;
 };
+
+/** Error codes the receipts row carries (Step 5.10). */
+export type FailureCode = "ai_unavailable" | "bad_output" | "unreadable";
 
 export const DEFAULT_MODEL = "claude-sonnet-5";
 export const DEFAULT_RETRY_MODEL = "claude-opus-5";
 
-async function once(o: PipelineOptions, model: string): Promise<{ read: ReadResult; extraction?: Extraction; normalized?: Normalized; reconciliation?: Reconciliation; unreadable?: boolean; reason?: string }> {
-  const read = await readReceiptImage({ apiKey: o.apiKey, workspaceId: o.workspaceId, model, imageBase64: o.imageBase64, mediaType: o.mediaType, schema: apiSchema(o.schema), instructions: o.instructions, fetchImpl: o.fetchImpl, sleep: o.sleep });
+/** The note the stronger model gets when the first read didn't add up (Step 5.8). */
+export function retryNote(rc: Reconciliation | null | undefined, reason?: string): string {
+  const diff = rc ? [rc.subtotalDiffCents != null && rc.subtotalDiffCents !== 0 ? `items vs subtotal off by ${(rc.subtotalDiffCents / 100).toFixed(2)}` : null, rc.totalDiffCents != null && rc.totalDiffCents !== 0 ? `subtotal+tax+fees vs total off by ${(rc.totalDiffCents / 100).toFixed(2)}` : null].filter(Boolean).join("; ") : "";
+  return `Your previous read did not add up: ${diff || reason || "the lines did not match the printed totals"}. Re-read carefully. Return the JSON.`;
+}
+
+async function once(o: PipelineOptions, model: string, userText?: string): Promise<{ read: ReadResult; extraction?: Extraction; normalized?: Normalized; reconciliation?: Reconciliation; unreadable?: boolean; reason?: string }> {
+  const read = await readReceiptImage({ apiKey: o.apiKey, workspaceId: o.workspaceId, model, imageBase64: o.imageBase64, mediaType: o.mediaType, schema: apiSchema(o.schema), instructions: o.instructions, userText, timeoutMs: o.timeoutMs, fetchImpl: o.fetchImpl, sleep: o.sleep });
   if (read.stopReason === "refusal" || read.json == null) return { read, reason: "refusal" };
   let extraction: Extraction;
   try { extraction = validateExtraction(read.json); } catch (e) { return { read, reason: `schema: ${e instanceof Error ? e.message.slice(0, 200) : String(e)}` }; }
@@ -53,7 +63,7 @@ export async function runExtraction(o: PipelineOptions): Promise<PipelineResult>
   let last: Awaited<ReturnType<typeof once>> | null = null;
   try {
     for (const model of [o.model, o.retryModel]) {
-      const r = await once(o, model);
+      const r = await once(o, model, model === o.retryModel && last ? retryNote(last.reconciliation, last.reason) : undefined);
       last = r;
       if (r.unreadable) { note(r.read, false, "unreadable"); return { outcome: "unreadable", attempts, notes: r.extraction?.notes ?? null }; }
       if (!r.normalized || !r.reconciliation) { note(r.read, false, r.reason); continue; }   // bad shape or no items: try the stronger model
@@ -63,10 +73,11 @@ export async function runExtraction(o: PipelineOptions): Promise<PipelineResult>
     }
   } catch (e) {
     const msg = e instanceof AnthropicError ? e.message : e instanceof Error ? e.message : String(e);
-    return { outcome: "failed", attempts, error: msg };
+    const code: FailureCode = e instanceof AnthropicError && (e.retryable || e.status >= 500 || e.status === 429) ? "ai_unavailable" : "bad_output";
+    return { outcome: "failed", attempts, error: msg, code };
   }
   if (last?.normalized && last.reconciliation) return { outcome: "needs_review", extraction: last.extraction!, normalized: last.normalized, reconciliation: last.reconciliation, attempts, model: last.read.model };
-  return { outcome: "failed", attempts, error: last?.reason ?? "no usable read" };
+  return { outcome: "failed", attempts, error: last?.reason ?? "no usable read", code: "bad_output" };
 }
 
 export { EXTRACTION_SCHEMA_VERSION };

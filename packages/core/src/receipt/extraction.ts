@@ -67,6 +67,8 @@ export function normalizeExtraction(x: Extraction): Normalized {
     items.push({ position: i, name: it.name?.trim() || it.raw_text?.trim() || `Line ${i + 1}`, rawText: it.raw_text ?? "", quantity: q, lineTotalCents: cents, kind: it.kind ?? "other", confidence: it.confidence ?? "medium", isVoid: !!it.is_void || cents < 0 && /void/i.test(it.raw_text ?? "") });
   });
   if (!items.length) throw new ExtractionError("no line items read", "NO_ITEMS");
+  // bounds (RECEIPT_PIPELINE_PROMPT Step 5.6): a line over $10,000 or a total over $50,000 is a misread, not a bill
+  for (const it of items) if (Math.abs(it.lineTotalCents) >= 1_000_000) problems.push(`item ${it.position}: ${it.lineTotalCents} cents is out of range`);
   const charges: NormalizedCharge[] = [];
   let pos = 0;
   for (const t of x.tax_lines) {
@@ -86,9 +88,11 @@ export function normalizeExtraction(x: Extraction): Normalized {
   const taxCents = taxIncluded ? 0 : charges.filter((c) => c.kind === "tax").reduce((s, c) => s + c.amountCents, 0);
   const feesCents = charges.filter((c) => c.kind !== "tax" && c.kind !== "discount").reduce((s, c) => s + c.amountCents, 0);
   const discountsCents = charges.filter((c) => c.kind === "discount").reduce((s, c) => s + c.amountCents, 0);
+  const printedTotalCents = decimalToCents(x.total);
+  if (printedTotalCents != null && Math.abs(printedTotalCents) >= 5_000_000) problems.push(`total ${printedTotalCents} cents is out of range`);
   return {
     merchant: x.merchant?.trim() || null, date: x.date && /^\d{4}-\d{2}-\d{2}$/.test(x.date) ? x.date : null, currency: x.currency?.toUpperCase() ?? null,
-    items, charges, subtotalCents: decimalToCents(x.subtotal), taxCents, feesCents, discountsCents, printedTotalCents: decimalToCents(x.total), tipPrintedCents: decimalToCents(x.tip_printed),
+    items, charges, subtotalCents: decimalToCents(x.subtotal), taxCents, feesCents, discountsCents, printedTotalCents, tipPrintedCents: decimalToCents(x.tip_printed),
     taxIncluded, problems,
   };
 }

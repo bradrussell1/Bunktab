@@ -15,6 +15,10 @@ export type ReadOptions = {
   schema: unknown;
   instructions: string;
   maxTokens?: number;
+  /** Text after the image; the retry adds the reconciliation note here. */
+  userText?: string;
+  /** Per-request timeout (default 45 s). */
+  timeoutMs?: number;
   fetchImpl?: typeof fetch;
   /** sleep override for tests */
   sleep?: (ms: number) => Promise<void>;
@@ -52,7 +56,7 @@ export async function readReceiptImage(o: ReadOptions): Promise<ReadResult> {
       role: "user",
       content: [
         { type: "image", source: { type: "base64", media_type: o.mediaType, data: o.imageBase64 } },
-        { type: "text", text: "Read this receipt and return the JSON." },
+        { type: "text", text: o.userText ?? "Read this receipt and return the JSON." },
       ],
     }],
   };
@@ -65,9 +69,9 @@ export async function readReceiptImage(o: ReadOptions): Promise<ReadResult> {
     const started = Date.now();
     let r: Response;
     try {
-      r = await f("https://api.anthropic.com/v1/messages", { method: "POST", headers, body: JSON.stringify(body) });
+      r = await f("https://api.anthropic.com/v1/messages", { method: "POST", headers, body: JSON.stringify(body), signal: AbortSignal.timeout(o.timeoutMs ?? 45_000) });
     } catch (e) {
-      lastErr = new AnthropicError(`network: ${e instanceof Error ? e.message : String(e)}`, 0, true);
+      lastErr = new AnthropicError(`${e instanceof Error && e.name === "TimeoutError" ? "timeout" : "network"}: ${e instanceof Error ? e.message : String(e)}`, 0, true);
       continue;
     }
     if (!r.ok) {

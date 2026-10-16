@@ -11,14 +11,14 @@ describe("stripeLayout", () => {
   it("4 members spread evenly from 152 to 265 (matches zebra-full-4-members-2-done.svg)", () => {
     const s = stripeLayout(4, 2);
     expect(s.map((x) => x.cx)).toEqual([152, 189.7, 227.3, 265]);
-    expect(s[0].width).toBe(13);
+    expect(s[0]!.width).toBe(13);
     expect(s.map((x) => x.done)).toEqual([true, true, false, false]);
   });
   it("10 members narrow to 0.56 × spacing (matches zebra-full-10-members-7-done.svg)", () => {
     const s = stripeLayout(10, 7);
-    expect(s[0].width).toBe(7.1);
-    expect(s[1].cx).toBe(164.6);
-    expect(s[9].cx).toBe(265);
+    expect(s[0]!.width).toBe(7.1);
+    expect(s[1]!.cx).toBe(164.6);
+    expect(s[9]!.cx).toBe(265);
     expect(s.filter((x) => x.done)).toHaveLength(7);
   });
   it("above 12 members draws 12 and fills proportionally, all 12 only when everyone is done", () => {
