@@ -14,7 +14,9 @@ export function ReadingState({ onManual }: { onManual: () => void }) {
   const y = useSharedValue(reduced ? 0 : -1);
   const [slow, setSlow] = useState(false);
   useEffect(() => {
-    if (!reduced) y.value = withRepeat(withSequence(withTiming(0, { duration: 900, easing: Easing.out(Easing.cubic) }), withTiming(0, { duration: 600 }), withTiming(-1, { duration: 500, easing: Easing.in(Easing.cubic) })), -1, false);
+    // Reduce Motion can flip on after the first render: park the paper fully in view, else loop
+    if (reduced) { cancelAnimation(y); y.value = 0; }
+    else y.value = withRepeat(withSequence(withTiming(0, { duration: 900, easing: Easing.out(Easing.cubic) }), withTiming(0, { duration: 600 }), withTiming(-1, { duration: 500, easing: Easing.in(Easing.cubic) })), -1, false);
     const t = setTimeout(() => setSlow(true), 8000);
     return () => { cancelAnimation(y); clearTimeout(t); };
   }, [reduced, y]);

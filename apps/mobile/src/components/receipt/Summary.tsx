@@ -1,7 +1,7 @@
 import type { Share, Totals } from "@bunktab/core";
 import { color, layout, palette, radius, shadow, space } from "@bunktab/theme";
 import { StyleSheet, View } from "react-native";
-import { Avatar, ZText, formatMoney } from "@/ui";
+import { ZText, formatMoney } from "@/ui";
 import type { Method } from "@/lib/receipts";
 import { initialsOf, type Person } from "./People";
 
@@ -30,9 +30,8 @@ export function Explainer({ method, totals, example, people }: { method: Method;
 
 /** One person card: avatar, name, percentage, total, items line and Food · Tax · Tip (· Fees) chips. The example person is inverted in By item. */
 export function PersonCard({ share, person, method, totals, itemsLine, inverted }: { share: Share; person: Person; method: Method; totals: Totals; itemsLine: string; inverted?: boolean }) {
-  const pct = method === "itemized"
-    ? `${totals.subtotalCents > 0 ? ((share.foodCents / totals.subtotalCents) * 100).toFixed(1) : "0"}% of the food`
-    : `${totals.grandCents > 0 ? ((share.totalCents / totals.grandCents) * 100).toFixed(1) : "0"}% of the bill`;
+  const pctOf = (part: number, whole: number) => (whole > 0 ? ((part / whole) * 100).toFixed(1).replace(/\.0$/, "") : "0");
+  const pct = method === "itemized" ? `${pctOf(share.foodCents, totals.subtotalCents)}% of the food` : `${pctOf(share.totalCents, totals.grandCents)}% of the bill`;
   const ink = !!inverted;
   const chips = [["Food", share.foodCents], ["Tax", share.taxCents], ["Tip", share.tipCents]] as [string, number][];
   if (share.feesCents) chips.push(["Fees", share.feesCents]);
@@ -40,7 +39,7 @@ export function PersonCard({ share, person, method, totals, itemsLine, inverted 
   return (
     <View style={[styles.card, ink ? styles.cardInk : null]} accessibilityLabel={`${person.name}, ${pct}, ${formatMoney(share.totalCents)}. ${itemsLine}. ${chips.map(([k, v]) => `${k} ${formatMoney(v)}`).join(", ")}`}>
       <View style={styles.cardHead}>
-        {ink ? <View style={styles.avatarVolt}><ZText variant="captionStrong">{person.short === "You" ? "YOU" : initialsOf(person.name)}</ZText></View> : <Avatar name={person.name} uri={person.photo} size={32} />}
+        <View style={[styles.avatarDisc, ink ? styles.avatarVolt : null]}><ZText variant="micro" color={color.text}>{person.short === "You" ? "YOU" : initialsOf(person.name)}</ZText></View>
         <ZText variant="headline" color={ink ? color.textOnInk : color.text} style={styles.cardName} numberOfLines={1}>{person.short}</ZText>
         <ZText variant="small" color={ink ? color.outlineDashed : color.textMuted}>{pct}</ZText>
         <ZText variant="headline" tabular color={ink ? color.accentOnInk : color.text}>{formatMoney(share.totalCents)}</ZText>
@@ -75,7 +74,8 @@ const styles = StyleSheet.create({
   cardInk: { backgroundColor: palette.ink },
   cardHead: { flexDirection: "row", alignItems: "center", gap: space[8] },
   cardName: { flex: 1 },
-  avatarVolt: { width: 32, height: 32, borderRadius: radius.pill, backgroundColor: palette.volt, alignItems: "center", justifyContent: "center" },
+  avatarDisc: { width: 32, height: 32, borderRadius: radius.pill, backgroundColor: color.surfaceTile, alignItems: "center", justifyContent: "center" },
+  avatarVolt: { backgroundColor: palette.volt },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   chip: { backgroundColor: color.surfaceInset, borderRadius: radius.pill, paddingHorizontal: 10, paddingVertical: 4 },
   chipInk: { backgroundColor: color.glassOnInk },

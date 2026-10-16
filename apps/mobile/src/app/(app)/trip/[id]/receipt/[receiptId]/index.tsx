@@ -1,5 +1,5 @@
 import { color, layout, palette, radius, space } from "@bunktab/theme";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { ActionSheet, Icon, ZText, useToast } from "@/ui";
@@ -26,6 +26,7 @@ import { receiptDateLabel, useFlow } from "@/components/receipt/useFlow";
 export default function ReceiptReadScreen() {
   const { id, receiptId, state } = useLocalSearchParams<{ id: string; receiptId: string; state?: string }>();
   const router = useRouter();
+  const nav = useNavigation();
   const { show } = useToast();
   const flow = useFlow(id, receiptId);
   const { bundle, receipt, totals, draft, update, people } = flow;
@@ -35,9 +36,9 @@ export default function ReceiptReadScreen() {
 
   // DEV demo states
   useEffect(() => {
-    if (receiptId !== DEMO_ID || !__DEV__) return;
+    if (receiptId !== DEMO_ID || !__DEV__ || !nav.isFocused()) return; // only the screen on top drives the shared demo draft
     setDemoStatus(state === "reading" ? "processing" : state === "needs_review" ? "needs_review" : state === "failed" ? "failed" : "ready");
-    if (state === "custom") update({ tip: { mode: "custom", customCents: 2600 } });
+    update({ tip: state === "custom" ? { mode: "custom", customCents: 2600 } : { mode: "percent", percent: 20 } });
     flow.reload();
   }, [receiptId, state]); // eslint-disable-line react-hooks/exhaustive-deps
 

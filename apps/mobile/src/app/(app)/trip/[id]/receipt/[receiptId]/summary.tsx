@@ -1,6 +1,6 @@
 import { smallestFoodShare, splitByItem, splitEven, splitExact, type Share } from "@bunktab/core";
 import { color, layout, space } from "@bunktab/theme";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, ZText, formatMoney, useToast } from "@/ui";
@@ -22,6 +22,7 @@ import { itemsLineFor, sharesMap, useFlow } from "@/components/receipt/useFlow";
 export default function SummaryScreen() {
   const { id, receiptId, expense, method: methodParam, readonly: roParam } = useLocalSearchParams<{ id: string; receiptId: string; expense?: string; method?: Method; readonly?: string }>();
   const router = useRouter();
+  const nav = useNavigation();
   const { show } = useToast();
   const flow = useFlow(id, receiptId, expense ?? null);
   const { receipt, totals, draft, update, participants, me } = flow;
@@ -32,11 +33,11 @@ export default function SummaryScreen() {
 
   // DEV demo: the worked example for each method
   useEffect(() => {
-    if (receiptId !== DEMO_ID || !__DEV__ || !draft.seeded || !receipt) return;
+    if (receiptId !== DEMO_ID || !__DEV__ || !draft.seeded || !receipt || !nav.isFocused()) return;
     const four = ["you", "pp", "mc", "jt"];
     const m = (methodParam ?? "itemized") as Method;
     const third = 2 / 3;
-    update({ method: m, participants: four,
+    update({ method: m, participants: four, tip: { mode: "percent", percent: 20 },
       claims: m === "itemized" ? { guac: { jt: 1 }, pac: { jt: 1, you: third, pp: third, mc: third }, cev: { you: 1, pp: 1, mc: 1 }, fish: { you: 1, pp: 1, mc: 1 }, carne: { you: 1, pp: 1, mc: 1 }, shrimp: { you: 1, pp: 1, mc: 1 }, marg: { you: third, pp: third, mc: third }, churro: { you: 1, pp: 1, mc: 1 } } : {},
       amounts: m === "exact" ? { you: 5000, pp: 5000, mc: 5000, jt: 3468 } : {} });
   }, [receiptId, methodParam, draft.seeded, !!receipt]); // eslint-disable-line react-hooks/exhaustive-deps

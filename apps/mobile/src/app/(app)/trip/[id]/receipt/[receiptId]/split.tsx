@@ -1,6 +1,6 @@
 import { byItemProgress, defaultRestSelection, effectiveItems, fillRemainingEvenly, splitEven, splitExact, splitRestEvenly, tapItem, tapItemEveryone, type Claims } from "@bunktab/core";
 import { color, layout, palette, radius, shadow, size, space } from "@bunktab/theme";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Button, CountUp, Icon, Press, Rise, SegmentedControl, Zebra, ZText, formatMoney, haptic } from "@/ui";
@@ -28,6 +28,7 @@ const SEGMENTS: { key: Method; label: string }[] = [{ key: "equal", label: "Even
 export default function SplitScreen() {
   const { id, receiptId, method: methodParam, state } = useLocalSearchParams<{ id: string; receiptId: string; method?: Method; state?: string }>();
   const router = useRouter();
+  const nav = useNavigation();
   const flow = useFlow(id, receiptId);
   const { receipt, totals, draft, update, people, participants, me } = flow;
   const method: Method = (draft.method ?? methodParam ?? "equal") as Method;
@@ -40,13 +41,14 @@ export default function SplitScreen() {
 
   // DEV demo states
   useEffect(() => {
-    if (receiptId !== DEMO_ID || !__DEV__ || !draft.seeded || !receipt) return;
+    if (receiptId !== DEMO_ID || !__DEV__ || !draft.seeded || !receipt || !nav.isFocused()) return;
     const four = ["you", "pp", "mc", "jt"];
+    update({ tip: { mode: "percent", percent: 20 } });
     if (method === "itemized") {
       const start: Claims = { guac: { jt: 1 }, pac: { jt: 1 } };
       const items = effectiveItems(receipt);
       update({ participants: four, active: "jt", claims: state === "done" ? splitRestEvenly(items, start, ["you", "pp", "mc"]) : start });
-      if (state === "sheet") { setRestSel(["you", "pp", "mc"]); setRestOpen(true); }
+      setRestSel(["you", "pp", "mc"]); setRestOpen(state === "sheet");
     } else if (method === "exact") {
       update({ participants: four, amounts: state === "adds" ? { you: 5000, pp: 5000, mc: 5000, jt: 3468 } : state === "over" ? { you: 7000, pp: 6000, mc: 6000, jt: 2000 } : { you: 6000, pp: 5000, mc: 5000, jt: 0 } });
     } else update({ participants: state === "deselect" ? ["you", "pp", "mc"] : four });

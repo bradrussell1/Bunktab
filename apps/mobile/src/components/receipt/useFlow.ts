@@ -34,8 +34,9 @@ export function useFlow(tripId: string | undefined, receiptId: string | undefine
   const { session } = useAuth();
   const demo = receiptId === DEMO_ID;
   const me = demo ? "you" : session?.user.id ?? "";
-  const { data: trip, reload } = useTrip(demo ? undefined : tripId);
-  const { data: bundle } = useReceipt(receiptId);
+  const { data: trip, reload: reloadTrip } = useTrip(demo ? undefined : tripId);
+  const { data: bundle, reload: reloadReceipt } = useReceipt(receiptId);
+  const reload = () => { reloadTrip(); reloadReceipt(); };
   const [draft, update] = useSplitDraft(receiptId ?? "none");
 
   const people: Person[] = useMemo(() => {
@@ -83,18 +84,24 @@ export function itemsLineFor(personId: string, method: Method, receipt: SplitRec
   if (method === "exact") return "Amount set by hand";
   const named: string[] = []; const shared: { frac: string; count: number }[] = [];
   const fracLabel = (n: number) => (n === 2 ? "½" : n === 3 ? "⅓" : n === 4 ? "¼" : n === 5 ? "⅕" : n === 6 ? "⅙" : n === 8 ? "⅛" : `1/${n}`);
+  let elsewhere = 0; // dishes this person has no part of
   for (const it of receipt.items) {
-    const c = claims[it.id] ?? {}; const u = c[personId] ?? 0; if (u <= 1e-6) continue;
+    const c = claims[it.id] ?? {}; const u = c[personId] ?? 0;
+    if (u <= 1e-6) { elsewhere++; continue; }
     const claimers = Object.keys(c).filter((k) => (c[k] ?? 0) > 1e-6);
     if (it.quantity > 1 && Math.abs(u - Math.round(u)) < 1e-6) { named.push(`${it.name} ×${Math.round(u)}`); continue; }
     if (claimers.length === 1) { named.push(it.name); continue; }
-    const even = claimers.every((k) => Math.abs((c[k] ?? 0) - u) < 1e-6);
-    const frac = even ? fracLabel(claimers.length) : "part";
+    // the people sharing the fractional remainder of this dish (whole units named by someone else don't count)
+    const sharers = claimers.filter((k) => Math.abs((c[k] ?? 0) - Math.round(c[k] ?? 0)) > 1e-6 || it.quantity <= 1);
+    const even = sharers.every((k) => Math.abs((c[k] ?? 0) - u) < 1e-6);
+    const frac = even ? fracLabel(sharers.length) : "part";
     const s = shared.find((x) => x.frac === frac); if (s) s.count++; else shared.push({ frac, count: 1 });
   }
   const parts = [...named];
-  const others = receipt.items.length - named.length;
-  for (const s of shared) parts.push(named.length === 0 && s.count === receipt.items.length ? `${s.frac} of everything` : s.count === others && shared.length === 1 ? `${s.frac} of everything else` : `${s.frac} of ${s.count} ${s.count === 1 ? "dish" : "dishes"}`);
+  for (const s of shared) {
+    const all = named.length === 0 && shared.length === 1;
+    parts.push(all && elsewhere === 0 ? `${s.frac} of everything` : all && elsewhere > 0 ? `${s.frac} of everything else` : `${s.frac} of ${s.count} ${s.count === 1 ? "dish" : "dishes"}`);
+  }
   return parts.length ? parts.join(" · ") : "Nothing yet";
 }
 
