@@ -201,6 +201,7 @@ export default function ExpenseScreen() {
       const r = await captureReceipt(data.trip.id, source);
       if (!r) return;
       if (r.queued) { setReceiptNote("No connection. The photo will upload when you're back online."); return; }
+      if (r.aiDisabled) { setReceiptPath(r.storagePath ?? null); setReceiptNote("Photo saved. Receipt reading is paused right now, so enter the total below."); return; }
       router.replace({ pathname: "/(app)/trip/[id]/receipt/[receiptId]", params: { id: data.trip.id, receiptId: r.receiptId } });
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't upload the receipt."); }
     finally { setReceiptBusy(false); }

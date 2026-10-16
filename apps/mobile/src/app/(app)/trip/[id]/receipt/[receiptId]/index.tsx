@@ -55,6 +55,7 @@ export default function ReceiptReadScreen() {
       const r = await captureReceipt(id!, source);
       if (!r) return;
       if (r.queued) { show({ message: "No connection. The photo will upload when you're back online." }); return; }
+      if (r.aiDisabled) { router.replace({ pathname: "/(app)/trip/[id]/expense", params: { id: id!, receipt_path: r.storagePath! } }); return; }
       router.replace({ pathname: "/(app)/trip/[id]/receipt/[receiptId]", params: { id: id!, receiptId: r.receiptId } });
     } catch (e) { show({ message: e instanceof Error ? e.message : "Couldn't upload the photo." }); }
   }

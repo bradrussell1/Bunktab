@@ -64,7 +64,15 @@ export async function prepareReceiptImage(localUri: string, width?: number, heig
   return { uri: saved.uri, bytes, sha };
 }
 
-export type CaptureResult = { receiptId: string; queued: boolean; existing: boolean };
+export type CaptureResult = { receiptId: string; queued: boolean; existing: boolean; /** AI reading is switched off: the photo is saved, the caller opens manual entry with it attached. */ aiDisabled?: boolean; storagePath?: string };
+
+/** Server settings for the receipt flow (kill switch, daily limit). Defaults to enabled when the call fails. */
+export async function receiptSettings(): Promise<{ aiEnabled: boolean; dailyLimit: number }> {
+  try {
+    const { data } = await supabase.rpc("receipt_settings");
+    return { aiEnabled: data?.ai_enabled !== false, dailyLimit: Number(data?.daily_limit ?? 30) };
+  } catch { return { aiEnabled: true, dailyLimit: 30 }; }
+}
 
 /** Upload + insert the receipts row (or reuse the trip's existing row for the same photo). */
 export async function uploadAndQueue(tripId: string, uri: string, bytes: Uint8Array, sha: string, receiptId = Crypto.randomUUID()): Promise<CaptureResult> {
@@ -96,6 +104,14 @@ export async function captureReceipt(tripId: string, source: "camera" | "library
   if (!uri) return null;
   const prepared = await prepareReceiptImage(uri);
   const receiptId = Crypto.randomUUID();
+  // Kill switch (RECEIPT_PIPELINE_PROMPT Step 9): with the AI off, keep the photo and skip straight to manual entry.
+  const settings = await receiptSettings();
+  if (!settings.aiEnabled) {
+    const path = `${tripId}/${receiptId}.jpg`;
+    const { error: upErr } = await supabase.storage.from("receipts").upload(path, prepared.bytes, { contentType: "image/jpeg", upsert: true });
+    if (upErr) throw upErr;
+    return { receiptId, queued: false, existing: false, aiDisabled: true, storagePath: path };
+  }
   try {
     return await uploadAndQueue(tripId, prepared.uri, prepared.bytes, prepared.sha, receiptId);
   } catch (e) {

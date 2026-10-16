@@ -54,6 +54,7 @@ export default function TripScreen() {
       const r = await captureReceipt(data.trip.id, source);
       if (!r) return;
       if (r.queued) { show({ message: "No connection. The photo will upload when you're back online." }); return; }
+      if (r.aiDisabled) { router.push({ pathname: "/(app)/trip/[id]/expense", params: { id: data.trip.id, receipt_path: r.storagePath! } }); return; }
       router.push({ pathname: "/(app)/trip/[id]/receipt/[receiptId]", params: { id: data.trip.id, receiptId: r.receiptId } });
     } catch (e) { show({ message: e instanceof Error ? e.message : "Couldn't upload the photo." }); }
   }
