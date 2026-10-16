@@ -1,0 +1,64 @@
+{
+  "readable": true,
+  "merchant": "Bar Tomate",
+  "date": "2026-10-07",
+  "currency": "EUR",
+  "items": [
+    {
+      "name": "Pan con tomate",
+      "quantity": 2,
+      "line_total_cents": 700,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Jamon iberico",
+      "quantity": 1,
+      "line_total_cents": 1800,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Gambas al ajillo",
+      "quantity": 1,
+      "line_total_cents": 1400,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Tortilla",
+      "quantity": 1,
+      "line_total_cents": 900,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Vermut",
+      "quantity": 3,
+      "line_total_cents": 1350,
+      "kind": "alcohol",
+      "is_void": false
+    },
+    {
+      "name": "Agua con gas",
+      "quantity": 1,
+      "line_total_cents": 300,
+      "kind": "drink",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 6450,
+  "tax_lines": [
+    {
+      "label": "IVA 10% (INCLUIDO)",
+      "amount_cents": 586,
+      "applies_to": "all"
+    }
+  ],
+  "fees": [],
+  "discounts": [],
+  "printed_total_cents": 6450,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": true,
+  "pages": 1
+}

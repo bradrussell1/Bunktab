@@ -1,0 +1,229 @@
+{
+  "summary": {
+    "fixtures": 12,
+    "reconciledPassRate": 0.9090909090909091,
+    "totalsExactRate": 1,
+    "lineAccuracy": 1,
+    "nonReceiptRejected": true,
+    "mode": "remote",
+    "at": "2026-10-16T16:42:30.883Z"
+  },
+  "results": [
+    {
+      "name": "auto-gratuity",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 7,
+      "linesRead": 7,
+      "lineHits": 7,
+      "ms": 11573,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 6626
+        }
+      ]
+    },
+    {
+      "name": "bar-tab",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 6,
+      "linesRead": 6,
+      "lineHits": 6,
+      "ms": 9169,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 6151
+        }
+      ]
+    },
+    {
+      "name": "comp-and-void",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 5,
+      "linesRead": 6,
+      "lineHits": 5,
+      "ms": 10504,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 6685
+        }
+      ]
+    },
+    {
+      "name": "coupon-discount",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 5,
+      "linesRead": 5,
+      "lineHits": 5,
+      "ms": 16836,
+      "attempts": [
+        {
+          "model": "claude-opus-5",
+          "latencyMs": 13783
+        }
+      ]
+    },
+    {
+      "name": "faded-thermal",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 5,
+      "linesRead": 5,
+      "lineHits": 5,
+      "ms": 11418,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 5527
+        }
+      ]
+    },
+    {
+      "name": "grocery-long",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 34,
+      "linesRead": 34,
+      "lineHits": 34,
+      "ms": 24941,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 21266
+        }
+      ]
+    },
+    {
+      "name": "handwritten-tip",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 4,
+      "linesRead": 4,
+      "lineHits": 4,
+      "ms": 8239,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 4856
+        }
+      ]
+    },
+    {
+      "name": "not-a-receipt",
+      "expectedReadable": false,
+      "status": "failed:unreadable",
+      "reconciled": false,
+      "totalExact": true,
+      "subtotalExact": null,
+      "linesExpected": 0,
+      "linesRead": 0,
+      "lineHits": 0,
+      "ms": 5953,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 2300
+        }
+      ]
+    },
+    {
+      "name": "restaurant-bill",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 7,
+      "linesRead": 7,
+      "lineHits": 7,
+      "ms": 10188,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 6574
+        }
+      ]
+    },
+    {
+      "name": "skewed-cafe",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 4,
+      "linesRead": 4,
+      "lineHits": 4,
+      "ms": 9666,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 4889
+        }
+      ]
+    },
+    {
+      "name": "two-photo",
+      "expectedReadable": true,
+      "status": "needs_review",
+      "reconciled": false,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 9,
+      "linesRead": 12,
+      "lineHits": 9,
+      "ms": 31488,
+      "attempts": [
+        {
+          "model": "claude-opus-5",
+          "latencyMs": 26332
+        }
+      ]
+    },
+    {
+      "name": "vat-inclusive",
+      "expectedReadable": true,
+      "status": "ready",
+      "reconciled": true,
+      "totalExact": true,
+      "subtotalExact": true,
+      "linesExpected": 6,
+      "linesRead": 6,
+      "lineHits": 6,
+      "ms": 11489,
+      "attempts": [
+        {
+          "model": "claude-sonnet-5",
+          "latencyMs": 6059
+        }
+      ]
+    }
+  ]
+}

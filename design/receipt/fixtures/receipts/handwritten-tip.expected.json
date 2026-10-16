@@ -1,0 +1,50 @@
+{
+  "readable": true,
+  "merchant": "Juniper & Ash",
+  "date": "2026-10-09",
+  "currency": "USD",
+  "items": [
+    {
+      "name": "Roast chicken",
+      "quantity": 1,
+      "line_total_cents": 2800,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Mushroom risotto",
+      "quantity": 1,
+      "line_total_cents": 2400,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Little gem salad",
+      "quantity": 1,
+      "line_total_cents": 1400,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Pinot noir",
+      "quantity": 2,
+      "line_total_cents": 3200,
+      "kind": "alcohol",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 9800,
+  "tax_lines": [
+    {
+      "label": "TAX",
+      "amount_cents": 833,
+      "applies_to": "all"
+    }
+  ],
+  "fees": [],
+  "discounts": [],
+  "printed_total_cents": 10633,
+  "tip_printed_cents": 2000,
+  "tax_included_in_prices": false,
+  "pages": 1
+}

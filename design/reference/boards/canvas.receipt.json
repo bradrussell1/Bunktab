@@ -1,0 +1,140 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Delight.dc.html": {
+      "h": 904,
+      "is_interactive": true,
+      "title": "Moments of delight (tap each to play)",
+      "w": 1208,
+      "x": 0,
+      "y": 1520
+    },
+    "Main.dc.html": {
+      "h": 844,
+      "title": "Your dazzles (home)",
+      "w": 390,
+      "x": 960,
+      "y": 0
+    },
+    "Nights.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Who slept where (tap to play)",
+      "w": 390,
+      "x": 2370,
+      "y": 0
+    },
+    "Receipt-Read.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Receipt read: every item, tip (incl. custom), pick a split",
+      "w": 390,
+      "x": 0,
+      "y": 2824
+    },
+    "Split-Custom.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "B \u00b7 Custom amounts (tap + / \u2212)",
+      "w": 390,
+      "x": 940,
+      "y": 2824
+    },
+    "Split-Dish.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "C \u00b7 By item (pick a person, tap dishes, split the rest)",
+      "w": 390,
+      "x": 1410,
+      "y": 2824
+    },
+    "Split-Even.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "A \u00b7 Split evenly (tap who was there)",
+      "w": 390,
+      "x": 470,
+      "y": 2824
+    },
+    "Split-Review.dc.html": {
+      "h": 844,
+      "title": "Summary: same layout for every split (tap to preview)",
+      "w": 390,
+      "x": 1880,
+      "y": 2824,
+      "is_interactive": true
+    },
+    "Stripes.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "title": "Earn your stripes (tap to play)",
+      "w": 390,
+      "x": 1900,
+      "y": 0
+    },
+    "System.dc.html": {
+      "h": 1120,
+      "title": "System: zebra, moods, color, type",
+      "w": 880,
+      "x": 0,
+      "y": 0
+    },
+    "Trip.dc.html": {
+      "h": 844,
+      "title": "Dazzle (trip)",
+      "w": 390,
+      "x": 1430,
+      "y": 0
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-14T17:40:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "dirA": {
+      "kind": "title1",
+      "maxW": 2760,
+      "text": "Zebrasplit: one direction. Black & white with volt and pink, on a soft cream gradient",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "dirD": {
+      "kind": "title1",
+      "maxW": 1208,
+      "text": "Moments of delight",
+      "w": 240,
+      "x": 0,
+      "y": 1220
+    },
+    "dirR": {
+      "kind": "title1",
+      "maxW": 2270,
+      "text": "Receipt reader: snap it, read every item, split it three ways",
+      "w": 240,
+      "x": 0,
+      "y": 2524
+    }
+  },
+  "order": [
+    "System.dc.html",
+    "Main.dc.html",
+    "Trip.dc.html",
+    "Stripes.dc.html",
+    "Nights.dc.html",
+    "Delight.dc.html",
+    "Receipt-Read.dc.html",
+    "Split-Even.dc.html",
+    "Split-Custom.dc.html",
+    "Split-Dish.dc.html",
+    "Split-Review.dc.html"
+  ],
+  "pages": [],
+  "title": "Zebrasplit design directions"
+}

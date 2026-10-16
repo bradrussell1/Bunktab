@@ -1,0 +1,77 @@
+{
+  "readable": true,
+  "merchant": "Vela Rooftop",
+  "date": "2026-10-10",
+  "currency": "USD",
+  "items": [
+    {
+      "name": "Burrata",
+      "quantity": 1,
+      "line_total_cents": 1600,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Cacio e pepe",
+      "quantity": 2,
+      "line_total_cents": 4400,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Branzino",
+      "quantity": 1,
+      "line_total_cents": 3400,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Short rib",
+      "quantity": 1,
+      "line_total_cents": 3800,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Tiramisu",
+      "quantity": 2,
+      "line_total_cents": 2200,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Negroni",
+      "quantity": 4,
+      "line_total_cents": 6000,
+      "kind": "alcohol",
+      "is_void": false
+    },
+    {
+      "name": "Sparkling water",
+      "quantity": 2,
+      "line_total_cents": 1200,
+      "kind": "drink",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 22600,
+  "tax_lines": [
+    {
+      "label": "TAX 9.5%",
+      "amount_cents": 2147,
+      "applies_to": "all"
+    }
+  ],
+  "fees": [
+    {
+      "label": "SERVICE CHARGE 20% (PARTY OF 7)",
+      "amount_cents": 4520,
+      "kind": "auto_gratuity"
+    }
+  ],
+  "discounts": [],
+  "printed_total_cents": 29267,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": false,
+  "pages": 1
+}

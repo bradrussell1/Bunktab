@@ -1,0 +1,77 @@
+{
+  "$comment": "JSON schema sent to Claude via structured outputs (output_config.format, type json_schema). Amounts are decimal STRINGS exactly as printed (e.g. \"12.50\", \"-3.00\"); the app converts them to integer cents. Numeric limits are not supported by structured outputs, so validate ranges in code (Zod) after parsing.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["readable", "merchant", "date", "currency", "items", "subtotal", "tax_lines", "fees", "discounts", "total", "tip_printed", "tax_included_in_prices", "confidence", "notes"],
+  "properties": {
+    "readable": { "type": "boolean", "description": "False if this is not a receipt or is too blurry/cropped to read line items." },
+    "merchant": { "type": ["string", "null"] },
+    "date": { "type": ["string", "null"], "format": "date" },
+    "currency": { "type": ["string", "null"], "description": "ISO 4217 code if printed or obvious from symbols; else null." },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["raw_text", "name", "quantity", "unit_price", "line_total", "kind", "modifiers", "is_void", "confidence"],
+        "properties": {
+          "raw_text": { "type": "string", "description": "The line exactly as printed." },
+          "name": { "type": "string", "description": "Clean, human name in sentence case, e.g. \"Fish tacos\"." },
+          "quantity": { "type": "number", "description": "Whole units ordered on this line (\"2 @ 12.00\" -> 2). Default 1." },
+          "unit_price": { "type": ["string", "null"] },
+          "line_total": { "type": "string", "description": "Total for the line including modifiers. Negative for comps/voids." },
+          "kind": { "type": "string", "enum": ["food", "drink", "alcohol", "other"] },
+          "modifiers": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false, "required": ["text", "amount"],
+              "properties": { "text": { "type": "string" }, "amount": { "type": ["string", "null"] } }
+            }
+          },
+          "is_void": { "type": "boolean" },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low"] }
+        }
+      }
+    },
+    "subtotal": { "type": ["string", "null"] },
+    "tax_lines": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["label", "amount", "applies_to"],
+        "properties": {
+          "label": { "type": "string" },
+          "amount": { "type": "string" },
+          "applies_to": { "type": "string", "enum": ["all", "alcohol", "food", "unknown"] }
+        }
+      }
+    },
+    "fees": {
+      "type": "array",
+      "description": "Service charges, automatic gratuity for large parties, delivery or kitchen fees. NOT a handwritten or optional tip.",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["label", "amount", "kind"],
+        "properties": {
+          "label": { "type": "string" },
+          "amount": { "type": "string" },
+          "kind": { "type": "string", "enum": ["service_charge", "auto_gratuity", "other_fee"] }
+        }
+      }
+    },
+    "discounts": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["label", "amount", "item_index"],
+        "properties": {
+          "label": { "type": "string" },
+          "amount": { "type": "string", "description": "Negative amount as printed." },
+          "item_index": { "type": ["integer", "null"], "description": "Index into items if the discount is tied to one line; else null." }
+        }
+      }
+    },
+    "total": { "type": ["string", "null"], "description": "The printed total BEFORE any tip line." },
+    "tip_printed": { "type": ["string", "null"], "description": "A tip already written/printed on the receipt, if any. Reported only; the app ignores it and asks the user." },
+    "tax_included_in_prices": { "type": "boolean", "description": "True for VAT-inclusive receipts (common outside the US)." },
+    "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+    "notes": { "type": ["string", "null"], "description": "Anything ambiguous: torn edge, second page likely, illegible line." }
+  }
+}

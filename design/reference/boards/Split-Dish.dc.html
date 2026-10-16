@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Zebrasplit, Split by dish</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..900&amp;family=IBM+Plex+Mono:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1D1A17}a:hover{color:#3A3631}
+button{font-family:inherit}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(0.1)}}
+.zeye{transform-box:fill-box;transform-origin:center;animation:blink 3.8s infinite}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.rise{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+.press{transition:transform 120ms ease}.press:active{transform:scale(0.97)}
+.scrolly::-webkit-scrollbar{display:none}
+.scr{overflow-y:auto;scrollbar-width:none}.scr::-webkit-scrollbar{display:none}.scr>*{flex-shrink:0}
+.dock{position:sticky;bottom:0;z-index:5;background:linear-gradient(180deg,rgba(245,240,231,0) 0%,#F5F0E7 34%)}
+.locked{background:#E6DFD3;color:#5C5852;border:1.5px solid #D3CDC3;box-sizing:border-box}
+.torn{clip-path: polygon(0 0, 100% 0, 100% 97%, 96% 100%, 92% 97%, 88% 100%, 84% 97%, 80% 100%, 76% 97%, 72% 100%, 68% 97%, 64% 100%, 60% 97%, 56% 100%, 52% 97%, 48% 100%, 44% 97%, 40% 100%, 36% 97%, 32% 100%, 28% 97%, 24% 100%, 20% 97%, 16% 100%, 12% 97%, 8% 100%, 4% 97%, 0 100%)}
+
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: radial-gradient(120% 55% at 100% 0%, #FFE9F3 0%, rgba(255,233,243,0) 60%), radial-gradient(100% 45% at 0% 22%, #F6FFD3 0%, rgba(246,255,211,0) 55%), linear-gradient(180deg, #FFFFFF 0%, #FBF8F2 50%, #F5F0E7 100%); color: #1D1A17; font-family: 'Figtree', system-ui, sans-serif; display: flex; flex-direction: column" class="scr">
+  <div style="padding: 52px 16px 0 16px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Receipt-Read.dc.html" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(29,26,23,0.06), 0 6px 16px rgba(29,26,23,0.06); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D1A17" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <span style="font-size: 13px; font-weight: 700; background: #FFFFFF; border-radius: 999px; padding: 7px 12px; box-shadow: 0 1px 2px rgba(29,26,23,0.05)">El Faro Cantina · $184.68</span>
+  </div>
+
+  <div style="padding: 8px 20px 0 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 8px">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <h1 style="margin: 0; font-size: 28px; line-height: 1.05; font-weight: 800; letter-spacing: -0.03em; white-space: nowrap">Split by Item</h1>
+      <span style="font-size: 13px; color: #6E6A63">Select who was involved in each dish</span>
+    </div>
+    <svg width="58" height="53" viewBox="30 -8 200 184" aria-hidden="true" style="flex-shrink: 0; margin-bottom: -4px"><path d="M141.3 52.2 L152.8 50.0 L168.6 45.0 L170.6 61.4 L187.0 60.9 L184.5 77.1 L200.5 80.5 L194.2 95.6 L209.0 102.5 L199.3 115.7 L212.0 124.9 L200.3 134.3 L213.0 138.4 L202.8 146.0 L215.1 143.8 L208.0 154.2 L208.7 163.1 L201.2 171.1 L195.5 165.7 L190.6 159.4 L187.0 152.3 L184.6 144.5 L183.4 135.8 L183.0 126.4 L182.5 117.9 L180.9 109.7 L178.3 101.7 L174.8 94.0 L170.5 86.7 L165.3 80.1 L159.4 74.3 L152.9 69.4 L145.8 65.5 L137.7 62.6 Z" fill="#1D1A17" stroke="#1D1A17" stroke-width="6" stroke-linejoin="round"></path><path d="M124 140 C114 168 110 196 116 222 L206 222 C192 168 184 150 186 124 L140 110 Z" fill="#FFFBF2" stroke="#1D1A17" stroke-width="4" stroke-linejoin="round"></path><path d="M162 152 Q178 146 192 150" stroke="#1D1A17" stroke-width="10" fill="none" stroke-linecap="round"></path><g transform="rotate(-52 82 58)"><ellipse cx="82" cy="40" rx="15" ry="27" fill="#FFFBF2" stroke="#1D1A17" stroke-width="4"></ellipse><ellipse cx="82" cy="44" rx="7.5" ry="17" fill="#F5A9B8"></ellipse></g><g transform="rotate(52 158 58)"><ellipse cx="158" cy="40" rx="15" ry="27" fill="#FFFBF2" stroke="#1D1A17" stroke-width="4"></ellipse><ellipse cx="158" cy="44" rx="7.5" ry="17" fill="#F5A9B8"></ellipse></g><ellipse cx="120" cy="98" rx="60" ry="54" fill="#1D1A17" stroke="#1D1A17" stroke-width="8"></ellipse><ellipse cx="120" cy="140" rx="42" ry="28" fill="#1D1A17" stroke="#1D1A17" stroke-width="8"></ellipse><ellipse cx="120" cy="98" rx="60" ry="54" fill="#FFFBF2"></ellipse><ellipse cx="120" cy="140" rx="42" ry="28" fill="#9B9590"></ellipse><ellipse cx="120" cy="134" rx="30" ry="12" fill="#ABA59F" opacity="0.7"></ellipse><path d="M104 136 q-3 6 2 9 M136 136 q3 6 -2 9" stroke="#3C3833" stroke-width="4" fill="none" stroke-linecap="round"></path><ellipse cx="76" cy="118" rx="10" ry="6.5" fill="#F7A8BC"></ellipse><ellipse cx="164" cy="118" rx="10" ry="6.5" fill="#F7A8BC"></ellipse><g style="opacity: {{zw}}; transition: opacity 250ms ease">  <g class="zeye"><ellipse cx="97" cy="96" rx="7" ry="8" fill="#1D1A17"></ellipse><circle cx="100" cy="92" r="2.6" fill="#FFFFFF"></circle><circle cx="95" cy="100" r="1.4" fill="#FFFFFF"></circle></g>  <g class="zeye"><ellipse cx="143" cy="96" rx="7" ry="8" fill="#1D1A17"></ellipse><circle cx="146" cy="92" r="2.6" fill="#FFFFFF"></circle><circle cx="141" cy="100" r="1.4" fill="#FFFFFF"></circle></g>  <path d="M168 66 C168 66 159 79 159 85 A9 9 0 0 0 177 85 C177 79 168 66 168 66 Z" fill="#FFFFFF" stroke="#1D1A17" stroke-width="2.5"></path></g><g style="opacity: {{zh}}; transition: opacity 250ms ease">  <path d="M88 100 q9 -11 18 0 M134 100 q9 -11 18 0" stroke="#1D1A17" stroke-width="5.5" fill="none" stroke-linecap="round"></path></g><path d="M100 52 C96 40 102 30 112 28 C110 36 116 40 120 34 C120 26 128 20 138 22 C132 30 136 38 144 38 C140 50 124 58 100 52 Z" fill="#1D1A17" stroke="#1D1A17" stroke-width="3" stroke-linejoin="round"></path></svg>
+  </div>
+  <div style="margin: 12px 16px 0 16px; display: flex; background: rgba(29,26,23,0.06); border-radius: 999px; padding: 4px">
+    <a href="Split-Even.dc.html" style="flex: 1; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; background: transparent; font-weight: 600; color: #6E6A63">Evenly</a>
+    <a href="Split-Custom.dc.html" style="flex: 1; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; background: transparent; font-weight: 600; color: #6E6A63">Amounts</a>
+    <a href="Split-Dish.dc.html" style="flex: 1; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(29,26,23,0.1); font-weight: 700; color: #1D1A17">By dish</a>
+  </div>
+
+  <div style="margin: 12px 16px 0 16px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; flex-shrink: 0">
+    <sc-for list="{{pickers}}" as="p" hint-placeholder-count="5">
+      <button onClick="{{p.pick}}" aria-pressed="{{p.active}}" aria-label="{{p.aria}}" style="border: none; background: transparent; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: #1D1A17">
+        <span class="press" style="width: 42px; height: 42px; border-radius: 21px; box-sizing: border-box; background: {{p.dotBg}}; color: {{p.dotFg}}; border: {{p.border}}; box-shadow: {{p.ring}}; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; transition: background 200ms ease, box-shadow 200ms ease">{{p.ini}}</span>
+        <span style="font-size: 12px; font-weight: {{p.weight}}; color: {{p.nameColor}}">{{p.name}}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="margin: 10px 16px 0 16px; background: #FFFFFF; border-radius: 24px; padding: 2px 12px; box-shadow: 0 1px 2px rgba(29,26,23,0.04), 0 8px 24px rgba(29,26,23,0.05); display: flex; flex-direction: column">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="8">
+      <button class="press" onClick="{{it.tap}}" aria-label="{{it.aria}}" style="display: flex; align-items: center; gap: 10px; padding: 5px 4px; border: none; border-top: {{it.rule}}; background: {{it.bg}}; border-radius: 14px; text-align: left; cursor: pointer; color: #1D1A17; transition: background 200ms ease; flex-shrink: 0">
+        <span style="width: 8px; height: 8px; border-radius: 4px; background: {{it.dot}}; flex-shrink: 0"></span>
+        <span style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0">
+          <span style="font-size: 14px; line-height: 18px; font-weight: 700; white-space: nowrap; overflow: hidden">{{it.name}}</span>
+          <span style="font-size: 12px; line-height: 15px; color: {{it.subColor}}">{{it.sub}}</span>
+        </span>
+        <span style="display: flex; gap: 3px">
+          <sc-for list="{{it.chips}}" as="c" hint-placeholder-count="2">
+            <span style="height: 22px; min-width: 22px; padding: 0 5px; box-sizing: border-box; border-radius: 11px; background: {{c.bg}}; color: {{c.fg}}; font-size: 9px; font-weight: 800; display: flex; align-items: center; justify-content: center">{{c.label}}</span>
+          </sc-for>
+        </span>
+        <span style="width: 54px; text-align: right; font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums">{{it.price}}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="position: sticky; bottom: 0; z-index: 5; margin-top: auto; padding-top: 12px">
+  <div style="background: #FFFFFF; border-radius: 30px 30px 0 0; box-shadow: 0 -8px 30px rgba(29,26,23,0.08); padding: 12px 16px 24px 16px; display: flex; flex-direction: column; gap: 8px">
+    <sc-if value="{{sheetClosed}}" hint-placeholder-val="{{ true }}">
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+        <sc-for list="{{totals}}" as="t" hint-placeholder-count="4">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 1px; background: {{t.bg}}; border-radius: 16px; padding: 6px 2px; transition: background 200ms ease">
+            <span style="font-size: 12px; font-weight: 700; color: {{t.nameColor}}">{{t.name}}</span>
+            <span style="font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; color: {{t.fg}}">{{t.total}}</span>
+            <span style="font-size: 11px; color: {{t.pctColor}}">{{t.pct}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; background: {{lineBg}}; color: {{lineFg}}; border-radius: 16px; padding: 8px 8px 8px 14px; min-height: 40px; box-sizing: border-box; transition: background 250ms ease">
+        <span style="font-size: 13px; font-weight: 700">{{lineText}}</span>
+        <sc-if value="{{hasLeft}}" hint-placeholder-val="{{ true }}">
+          <button class="press" onClick="{{openSheet}}" style="white-space: nowrap; height: 30px; padding: 0 12px; border-radius: 999px; border: none; background: #1D1A17; color: #FFFFFF; font-size: 12px; font-weight: 800; cursor: pointer">Split the rest evenly</button>
+        </sc-if>
+        <sc-if value="{{noneLeft}}" hint-placeholder-val="{{ false }}">
+          <button class="press" onClick="{{reset}}" style="white-space: nowrap; height: 30px; padding: 0 12px; border-radius: 999px; border: 1.5px solid #E8E2D8; background: #FFFFFF; font-size: 12px; font-weight: 800; color: #1D1A17; cursor: pointer">Start over</button>
+        </sc-if>
+      </div>
+      <sc-if value="{{hasLeft}}" hint-placeholder-val="{{ true }}">
+        <div class="locked" aria-disabled="true" style="height: 54px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums">{{lockedCta}}</div>
+      </sc-if>
+      <sc-if value="{{noneLeft}}" hint-placeholder-val="{{ false }}">
+        <a class="press rise" href="Split-Review.dc.html" style="height: 54px; border-radius: 999px; background: #E2FF2B; color: #1D1A17; box-shadow: 0 8px 20px rgba(140,160,0,0.25); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; text-decoration: none">Review the split</a>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{sheetOpen}}" hint-placeholder-val="{{ false }}">
+      <div class="rise" style="display: flex; flex-direction: column; gap: 12px">
+        <span style="width: 36px; height: 5px; border-radius: 3px; background: #E6DFD3; align-self: center"></span>
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 18px; font-weight: 800; letter-spacing: -0.01em">Split the rest evenly</span>
+          <span style="font-size: 13px; line-height: 1.4; color: #6E6A63">{{sheetLine}}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{restPeople}}" as="r" hint-placeholder-count="4">
+            <button class="press" onClick="{{r.toggle}}" aria-pressed="{{r.on}}" style="border: none; background: transparent; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: #1D1A17">
+              <span style="width: 44px; height: 44px; border-radius: 22px; box-sizing: border-box; background: {{r.bg}}; color: {{r.fg}}; border: {{r.border}}; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; transition: background 200ms ease">{{r.ini}}</span>
+              <span style="font-size: 12px; font-weight: 700">{{r.name}}</span>
+              <span style="font-size: 11px; color: #6E6A63; font-variant-numeric: tabular-nums">{{r.each}}</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 8px">
+          <button class="press" onClick="{{closeSheet}}" style="height: 52px; border-radius: 999px; border: 1.5px solid #E8E2D8; background: #FFFFFF; font-size: 16px; font-weight: 800; color: #1D1A17; cursor: pointer">Cancel</button>
+          <button class="press" onClick="{{confirmRest}}" style="height: 52px; border-radius: 999px; border: none; background: #1D1A17; color: #FFFFFF; font-size: 16px; font-weight: 800; cursor: pointer">{{confirmLabel}}</button>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+
+  constructor(props) {
+    super(props);
+    this.people = [{ id: 'you', name: 'You', ini: 'YOU' }, { id: 'pp', name: 'Priya', ini: 'PP' }, { id: 'mc', name: 'Mike', ini: 'MC' }, { id: 'jt', name: 'Jordan', ini: 'JT' }];
+    this.items = [
+      { id: 'guac', name: 'Guacamole & chips', price: 1400, qty: 1 },
+      { id: 'cev', name: 'Ceviche tostadas', price: 1800, qty: 1 },
+      { id: 'fish', name: 'Fish tacos', price: 1600, qty: 1 },
+      { id: 'carne', name: 'Carne asada plate', price: 2400, qty: 1 },
+      { id: 'shrimp', name: 'Shrimp enchiladas', price: 2100, qty: 1 },
+      { id: 'marg', name: 'Margarita', price: 2400, qty: 2 },
+      { id: 'pac', name: 'Pacifico', price: 1800, qty: 3 },
+      { id: 'churro', name: 'Churros', price: 900, qty: 1 }
+    ];
+    // Jordan only had the guac and one beer; everything else is still unclaimed.
+    this.start = { guac: { jt: 1 }, cev: {}, fish: {}, carne: {}, shrimp: {}, marg: {}, pac: { jt: 1 }, churro: {} };
+    this.state = { claims: JSON.parse(JSON.stringify(this.start)), active: 'jt', sheet: false, sel: null };
+  }
+  renderVals() {
+
+    const TOTAL_SUB = 14400, TAX = 1188;
+    const money = (c) => (c < 0 ? '−' : '') + '$' + (Math.abs(c) / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    // Split an integer number of cents by weight. Everyone is rounded down; any leftover cents go to the
+    // account holder (You, always listed first), so the parts add up exactly.
+    function allocate(total, weights) {
+      const sum = weights.reduce((a, b) => a + b, 0);
+      if (sum <= 0) return weights.map(() => 0);
+      const out = weights.map((w) => Math.floor((total * w) / sum + 1e-9));
+      const holder = weights.findIndex((w) => w > 0); // You if you're in the split, else the first person who is
+      out[holder] += total - out.reduce((a, b) => a + b, 0);
+      return out;
+    }
+    
+    const TIP = 2880;
+    const people = this.people, items = this.items;
+    const claims = this.state.claims, active = this.state.active;
+    const n = people.length;
+    const nameOf = {}; people.forEach((p) => { nameOf[p.id] = p.name; });
+    const iniOf = {}; people.forEach((p) => { iniOf[p.id] = p.ini; });
+    const eps = 1e-6;
+
+    // Cost of each item per person, and what's still unclaimed. Floats here, exact cents at the end.
+    const food = {}; people.forEach((p) => { food[p.id] = 0; });
+    let unclaimed = 0;
+    const info = items.map((it) => {
+      const c = claims[it.id] || {};
+      const ids = Object.keys(c).filter((k) => c[k] > eps);
+      let left = 0;
+      if (it.qty === 1) {
+        if (!ids.length) left = it.price;
+        ids.forEach((id) => { food[id] += it.price / ids.length; });
+      } else {
+        const unit = it.price / it.qty;
+        const used = ids.reduce((a, id) => a + c[id], 0);
+        left = unit * Math.max(0, it.qty - used);
+        ids.forEach((id) => { food[id] += unit * c[id]; });
+      }
+      unclaimed += left;
+      return { it: it, c: c, ids: ids, left: left };
+    });
+    const leftCents = Math.round(unclaimed);
+    const done = leftCents === 0;
+
+    // Tax and tip follow each person's share of the food. Exact to the cent once everything is claimed.
+    const weights = people.map((p) => food[p.id]);
+    const foodC = done ? allocate(TOTAL_SUB, weights) : weights.map((w) => Math.round(w));
+    const taxC = allocate(Math.round(TAX * (TOTAL_SUB - unclaimed) / TOTAL_SUB), weights);
+    const tipC = allocate(Math.round(TIP * (TOTAL_SUB - unclaimed) / TOTAL_SUB), weights);
+
+    const setClaims = (id, obj) => {
+      const next = Object.assign({}, claims, { [id]: obj });
+      this.setState({ claims: next });
+    };
+    const tapItem = (x) => {
+      const it = x.it, c = Object.assign({}, x.c);
+      if (active === 'all') {
+        const share = it.qty === 1 ? 1 : it.qty / n;
+        const allEven = people.every((p) => Math.abs((c[p.id] || 0) - share) < eps);
+        const next = {};
+        if (!allEven) people.forEach((p) => { next[p.id] = share; });
+        setClaims(it.id, next);
+        return;
+      }
+      if (it.qty === 1) {
+        if (c[active]) delete c[active]; else c[active] = 1;
+      } else {
+        const used = Object.keys(c).reduce((a, k) => a + c[k], 0);
+        const rem = it.qty - used;
+        if (rem >= 1 - eps) c[active] = (c[active] || 0) + 1;
+        else if (rem > eps) c[active] = (c[active] || 0) + rem;
+        else if (c[active]) delete c[active];
+      }
+      setClaims(it.id, c);
+    };
+    const fmtUnits = (u) => Math.abs(u - Math.round(u)) < eps ? String(Math.round(u)) : '';
+
+    const pickers = [{ id: 'all', name: 'Everyone', ini: 'ALL' }].concat(people).map((p) => {
+      const on = p.id === active;
+      return {
+        active: on, name: p.name, ini: p.ini,
+        aria: 'Assign dishes to ' + p.name,
+        dotBg: on ? '#1D1A17' : '#FFFFFF', dotFg: on ? '#E2FF2B' : '#1D1A17',
+        border: on ? 'none' : '1.5px solid #E8E2D8',
+        ring: on ? '0 0 0 3px #FFFBF2, 0 0 0 5px #1D1A17' : '0 1px 2px rgba(29,26,23,0.05)',
+        weight: on ? '800' : '600', nameColor: on ? '#1D1A17' : '#6E6A63',
+        pick: () => this.setState({ active: p.id })
+      };
+    });
+
+    const itemsOut = info.map((x, i) => {
+      const it = x.it, c = x.c, ids = x.ids;
+      const mine = active !== 'all' && c[active] > eps;
+      let sub, subColor = '#6E6A63';
+      if (it.qty === 1) {
+        if (!ids.length) { sub = 'Tap to claim'; subColor = '#A3195F'; }
+        else if (ids.length === 1) sub = nameOf[ids[0]];
+        else if (ids.length === n) sub = 'Everyone · ' + money(Math.round(it.price / n)) + ' each';
+        else sub = 'Shared by ' + ids.length + ' · ' + money(Math.round(it.price / ids.length)) + ' each';
+      } else {
+        const unit = it.price / it.qty;
+        const leftU = it.qty - ids.reduce((a, id) => a + c[id], 0);
+        sub = it.qty + ' × ' + money(Math.round(unit));
+        if (leftU > eps) { const lu = fmtUnits(leftU); sub += ' · ' + (lu ? lu + ' left' : 'some left'); subColor = '#A3195F'; }
+        else sub += ' · all claimed';
+      }
+      const chips = ids.length === n
+        ? [{ label: 'ALL', bg: '#1D1A17', fg: '#FFFFFF' }]
+        : ids.map((id) => {
+            const u = it.qty > 1 ? fmtUnits(c[id]) : '';
+            const isAct = id === active;
+            return { label: iniOf[id] + (u && u !== '1' ? ' ×' + u : ''), bg: isAct ? '#1D1A17' : '#F3EFE8', fg: isAct ? '#FFFFFF' : '#1D1A17' };
+          });
+      return {
+        name: it.name + (it.qty > 1 ? ' ×' + it.qty : ''),
+        sub: sub, subColor: subColor, chips: chips,
+        price: money(it.price),
+        dot: x.left > 0.5 ? '#FF4FA3' : 'transparent',
+        bg: mine ? '#FAF7F2' : 'transparent',
+        rule: i === 0 ? 'none' : '1px solid #F0EBE2',
+        aria: it.name + ', ' + sub,
+        tap: () => tapItem(x)
+      };
+    });
+
+    const sel = this.state.sel || {};
+    const selIds = people.filter((p) => sel[p.id]).map((p) => p.id);
+    const restSplit = allocate(leftCents, people.map((p) => (sel[p.id] ? 1 : 0)));
+    const restEach = {}; people.forEach((p, i) => { restEach[p.id] = restSplit[i]; });
+    const grandAssigned = foodC.reduce((a, b) => a + b, 0) + taxC.reduce((a, b) => a + b, 0) + tipC.reduce((a, b) => a + b, 0);
+    const totals = people.map((p, i) => {
+      const t = foodC[i] + taxC[i] + tipC[i];
+      const on = p.id === active;
+      return {
+        name: p.name, total: money(t),
+        pct: food[p.id] > 0 ? (food[p.id] / TOTAL_SUB * 100).toFixed(1) + '%' : '0%',
+        bg: on ? '#1D1A17' : '#FAF7F2', fg: on ? '#E2FF2B' : '#1D1A17',
+        nameColor: on ? '#FFFFFF' : '#6E6A63', pctColor: on ? '#D3CDC3' : '#6E6A63'
+      };
+    });
+
+    return {
+      zw: done ? 0 : 1, zh: done ? 1 : 0,
+      pickers: pickers, items: itemsOut, totals: totals,
+      hasLeft: !done, noneLeft: done,
+      sheetOpen: !!this.state.sheet, sheetClosed: !this.state.sheet,
+      lineText: done ? 'All claimed · ' + money(grandAssigned) + ' adds up' : money(leftCents) + ' of food unclaimed',
+      lineBg: done ? '#FAF7F2' : '#FFE4F1', lineFg: done ? '#1D1A17' : '#A3195F',
+      lockedCta: money(leftCents) + ' remaining',
+      sheetLine: 'Everything still unclaimed (' + money(leftCents) + ' of food) is shared evenly by the people you pick. Tax and tip follow.',
+      restPeople: people.map((p) => {
+        const on = !!sel[p.id];
+        return {
+          on: on, ini: p.ini, name: p.name,
+          each: on ? '+' + money(restEach[p.id] || 0) : 'Not sharing',
+          bg: on ? '#1D1A17' : '#FFFFFF', fg: on ? '#FFFFFF' : '#6E6A63',
+          border: on ? 'none' : '1.5px dashed #D3CDC3',
+          toggle: () => this.setState({ sel: Object.assign({}, sel, { [p.id]: !on }) })
+        };
+      }),
+      confirmLabel: selIds.length ? 'Split between ' + selIds.length : 'Pick someone',
+      openSheet: () => {
+        // Default: everyone who hasn't claimed anything yet (or everyone, if all have).
+        const fresh = {};
+        people.forEach((p) => { fresh[p.id] = food[p.id] < 0.5; });
+        if (!people.some((p) => fresh[p.id])) people.forEach((p) => { fresh[p.id] = true; });
+        this.setState({ sheet: true, sel: fresh });
+      },
+      closeSheet: () => this.setState({ sheet: false }),
+      confirmRest: () => {
+        if (!selIds.length) return;
+        const k = selIds.length;
+        const next = JSON.parse(JSON.stringify(claims));
+        info.forEach((x) => {
+          if (x.left < 0.5) return;
+          const it = x.it, c = next[it.id] || {};
+          if (it.qty === 1) selIds.forEach((id) => { c[id] = 1; });
+          else {
+            const used = Object.keys(c).reduce((a, q) => a + c[q], 0);
+            const each = (it.qty - used) / k;
+            selIds.forEach((id) => { c[id] = (c[id] || 0) + each; });
+          }
+          next[it.id] = c;
+        });
+        this.setState({ claims: next, sheet: false });
+      },
+      reset: () => this.setState({ claims: JSON.parse(JSON.stringify(this.start)), active: 'jt', sheet: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+/**
+ * Exact rational arithmetic for the split engine. Weights like 12400/3 (a dish shared
+ * three ways) must not drift: floors are taken on exact fractions, never on floats.
+ */
+export type Rat = { n: bigint; d: bigint };
+
+function gcd(a: bigint, b: bigint): bigint {
+  a = a < 0n ? -a : a; b = b < 0n ? -b : b;
+  while (b) { const t = a % b; a = b; b = t; }
+  return a;
+}
+
+export function rat(n: bigint | number, d: bigint | number = 1n): Rat {
+  let N = typeof n === "bigint" ? n : BigInt(n);
+  let D = typeof d === "bigint" ? d : BigInt(d);
+  if (D === 0n) throw new RangeError("zero denominator");
+  if (D < 0n) { N = -N; D = -D; }
+  const g = gcd(N, D) || 1n;
+  return { n: N / g, d: D / g };
+}
+
+export const ZERO: Rat = { n: 0n, d: 1n };
+export const isZero = (a: Rat) => a.n === 0n;
+export const isPos = (a: Rat) => a.n > 0n;
+export const add = (a: Rat, b: Rat): Rat => rat(a.n * b.d + b.n * a.d, a.d * b.d);
+export const sub = (a: Rat, b: Rat): Rat => rat(a.n * b.d - b.n * a.d, a.d * b.d);
+export const mul = (a: Rat, b: Rat): Rat => rat(a.n * b.n, a.d * b.d);
+export const div = (a: Rat, b: Rat): Rat => { if (b.n === 0n) throw new RangeError("divide by zero"); return rat(a.n * b.d, a.d * b.n); };
+export const cmp = (a: Rat, b: Rat): number => { const l = a.n * b.d, r = b.n * a.d; return l < r ? -1 : l > r ? 1 : 0; };
+export const sumRat = (xs: Rat[]): Rat => xs.reduce(add, ZERO);
+/** floor(a) as a bigint (toward −∞). */
+export function floorRat(a: Rat): bigint {
+  const q = a.n / a.d;
+  return a.n < 0n && q * a.d !== a.n ? q - 1n : q;
+}
+export const toNumber = (a: Rat): number => Number(a.n) / Number(a.d);
+
+/**
+ * The exact fraction a decimal is standing in for. Claimed units are stored as
+ * decimals (numeric(16,8)) and a third comes back as 0.33333333; the continued
+ * fraction recovers 1/3 whenever a denominator ≤ maxDen explains the value to 6e-9
+ * (an 8-place decimal is at most 5e-9 off its fraction).
+ * Otherwise the decimal itself (to 8 places) is used, exactly.
+ */
+export function fromNumber(x: number, maxDen = 1_000_000): Rat {
+  if (!Number.isFinite(x)) throw new RangeError(`not a finite number: ${x}`);
+  if (Number.isInteger(x)) return rat(BigInt(x));
+  const neg = x < 0; const v = Math.abs(x);
+  let h0 = 0n, h1 = 1n, k0 = 1n, k1 = 0n; let a = v;
+  for (let i = 0; i < 64; i++) {
+    const ai = BigInt(Math.floor(a));
+    const h2 = ai * h1 + h0, k2 = ai * k1 + k0;
+    if (k2 > BigInt(maxDen)) break;
+    h0 = h1; h1 = h2; k0 = k1; k1 = k2;
+    const approx = Number(h1) / Number(k1);
+    if (Math.abs(approx - v) <= 6e-9 * Math.max(1, v)) return rat(neg ? -h1 : h1, k1); // numeric(16,8) rounds by ≤ 5e-9
+    const frac = a - Math.floor(a);
+    if (frac < 1e-12) break;
+    a = 1 / frac;
+  }
+  const scaled = BigInt(Math.round(v * 1e8));
+  return rat(neg ? -scaled : scaled, 100_000_000n);
+}
+
+export const asRat = (w: number | Rat): Rat => (typeof w === "number" ? fromNumber(w) : w);

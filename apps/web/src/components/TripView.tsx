@@ -147,11 +147,11 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
               const net = myPaid - myShare;
               const payer = e.expense_payers[0]?.user_id ?? e.created_by;
               return (
-                <Link key={e.id} href={settled ? "#" : `/t/${trip.id}/expense/${e.id}`} className="row-card" aria-disabled={settled || undefined}>
+                <Link key={e.id} href={e.receipt_id ? `/t/${trip.id}/receipt/${e.id}` : settled ? "#" : `/t/${trip.id}/expense/${e.id}`} className="row-card" aria-disabled={(settled && !e.receipt_id) || undefined}>
                   <span className="tile t-micro t-muted" aria-hidden="true">{categoryLabel(e.category, e.subcategory).slice(0, 2).toUpperCase()}</span>
                   <span className="grow">
                     <span className="t-body-strong" style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.description}</span>
-                    <span className="t-small t-muted" style={{ display: "block" }}>{payer === me ? "You" : firstName(memberName(data, payer, me), "Someone")} paid{e.expense_payers.length > 1 ? ` +${e.expense_payers.length - 1}` : ""} · {e.split_type === "nights" ? "split by nights stayed" : `${e.expense_shares.length} ${e.expense_shares.length === 1 ? "person" : "people"}`}{e.updated_at !== e.created_at ? " · Edited" : ""}</span>
+                    <span className="t-small t-muted" style={{ display: "block" }}>{payer === me ? "You" : firstName(memberName(data, payer, me), "Someone")} paid{e.expense_payers.length > 1 ? ` +${e.expense_payers.length - 1}` : ""} · {e.split_type === "nights" ? "split by nights stayed" : e.split_type === "itemized" ? `split by item · ${e.expense_shares.length} people` : `${e.expense_shares.length} ${e.expense_shares.length === 1 ? "person" : "people"}`}{e.updated_at !== e.created_at ? " · Edited" : ""}</span>
                   </span>
                   <span className="right stack-tight" style={{ justifyItems: "end" }}>
                     <b className="t-amount-row num">{formatCents(e.base_amount_cents, cur)}</b>

@@ -1,0 +1,57 @@
+{
+  "readable": true,
+  "merchant": "Sunrise Diner",
+  "date": "2026-10-06",
+  "currency": "USD",
+  "items": [
+    {
+      "name": "Two egg breakfast",
+      "quantity": 2,
+      "line_total_cents": 2200,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Pancake stack",
+      "quantity": 1,
+      "line_total_cents": 1200,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Side bacon",
+      "quantity": 2,
+      "line_total_cents": 1000,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Coffee",
+      "quantity": 3,
+      "line_total_cents": 900,
+      "kind": "drink",
+      "is_void": false
+    },
+    {
+      "name": "OJ large",
+      "quantity": 1,
+      "line_total_cents": 450,
+      "kind": "drink",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 5750,
+  "tax_lines": [
+    {
+      "label": "TAX",
+      "amount_cents": 460,
+      "applies_to": "all"
+    }
+  ],
+  "fees": [],
+  "discounts": [],
+  "printed_total_cents": 6210,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": false,
+  "pages": 1
+}

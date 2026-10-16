@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Zebrasplit, Split evenly</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..900&amp;family=IBM+Plex+Mono:wght@400;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1D1A17}a:hover{color:#3A3631}
+button{font-family:inherit}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(0.1)}}
+.zeye{transform-box:fill-box;transform-origin:center;animation:blink 3.8s infinite}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.rise{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+.press{transition:transform 120ms ease}.press:active{transform:scale(0.97)}
+.scrolly::-webkit-scrollbar{display:none}
+.scr{overflow-y:auto;scrollbar-width:none}.scr::-webkit-scrollbar{display:none}.scr>*{flex-shrink:0}
+.dock{position:sticky;bottom:0;z-index:5;background:linear-gradient(180deg,rgba(245,240,231,0) 0%,#F5F0E7 34%)}
+.locked{background:#E6DFD3;color:#5C5852;border:1.5px solid #D3CDC3;box-sizing:border-box}
+.torn{clip-path: polygon(0 0, 100% 0, 100% 97%, 96% 100%, 92% 97%, 88% 100%, 84% 97%, 80% 100%, 76% 97%, 72% 100%, 68% 97%, 64% 100%, 60% 97%, 56% 100%, 52% 97%, 48% 100%, 44% 97%, 40% 100%, 36% 97%, 32% 100%, 28% 97%, 24% 100%, 20% 97%, 16% 100%, 12% 97%, 8% 100%, 4% 97%, 0 100%)}
+
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: radial-gradient(120% 55% at 100% 0%, #FFE9F3 0%, rgba(255,233,243,0) 60%), radial-gradient(100% 45% at 0% 22%, #F6FFD3 0%, rgba(246,255,211,0) 55%), linear-gradient(180deg, #FFFFFF 0%, #FBF8F2 50%, #F5F0E7 100%); color: #1D1A17; font-family: 'Figtree', system-ui, sans-serif; display: flex; flex-direction: column" class="scr">
+  <div style="padding: 52px 16px 0 16px; display: flex; align-items: center; justify-content: space-between">
+    <a href="Receipt-Read.dc.html" aria-label="Back" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; box-shadow: 0 1px 2px rgba(29,26,23,0.06), 0 6px 16px rgba(29,26,23,0.06); display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D1A17" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <span style="font-size: 13px; font-weight: 700; background: #FFFFFF; border-radius: 999px; padding: 7px 12px; box-shadow: 0 1px 2px rgba(29,26,23,0.05)">El Faro Cantina · $184.68</span>
+  </div>
+
+  <div style="padding: 10px 20px 0 20px; display: flex; flex-direction: column; gap: 2px">
+    <h1 style="margin: 0; font-size: 30px; line-height: 1.05; font-weight: 800; letter-spacing: -0.03em">Split Evenly</h1>
+    <span style="font-size: 14px; color: #6E6A63">You paid. Tax and tip are already in.</span>
+  </div>
+  <div style="margin: 12px 16px 0 16px; display: flex; background: rgba(29,26,23,0.06); border-radius: 999px; padding: 4px">
+    <a href="Split-Even.dc.html" style="flex: 1; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; background: #FFFFFF; box-shadow: 0 1px 3px rgba(29,26,23,0.1); font-weight: 700; color: #1D1A17">Evenly</a>
+    <a href="Split-Custom.dc.html" style="flex: 1; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; background: transparent; font-weight: 600; color: #6E6A63">Amounts</a>
+    <a href="Split-Dish.dc.html" style="flex: 1; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; background: transparent; font-weight: 600; color: #6E6A63">By dish</a>
+  </div>
+
+  <div style="margin: 12px 16px 0 16px; background: rgba(255,255,255,0.88); border-radius: 30px; padding: 18px 20px; box-shadow: 0 1px 2px rgba(29,26,23,0.04), 0 14px 36px rgba(29,26,23,0.07); position: relative; overflow: hidden; min-height: 132px; box-sizing: border-box">
+    <svg width="104" height="96" viewBox="30 -8 200 184" aria-hidden="true" style="position: absolute; right: -2px; bottom: -10px"><path d="M141.3 52.2 L152.8 50.0 L168.6 45.0 L170.6 61.4 L187.0 60.9 L184.5 77.1 L200.5 80.5 L194.2 95.6 L209.0 102.5 L199.3 115.7 L212.0 124.9 L200.3 134.3 L213.0 138.4 L202.8 146.0 L215.1 143.8 L208.0 154.2 L208.7 163.1 L201.2 171.1 L195.5 165.7 L190.6 159.4 L187.0 152.3 L184.6 144.5 L183.4 135.8 L183.0 126.4 L182.5 117.9 L180.9 109.7 L178.3 101.7 L174.8 94.0 L170.5 86.7 L165.3 80.1 L159.4 74.3 L152.9 69.4 L145.8 65.5 L137.7 62.6 Z" fill="#1D1A17" stroke="#1D1A17" stroke-width="6" stroke-linejoin="round"></path><path d="M124 140 C114 168 110 196 116 222 L206 222 C192 168 184 150 186 124 L140 110 Z" fill="#FFFBF2" stroke="#1D1A17" stroke-width="3.5" stroke-linejoin="round"></path><path d="M162 152 Q178 146 192 150" stroke="#1D1A17" stroke-width="10" fill="none" stroke-linecap="round"></path><g transform="rotate(-24 82 58)"><ellipse cx="82" cy="40" rx="15" ry="27" fill="#FFFBF2" stroke="#1D1A17" stroke-width="3.5"></ellipse><ellipse cx="82" cy="44" rx="7.5" ry="17" fill="#F5A9B8"></ellipse></g><g transform="rotate(24 158 58)"><ellipse cx="158" cy="40" rx="15" ry="27" fill="#FFFBF2" stroke="#1D1A17" stroke-width="3.5"></ellipse><ellipse cx="158" cy="44" rx="7.5" ry="17" fill="#F5A9B8"></ellipse></g><ellipse cx="120" cy="98" rx="60" ry="54" fill="#1D1A17" stroke="#1D1A17" stroke-width="7.0"></ellipse><ellipse cx="120" cy="140" rx="42" ry="28" fill="#1D1A17" stroke="#1D1A17" stroke-width="7.0"></ellipse><ellipse cx="120" cy="98" rx="60" ry="54" fill="#FFFBF2"></ellipse><ellipse cx="120" cy="140" rx="42" ry="28" fill="#9B9590"></ellipse><ellipse cx="120" cy="134" rx="30" ry="12" fill="#ABA59F" opacity="0.7"></ellipse><path d="M104 136 q-3 6 2 9 M136 136 q3 6 -2 9" stroke="#3C3833" stroke-width="4" fill="none" stroke-linecap="round"></path><ellipse cx="76" cy="118" rx="12" ry="7.5" fill="#F7A8BC"></ellipse><ellipse cx="164" cy="118" rx="12" ry="7.5" fill="#F7A8BC"></ellipse><path d="M88 100 q9 -11 18 0 M134 100 q9 -11 18 0" stroke="#1D1A17" stroke-width="5" fill="none" stroke-linecap="round"></path><path d="M100 52 C96 40 102 30 112 28 C110 36 116 40 120 34 C120 26 128 20 138 22 C132 30 136 38 144 38 C140 50 124 58 100 52 Z" fill="#1D1A17" stroke="#1D1A17" stroke-width="3" stroke-linejoin="round"></path></svg>
+    <span style="font-size: 14px; color: #6E6A63">{{countLine}}</span>
+    <div style="margin-top: 4px; font-size: 44px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">{{each}}</div>
+    <span style="display: block; margin-top: 8px; padding-right: 96px; font-size: 12px; line-height: 16px; font-weight: 700; color: #6E6A63">{{centsLine}}</span>
+  </div>
+
+  <div style="margin: 14px 20px 0 20px; display: flex; justify-content: space-between; align-items: baseline">
+    <span style="font-size: 18px; font-weight: 800">Who was at dinner?</span>
+    <span style="font-size: 13px; color: #6E6A63">Tap to add or remove</span>
+  </div>
+  <div style="margin: 8px 16px 0 16px; background: #FFFFFF; border-radius: 24px; padding: 6px 14px; box-shadow: 0 1px 2px rgba(29,26,23,0.04), 0 8px 24px rgba(29,26,23,0.05); display: flex; flex-direction: column">
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+      <button class="press" onClick="{{r.toggle}}" aria-pressed="{{r.on}}" style="display: flex; align-items: center; gap: 12px; padding: 7px 0; border: none; border-top: {{r.rule}}; background: transparent; text-align: left; cursor: pointer; color: #1D1A17">
+        <span style="width: 36px; height: 36px; border-radius: 18px; background: {{r.avBg}}; color: {{r.avFg}}; border: {{r.avBorder}}; box-sizing: border-box; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 200ms ease">{{r.ini}}</span>
+        <span style="display: flex; flex-direction: column; flex-grow: 1">
+          <span style="font-size: 15px; font-weight: 700; color: {{r.nameColor}}">{{r.name}}</span>
+          <span style="font-size: 12px; color: #6E6A63">{{r.sub}}</span>
+        </span>
+        <span style="font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; color: {{r.amtColor}}">{{r.amt}}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <div style="margin: 12px 16px 0 16px">
+    <div style="display: flex; align-items: center; gap: 12px; background: #FFFFFF; border-radius: 20px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(29,26,23,0.04)">
+      <span style="width: 40px; height: 40px; border-radius: 14px; background: #F3EFE8; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="22" height="26" viewBox="0 0 22 26" aria-hidden="true"><path d="M3 1.5h16v22l-2.6-1.6-2.7 1.6-2.7-1.6-2.7 1.6-2.7-1.6L3 23.5z" fill="#FFFFFF" stroke="#1D1A17" stroke-width="1.5" stroke-linejoin="round"></path><path d="M6.5 7h9M6.5 10.5h9M6.5 14h5.5" stroke="#1D1A17" stroke-width="1.5" stroke-linecap="round"></path></svg></span>
+      <span style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0"><span style="font-size: 14px; font-weight: 700">Receipt photo saved to this Dazzle</span>
+      </span>
+      <span style="font-size: 13px; font-weight: 800; text-decoration: underline">View</span>
+    </div>
+  </div>
+
+  <div class="dock" style="margin-top: auto; padding: 16px 16px 30px 16px">
+    <button class="press" style="width: 100%; height: 58px; border-radius: 999px; border: none; background: #E2FF2B; color: #1D1A17; box-shadow: 0 8px 20px rgba(140,160,0,0.25); font-size: 17px; font-weight: 800; cursor: pointer">{{cta}}</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+
+  constructor(props) {
+    super(props);
+    this.state = { inn: { you: true, pp: true, mc: true, jt: true, ja: false, br: false } };
+  }
+  renderVals() {
+
+    const TOTAL_SUB = 14400, TAX = 1188;
+    const money = (c) => (c < 0 ? '−' : '') + '$' + (Math.abs(c) / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    // Split an integer number of cents by weight. Everyone is rounded down; any leftover cents go to the
+    // account holder (You, always listed first), so the parts add up exactly.
+    function allocate(total, weights) {
+      const sum = weights.reduce((a, b) => a + b, 0);
+      if (sum <= 0) return weights.map(() => 0);
+      const out = weights.map((w) => Math.floor((total * w) / sum + 1e-9));
+      const holder = weights.findIndex((w) => w > 0); // You if you're in the split, else the first person who is
+      out[holder] += total - out.reduce((a, b) => a + b, 0);
+      return out;
+    }
+    
+    const GRAND = 18468;
+    const people = [
+      { id: 'you', name: 'You', ini: 'YOU' }, { id: 'pp', name: 'Priya Patel', ini: 'PP' },
+      { id: 'mc', name: 'Mike Chen', ini: 'MC' }, { id: 'jt', name: 'Jordan Tran', ini: 'JT' },
+      { id: 'ja', name: 'Jess Alvarez', ini: 'JA' }, { id: 'br', name: 'Bradley Ross', ini: 'BR' }
+    ];
+    const inn = this.state.inn;
+    const ids = people.filter((p) => inn[p.id]).map((p) => p.id);
+    const n = ids.length;
+    // Even split; leftover cents go to the payer (You), per the spec.
+    const base = n ? Math.floor(GRAND / n) : 0;
+    const extra = n ? GRAND - base * n : 0;
+    const share = {};
+    ids.forEach((id) => { share[id] = base; });
+    if (n) { const holder = inn.you ? 'you' : ids[0]; share[holder] += extra; }
+    return {
+      countLine: n ? 'Each of ' + n + ' pays' : 'Pick who was there',
+      each: money(base),
+      centsLine: extra ? 'Leftover ' + extra + '¢ goes to you, the account holder' : 'Splits evenly to the cent',
+      rows: people.map((p, i) => {
+        const on = !!inn[p.id];
+        return {
+          on: on, ini: p.ini, name: p.name,
+          sub: on ? (p.id === 'you' ? 'Paid the bill' : 'Owes you') : 'Not at dinner',
+          amt: on ? money(share[p.id]) : '—',
+          amtColor: on ? '#1D1A17' : '#A49F96',
+          nameColor: on ? '#1D1A17' : '#6E6A63',
+          avBg: on ? '#1D1A17' : '#FFFFFF', avFg: on ? '#FFFFFF' : '#6E6A63',
+          avBorder: on ? 'none' : '1.5px dashed #D3CDC3',
+          rule: i === 0 ? 'none' : '1px solid #F0EBE2',
+          toggle: () => this.setState({ inn: Object.assign({}, inn, { [p.id]: !on }) })
+        };
+      }),
+      cta: n ? 'Add Expense · ' + money(GRAND) : 'Pick at least one person'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+{
+  "readable": true,
+  "merchant": "Slice House",
+  "date": "2026-10-05",
+  "currency": "USD",
+  "items": [
+    {
+      "name": "Large pepperoni",
+      "quantity": 1,
+      "line_total_cents": 2400,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Large veggie",
+      "quantity": 1,
+      "line_total_cents": 2300,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Garlic knots",
+      "quantity": 1,
+      "line_total_cents": 700,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Caesar salad",
+      "quantity": 1,
+      "line_total_cents": 1100,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "2L soda",
+      "quantity": 1,
+      "line_total_cents": 450,
+      "kind": "drink",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 6450,
+  "tax_lines": [
+    {
+      "label": "TAX",
+      "amount_cents": 532,
+      "applies_to": "all"
+    }
+  ],
+  "fees": [
+    {
+      "label": "DELIVERY FEE",
+      "amount_cents": 399,
+      "kind": "other_fee"
+    }
+  ],
+  "discounts": [
+    {
+      "label": "COUPON LG PIZZA -5.00",
+      "amount_cents": -500,
+      "item_index": 0
+    },
+    {
+      "label": "LOYALTY REWARD",
+      "amount_cents": -300,
+      "item_index": null
+    }
+  ],
+  "printed_total_cents": 7081,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": false,
+  "pages": 1
+}

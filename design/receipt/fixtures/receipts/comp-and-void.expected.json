@@ -1,0 +1,71 @@
+{
+  "readable": true,
+  "merchant": "Driftwood Grill",
+  "date": "2026-10-11",
+  "currency": "USD",
+  "items": [
+    {
+      "name": "Fish & chips",
+      "quantity": 1,
+      "line_total_cents": 1800,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Clam chowder",
+      "quantity": 1,
+      "line_total_cents": 900,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Lobster roll",
+      "quantity": 1,
+      "line_total_cents": 2600,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Lobster roll",
+      "quantity": 1,
+      "line_total_cents": -2600,
+      "kind": "food",
+      "is_void": true
+    },
+    {
+      "name": "Caesar salad",
+      "quantity": 1,
+      "line_total_cents": 1300,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Key lime pie",
+      "quantity": 1,
+      "line_total_cents": 0,
+      "kind": "food",
+      "is_void": true
+    },
+    {
+      "name": "Lemonade",
+      "quantity": 2,
+      "line_total_cents": 800,
+      "kind": "drink",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 4800,
+  "tax_lines": [
+    {
+      "label": "STATE TAX 6%",
+      "amount_cents": 408,
+      "applies_to": "all"
+    }
+  ],
+  "fees": [],
+  "discounts": [],
+  "printed_total_cents": 5208,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": false,
+  "pages": 1
+}

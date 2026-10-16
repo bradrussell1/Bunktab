@@ -1,0 +1,85 @@
+{
+  "readable": true,
+  "merchant": "Golden Wok",
+  "date": "2026-10-10",
+  "currency": "USD",
+  "items": [
+    {
+      "name": "Hot & sour soup",
+      "quantity": 2,
+      "line_total_cents": 1200,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Scallion pancake",
+      "quantity": 1,
+      "line_total_cents": 800,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Kung pao chicken",
+      "quantity": 1,
+      "line_total_cents": 1650,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Mapo tofu",
+      "quantity": 1,
+      "line_total_cents": 1450,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Beef chow fun",
+      "quantity": 1,
+      "line_total_cents": 1750,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Garlic eggplant",
+      "quantity": 1,
+      "line_total_cents": 1350,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Steamed rice",
+      "quantity": 4,
+      "line_total_cents": 800,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Tsingtao",
+      "quantity": 3,
+      "line_total_cents": 1800,
+      "kind": "alcohol",
+      "is_void": false
+    },
+    {
+      "name": "Jasmine tea",
+      "quantity": 1,
+      "line_total_cents": 300,
+      "kind": "drink",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 11100,
+  "tax_lines": [
+    {
+      "label": "TAX 8.5%",
+      "amount_cents": 947,
+      "applies_to": "all"
+    }
+  ],
+  "fees": [],
+  "discounts": [],
+  "printed_total_cents": 12047,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": false,
+  "pages": 2
+}

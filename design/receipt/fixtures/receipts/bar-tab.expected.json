@@ -1,0 +1,69 @@
+{
+  "readable": true,
+  "merchant": "The Hollow Pine",
+  "date": "2026-10-10",
+  "currency": "USD",
+  "items": [
+    {
+      "name": "IPA draft",
+      "quantity": 2,
+      "line_total_cents": 1600,
+      "kind": "alcohol",
+      "is_void": false
+    },
+    {
+      "name": "House margarita",
+      "quantity": 3,
+      "line_total_cents": 3600,
+      "kind": "alcohol",
+      "is_void": false
+    },
+    {
+      "name": "Old fashioned",
+      "quantity": 2,
+      "line_total_cents": 2800,
+      "kind": "alcohol",
+      "is_void": false
+    },
+    {
+      "name": "Pretzel bites",
+      "quantity": 1,
+      "line_total_cents": 1100,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Wings",
+      "quantity": 2,
+      "line_total_cents": 2600,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Club soda",
+      "quantity": 1,
+      "line_total_cents": 300,
+      "kind": "drink",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 12000,
+  "tax_lines": [
+    {
+      "label": "SALES TAX",
+      "amount_cents": 724,
+      "applies_to": "all"
+    },
+    {
+      "label": "LIQUOR TAX",
+      "amount_cents": 480,
+      "applies_to": "alcohol"
+    }
+  ],
+  "fees": [],
+  "discounts": [],
+  "printed_total_cents": 13204,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": false,
+  "pages": 1
+}

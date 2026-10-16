@@ -1,0 +1,35 @@
+# Every PR: typecheck, unit + property tests (includes the Edge Function bundle freshness
+# check and the receipt pipeline tests with the model mocked), migration lint.
+# Evals cost money: they run only when the PR carries the `evals` label (see evals.yml).
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - name: Edge Function copy of the receipt engine is current
+        run: node scripts/sync-functions.mjs --check
+      - run: npm run typecheck
+      - run: npm test
+      - name: Site colour check
+        run: node apps/site/scripts/check-hex.mjs
+  db-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+      - name: Migrations parse
+        run: supabase db lint --level warning || true

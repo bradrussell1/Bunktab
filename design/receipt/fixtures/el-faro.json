@@ -1,0 +1,209 @@
+{
+  "description": "El Faro Cantina, Cabo crew, Oct 11 2026. The worked example used on the Zebrasplit receipt boards. All money in integer cents.",
+  "receipt": {
+    "merchant": "El Faro Cantina",
+    "date": "2026-10-11",
+    "currency": "USD",
+    "items": [
+      {
+        "id": "guac",
+        "name": "Guacamole & chips",
+        "quantity": 1,
+        "line_total_cents": 1400,
+        "kind": "food"
+      },
+      {
+        "id": "cev",
+        "name": "Ceviche tostadas",
+        "quantity": 1,
+        "line_total_cents": 1800,
+        "kind": "food"
+      },
+      {
+        "id": "fish",
+        "name": "Fish tacos",
+        "quantity": 1,
+        "line_total_cents": 1600,
+        "kind": "food"
+      },
+      {
+        "id": "carne",
+        "name": "Carne asada plate",
+        "quantity": 1,
+        "line_total_cents": 2400,
+        "kind": "food"
+      },
+      {
+        "id": "shrimp",
+        "name": "Shrimp enchiladas",
+        "quantity": 1,
+        "line_total_cents": 2100,
+        "kind": "food"
+      },
+      {
+        "id": "marg",
+        "name": "Margarita",
+        "quantity": 2,
+        "line_total_cents": 2400,
+        "kind": "alcohol"
+      },
+      {
+        "id": "pac",
+        "name": "Pacifico",
+        "quantity": 3,
+        "line_total_cents": 1800,
+        "kind": "alcohol"
+      },
+      {
+        "id": "churro",
+        "name": "Churros",
+        "quantity": 1,
+        "line_total_cents": 900,
+        "kind": "food"
+      }
+    ],
+    "subtotal_cents": 14400,
+    "tax_lines": [
+      {
+        "label": "TAX 8.25%",
+        "amount_cents": 1188
+      }
+    ],
+    "fees": [],
+    "discounts": [],
+    "printed_total_cents": 15588,
+    "printed_tip_cents": null
+  },
+  "tip": {
+    "mode": "percent",
+    "percent": 20,
+    "base": "subtotal",
+    "amount_cents": 2880
+  },
+  "custom_tip_example": {
+    "mode": "custom",
+    "amount_cents": 2600,
+    "expected_percent_of_subtotal": "18.1",
+    "expected_grand_total_cents": 18188
+  },
+  "grand_total_cents": 18468,
+  "payer_and_account_holder": "you",
+  "participants": [
+    "you",
+    "pp",
+    "mc",
+    "jt"
+  ],
+  "expected": {
+    "even": {
+      "participants": [
+        "you",
+        "pp",
+        "mc",
+        "jt"
+      ],
+      "shares": {
+        "you": {
+          "food": 3600,
+          "tax": 297,
+          "tip": 720,
+          "total": 4617
+        },
+        "pp": {
+          "food": 3600,
+          "tax": 297,
+          "tip": 720,
+          "total": 4617
+        },
+        "mc": {
+          "food": 3600,
+          "tax": 297,
+          "tip": 720,
+          "total": 4617
+        },
+        "jt": {
+          "food": 3600,
+          "tax": 297,
+          "tip": 720,
+          "total": 4617
+        }
+      }
+    },
+    "exact": {
+      "amounts_cents": {
+        "you": 5000,
+        "pp": 5000,
+        "mc": 5000,
+        "jt": 3468
+      },
+      "shares": {
+        "you": {
+          "food": 3900,
+          "tax": 323,
+          "tip": 777,
+          "total": 5000
+        },
+        "pp": {
+          "food": 3898,
+          "tax": 321,
+          "tip": 781,
+          "total": 5000
+        },
+        "mc": {
+          "food": 3898,
+          "tax": 321,
+          "tip": 781,
+          "total": 5000
+        },
+        "jt": {
+          "food": 2704,
+          "tax": 223,
+          "tip": 541,
+          "total": 3468
+        }
+      },
+      "note": "Totals are what the user entered; food and tax are allocated in proportion to each amount, tip is the remainder per person."
+    },
+    "by_item": {
+      "claims": {
+        "guac": {
+          "jt": 1
+        },
+        "pac": {
+          "jt": 1
+        }
+      },
+      "split_rest_evenly_between": [
+        "you",
+        "pp",
+        "mc"
+      ],
+      "shares": {
+        "you": {
+          "food": 4134,
+          "tax": 341,
+          "tip": 828,
+          "total": 5303
+        },
+        "pp": {
+          "food": 4133,
+          "tax": 341,
+          "tip": 826,
+          "total": 5300
+        },
+        "mc": {
+          "food": 4133,
+          "tax": 341,
+          "tip": 826,
+          "total": 5300
+        },
+        "jt": {
+          "food": 2000,
+          "tax": 165,
+          "tip": 400,
+          "total": 2565
+        }
+      }
+    }
+  }
+}

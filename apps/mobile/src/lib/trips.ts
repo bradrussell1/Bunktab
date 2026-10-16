@@ -12,7 +12,8 @@ export type Member = { user_id: string; role: "owner" | "member"; done_at: strin
 export type Expense = {
   id: string; trip_id: string; description: string; category: string; subcategory: string | null;
   amount_cents: number; tip_cents: number; currency: string; fx_rate: number; base_amount_cents: number;
-  split_type: "equal" | "exact" | "percent" | "shares" | "nights"; nights: number | null; receipt_url: string | null;
+  split_type: "equal" | "exact" | "percent" | "shares" | "nights" | "itemized"; nights: number | null; receipt_url: string | null;
+  tip_mode: "percent" | "custom" | "none" | null; tip_percent: number | null; receipt_id: string | null;
   created_by: string; created_at: string; updated_at: string; deleted_at: string | null;
   expense_payers: { user_id: string; amount_cents: number; base_amount_cents: number }[];
   expense_shares: { user_id: string; share_cents: number; base_share_cents: number; nights: number | null; night_presence: boolean[] | null }[];

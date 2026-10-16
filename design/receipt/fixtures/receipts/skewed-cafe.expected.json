@@ -1,0 +1,50 @@
+{
+  "readable": true,
+  "merchant": "Lantern Coffee",
+  "date": "2026-10-11",
+  "currency": "USD",
+  "items": [
+    {
+      "name": "Oat latte",
+      "quantity": 2,
+      "line_total_cents": 1150,
+      "kind": "drink",
+      "is_void": false
+    },
+    {
+      "name": "Cold brew",
+      "quantity": 1,
+      "line_total_cents": 500,
+      "kind": "drink",
+      "is_void": false
+    },
+    {
+      "name": "Almond croissant",
+      "quantity": 2,
+      "line_total_cents": 950,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Avocado toast",
+      "quantity": 1,
+      "line_total_cents": 1200,
+      "kind": "food",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 3800,
+  "tax_lines": [
+    {
+      "label": "TAX 8.25%",
+      "amount_cents": 314,
+      "applies_to": "all"
+    }
+  ],
+  "fees": [],
+  "discounts": [],
+  "printed_total_cents": 4114,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": false,
+  "pages": 1
+}

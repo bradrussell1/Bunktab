@@ -22,6 +22,9 @@ export const palette = {
   ghostZebra: '#EFE8DC',   // unfilled stripe on the zebra's body
   dashed: '#D3CDC3',       // dashed outlines: empty night cells, not-done avatars
   trackOff: '#DDD8CE',     // toggle track when off
+  lockedBg: '#E6DFD3',     // locked primary CTA (receipt flow): visible at the bottom of the gradient
+  lockedBorder: '#D3CDC3', // 1.5px border on the locked CTA
+  lockedText: '#5C5852',   // label on lockedBg (5.3:1)
 
   // Accents (the only two colors in the product)
   volt: '#E2FF2B',         // money coming to you + the one next action. Always ink text on it.
@@ -67,6 +70,9 @@ export const color = {
   attention: palette.pink,       // Nudge button, live dot, worried states
   disabledBg: palette.sand,
   disabledText: palette.muted,   // 4.7:1 on sand
+  lockedBg: palette.lockedBg,        // every disabled primary action: a pill that says why it's locked
+  lockedBorder: palette.lockedBorder,
+  lockedText: palette.lockedText,    // 5.3:1 on lockedBg
   destructive: palette.blushText,
   error: palette.blushText,
   errorBg: palette.blush,
@@ -77,6 +83,7 @@ export const color = {
   stripeOn: palette.ink,
   stripeOff: palette.ghost,
   stripeOffZebra: palette.ghostZebra,
+  dockFade: ['rgba(245,240,231,0)', palette.bgBottom] as const, // behind a docked CTA (receipt flow)
 } as const;
 
 /** Zebra artwork palette. Only the Zebra component may use these. */
@@ -117,6 +124,8 @@ export const type = {
   amountL:    { fontFamily: fonts.extrabold, fontSize: 36, lineHeight: 36, letterSpacing: -1.08 }, // "Your check" on a dazzle
   title1:     { fontFamily: fonts.extrabold, fontSize: 32, lineHeight: 34, letterSpacing: -0.96 }, // screen titles ("Earn your stripes")
   title2:     { fontFamily: fonts.extrabold, fontSize: 26, lineHeight: 30, letterSpacing: -0.52 }, // section headers ("Your dazzles")
+  titleCompact: { fontFamily: fonts.extrabold, fontSize: 28, lineHeight: 30, letterSpacing: -0.84 }, // receipt-flow screen titles ("Split by Item", the merchant name)
+  heroAmount: { fontFamily: fonts.extrabold, fontSize: 44, lineHeight: 46, letterSpacing: -1.32 }, // the receipt-flow hero amount ("Each of 4 pays")
   headline:   { fontFamily: fonts.extrabold, fontSize: 18, lineHeight: 22, letterSpacing: -0.18 }, // card titles
   button:     { fontFamily: fonts.extrabold, fontSize: 17, lineHeight: 20 },                       // large CTA labels
   buttonS:    { fontFamily: fonts.extrabold, fontSize: 14, lineHeight: 18 },                       // pill buttons, Nudge
