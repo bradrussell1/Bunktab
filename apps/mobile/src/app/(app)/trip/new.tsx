@@ -59,7 +59,7 @@ export default function NewTripScreen() {
   const [peopleError, setPeopleError] = useState<string | null>(null);
 
   function next() {
-    if (title.trim().length === 0) return setError("Give the dazzle a title.");
+    if (title.trim().length === 0) return setError("Give the Dazzle a title.");
     if (!start || !end) return setError("Pick a start and an end date.");
     if (end < start) return setError("The end date can't be before the start.");
     setError(null); setStep(2);
@@ -133,13 +133,13 @@ export default function NewTripScreen() {
     if (picks.length > 0 && !agreed) return setError("Agree to the Terms & Conditions to send invites.");
     setBusy(true); setError(null);
     const { data: trip, error: e1 } = await supabase.from("trips").insert({ title: title.trim(), description: description.trim() || null, start_date: start, end_date: end, base_currency: currency, created_by: me }).select("id").single();
-    if (e1 || !trip) { setBusy(false); setError(e1?.message ?? "Couldn't start the dazzle."); return; }
+    if (e1 || !trip) { setBusy(false); setError(e1?.message ?? "Couldn't start the Dazzle."); return; }
     if (coverUri) {
       // same path and update as the dazzle page's "Change cover"; a failed upload never blocks the dazzle
       try {
         const path = await uploadPrivateImage("covers", `${trip.id}/cover.jpg`, coverUri);
         await supabase.from("trips").update({ cover_photo_url: path }).eq("id", trip.id);
-      } catch { /* the dazzle page offers the cover again */ }
+      } catch { /* the Dazzle page offers the cover again */ }
     }
     if (picks.length) {
       const { error: e2 } = await supabase.from("invites").insert(picks.map((p) => ({ trip_id: trip.id, phone: p.phone.replace(/^\+/, ""), invited_by: me })));
@@ -157,7 +157,7 @@ export default function NewTripScreen() {
       <AuthScreen
         onBack={() => router.back()}
         hero={progress}
-        title="Start a dazzle"
+        title="Start a Dazzle"
         lead="Name it, set the dates, and we'll keep the tab."
         footer={
           <>
@@ -176,7 +176,7 @@ export default function NewTripScreen() {
           {coverUri ? <Image source={{ uri: coverUri }} style={styles.coverTile} accessibilityIgnoresInvertColors /> : <View style={styles.coverTile}><Icon name="plus" size={22} /></View>}
           <View style={styles.flex}>
             <ZText variant="bodyStrong">{coverUri ? "Cover photo added" : "Cover photo"}</ZText>
-            <ZText variant="small" color={color.textMuted}>{coverUri ? "Tap to change it" : "Optional · shows on the dazzle"}</ZText>
+            <ZText variant="small" color={color.textMuted}>{coverUri ? "Tap to change it" : "Optional · shows on the Dazzle"}</ZText>
           </View>
         </Press>
         <View>
@@ -206,7 +206,7 @@ export default function NewTripScreen() {
             </View>
           ) : null}
           <FormError>{error}</FormError>
-          <Button label="Start the dazzle" onPress={finish} loading={busy} disabled={picks.length > 0 && !agreed} />
+          <Button label="Start the Dazzle" onPress={finish} loading={busy} disabled={picks.length > 0 && !agreed} />
         </>
       }
     >
@@ -246,7 +246,7 @@ export default function NewTripScreen() {
         {peopleLoading ? <ActivityIndicator color={color.text} style={styles.spinner} /> : null}
         {!peopleLoading && !typedRow && shown.length === 0 ? (
           <ZText variant="body" color={color.textMuted} style={styles.note}>
-            {q ? "No one matches that. Type a full number to invite it." : "No friends yet. People you've shared a dazzle with show up here, or add from your contacts."}
+            {q ? "No one matches that. Type a full number to invite it." : "No friends yet. People you've shared a Dazzle with show up here, or add from your contacts."}
           </ZText>
         ) : null}
         {shown.length > MAX_ROWS ? <ZText variant="small" color={color.textMuted} style={styles.note}>Showing the first {MAX_ROWS}. Search to narrow it down.</ZText> : null}

@@ -97,7 +97,7 @@ export default function SummaryScreen() {
       <CheckLine totals={totals} />
       <ZText variant="small" color={color.textMuted} style={styles.footnote}>When a split leaves a stray cent, it goes to you, the account holder.</ZText>
       <ReceiptRow receiptId={flow.bundle!.receipt.id} storagePath={flow.bundle!.receipt.storage_path} />
-      {readonly ? <ZText variant="small" color={color.textMuted} style={styles.footnote}>This dazzle is closed, so the split is read-only.</ZText> : null}
+      {readonly ? <ZText variant="small" color={color.textMuted} style={styles.footnote}>This Dazzle is closed, so the split is read-only.</ZText> : null}
     </FlowScreen>
   );
 }

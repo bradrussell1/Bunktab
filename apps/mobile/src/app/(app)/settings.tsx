@@ -166,14 +166,14 @@ export default function ProfileScreen() {
           <Press onPress={() => setConfirmDelete(true)} scaleTo={0.98} accessibilityRole="button" accessibilityLabel="Delete account" style={styles.delete}>
             <ZText variant="label" color={color.destructive} style={styles.deleteText}>Delete account</ZText>
           </Press>
-          <ZText variant="caption" color={color.textMuted} style={styles.note}>Deleting removes your personal data and anonymises you on shared dazzles.</ZText>
+          <ZText variant="caption" color={color.textMuted} style={styles.note}>Deleting removes your personal data and anonymises you on shared Dazzles.</ZText>
         </ScrollView>
       </KeyboardAvoidingView>
 
       <ActionSheet
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}
-        title={"Delete your account? Your name comes off every dazzle as \"Former member\" so the group's totals still add up. Your phone, photo and Venmo username are removed and you're signed out. This can't be undone."}
+        title={"Delete your account? Your name comes off every Dazzle as \"Former member\" so the group's totals still add up. Your phone, photo and Venmo username are removed and you're signed out. This can't be undone."}
         actions={[{ label: "Delete account", destructive: true, onPress: deleteAccount }]}
       />
     </View>

@@ -12,7 +12,7 @@ export default function NotFound() {
       <Nav />
       <main id="main" className="container" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "var(--zs-space-20)", padding: "72px var(--zs-space-24) 96px" }}>
         <Zebra variant="bust" mood="worried" size={160} label="Zebra, worried" />
-        <h1 className="display">This page wandered off from the dazzle.</h1>
+        <h1 className="display">This page wandered off from the Dazzle.</h1>
         <Button variant="ink" size="lg" href="/">Back home</Button>
       </main>
       <Footer />

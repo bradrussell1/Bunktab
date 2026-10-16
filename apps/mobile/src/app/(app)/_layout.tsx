@@ -17,7 +17,7 @@ export default function AppLayout() {
   return (
     <Stack initialRouteName="home" screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bgMid } }}>
       <Stack.Screen name="home" />
-      {/* the add/edit expense sheet slides up over the dazzle page (RESKIN_PROMPT B5) */}
+      {/* the add/edit expense sheet slides up over the Dazzle page (RESKIN_PROMPT B5) */}
       <Stack.Screen name="trip/[id]/expense" options={{ presentation: "transparentModal", animation: "slide_from_bottom", contentStyle: { backgroundColor: "transparent" } }} />
       {/* the receipt flow: read → split → summary, each a full screen */}
       <Stack.Screen name="trip/[id]/receipt/[receiptId]/index" />

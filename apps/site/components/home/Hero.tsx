@@ -11,7 +11,7 @@ export function Hero({ urls }: { urls: StoreUrls }) {
         <div className={s.heroCopy}>
           <span className={s.badge}><span className={s.dot} aria-hidden="true" />Free. No expense limits.</span>
           <h1 className="display display--hero">Split the trip.<br />Not the friendship.</h1>
-          <p className={`lead ${s.heroSub}`}><b>Keep the dazzle organized.</b> Track the tab, earn your stripes, and when it&apos;s time to close out, everyone pays exactly once via Venmo.</p>
+          <p className={`lead ${s.heroSub}`}><b>Keep the Dazzle organized.</b> Track the tab, earn your stripes, and when it&apos;s time to close out, everyone pays exactly once via Venmo.</p>
           <div className={s.badges}><StoreBadges urls={urls} location="hero" /></div>
           <p className={s.heroNote}>Friends can join from a link. No download needed.</p>
         </div>
@@ -24,13 +24,13 @@ export function Hero({ urls }: { urls: StoreUrls }) {
 /** The "Your dazzles" home screen, built from the kit (never an image). */
 export function PhoneMock() {
   return (
-    <div className={s.phone} role="img" aria-label="Zebrasplit app showing Your dazzles: you're owed $2,193.10">
+    <div className={s.phone} role="img" aria-label="Zebrasplit app showing Your Dazzles: you're owed $2,193.10">
       <div className={s.screen} aria-hidden="true">
-        <div className={s.screenTitle}>Your dazzles</div>
+        <div className={s.screenTitle}>Your Dazzles</div>
         <div className={s.balance}>
           <div className={s.balanceLabel}>You&apos;re owed</div>
           <div className={`${s.balanceAmount} tabular`}>+$2,193.10</div>
-          <div className={s.balanceMeta}>across 2 open dazzles</div>
+          <div className={s.balanceMeta}>across 2 open Dazzles</div>
           <Zebra variant="bust" mood="happy" size={104} animate={{ bob: true }} decorative className={s.balanceZebra} />
         </div>
         <div className={`${s.trip}`} style={{ borderRadius: "var(--zs-radius-row)", background: "var(--zs-white)", padding: "var(--zs-space-14)" }}>
@@ -48,7 +48,7 @@ export function PhoneMock() {
           <div><div className={s.tripName}>Nashville weekend</div><div className={s.tripMeta}>Settled · 8 people</div></div>
           <Pill variant="settled" size="sm" tabular>$0.00</Pill>
         </div>
-        <div className={s.startCta}>+ Start a dazzle</div>
+        <div className={s.startCta}>+ Start a Dazzle</div>
       </div>
     </div>
   );

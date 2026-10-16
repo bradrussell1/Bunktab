@@ -63,7 +63,7 @@ export default function ProfileScreen() {
     <AuthScreen
       hero={<Zebra variant="full" mood={mood} size={176} animate={{ blink: true, bob: true }} accessibilityLabel={zebraLabel(mood)} />}
       title={completing ? "One more thing" : "Almost there"}
-      lead={completing ? "Zebrasplit now shows first names and last initials on a dazzle. Add your last name so your crew knows which Sam you are." : "How should your dazzle see you, and where should they send money?"}
+      lead={completing ? "Zebrasplit now shows first names and last initials on a Dazzle. Add your last name so your crew knows which Sam you are." : "How should your Dazzle see you, and where should they send money?"}
       footer={
         <>
           <FormError>{error}</FormError>

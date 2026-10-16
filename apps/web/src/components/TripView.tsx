@@ -53,7 +53,7 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
   }, [data, me]);
 
   if (loading) return (
-    <div className="stack-loose" style={{ paddingTop: "var(--zs-space-32)" }} aria-busy="true" aria-label="Loading the dazzle">
+    <div className="stack-loose" style={{ paddingTop: "var(--zs-space-32)" }} aria-busy="true" aria-label="Loading the Dazzle">
       <div className="skeleton"><i style={{ width: "60%", height: 28 }} /><i style={{ width: "40%" }} /></div>
       <div className="hero-card skeleton" style={{ minHeight: 172 }}><i style={{ width: "30%" }} /><i style={{ width: "55%", height: 36 }} /></div>
       <div className="skeleton"><i style={{ height: 64 }} /><i style={{ height: 64 }} /><i style={{ height: 64 }} /></div>
@@ -68,7 +68,7 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
   if (!data || !fig) return (
     <div className="stack col-text" style={{ paddingTop: "var(--zs-space-32)" }}>
       <ZebraBust mood="worried" size={88} label="Zebra, worried" />
-      <h1 className="t-title2">This dazzle isn&apos;t available</h1>
+      <h1 className="t-title2">This Dazzle isn&apos;t available</h1>
       <p className="t-body t-soft">You may not be a member yet. Open the invite link you were texted, or ask the organizer to add your number.</p>
     </div>
   );
@@ -97,7 +97,7 @@ export function TripView({ tripId, me }: { tripId: string; me: string }) {
       <div className="stack-loose" style={{ paddingTop: "var(--zs-space-12)" }}>
         <div className="stack-tight col-text">
           <h1 className="t-title1">{trip.title}</h1>
-          <p className="t-caption t-muted">{formatDateRange(trip.start_date, trip.end_date)}{nights ? ` · ${nights} night${nights === 1 ? "" : "s"}` : ""} · {fig.members.length} in the dazzle{settled ? " · Settled" : ""}</p>
+          <p className="t-caption t-muted">{formatDateRange(trip.start_date, trip.end_date)}{nights ? ` · ${nights} night${nights === 1 ? "" : "s"}` : ""} · {fig.members.length} in the Dazzle{settled ? " · Settled" : ""}</p>
           {trip.description && <p className="t-body t-soft">{trip.description}</p>}
           <div className="avatar-row" style={{ marginTop: "var(--zs-space-6)" }} aria-label="Members">
             {fig.members.map((m) => <Avatar key={m.user_id} name={m.user_id === me ? "You" : (m.display_name ?? "Invited")} uri={m.photo_url} done={!!m.done_at} pending={!m.done_at} />)}

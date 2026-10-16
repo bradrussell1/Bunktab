@@ -95,7 +95,7 @@ export default function HomeScreen() {
   }
   function joinWithLink() {
     // There is no in-app join screen: invites arrive as links that open the dazzle directly.
-    show({ message: "Open the invite link you were sent and you'll land in the dazzle.", bust: <Zebra variant="bust" mood="wink" size={28} decorative /> });
+    show({ message: "Open the invite link you were sent and you'll land in the Dazzle.", bust: <Zebra variant="bust" mood="wink" size={28} decorative /> });
   }
 
   const header = loading ? null : (
@@ -103,7 +103,7 @@ export default function HomeScreen() {
       <HeroCard style={styles.hero}>
         <View style={styles.heroText}>
           <ZText variant="caption" color={color.textMuted}>
-            {open.length === 0 ? "Nothing open right now" : `Across ${open.length} ${open.length === 1 ? "dazzle" : "dazzles"}`}
+            {open.length === 0 ? "Nothing open right now" : `Across ${open.length} ${open.length === 1 ? "Dazzle" : "Dazzles"}`}
           </ZText>
           {position.main && position.main.currency !== "USD"
             ? <Money variant="display" cents={Math.abs(overall)} currency={`${position.main.currency} `} />
@@ -111,7 +111,7 @@ export default function HomeScreen() {
           {overall !== 0 ? <LabelPill tone={overall > 0 ? "volt" : "blush"} label={overall > 0 ? "owed to you" : "you owe"} /> : null}
           {position.others.map((o) => (
             <ZText key={o.currency} variant="caption" color={color.textMuted}>
-              {o.net === 0 ? `Even across ${o.n} ${o.n === 1 ? "dazzle" : "dazzles"} in ${o.currency}` : `${formatCents(Math.abs(o.net), o.currency)} ${o.net > 0 ? "owed to you" : "you owe"} across ${o.n} ${o.n === 1 ? "dazzle" : "dazzles"} in ${o.currency}`}
+              {o.net === 0 ? `Even across ${o.n} ${o.n === 1 ? "Dazzle" : "Dazzles"} in ${o.currency}` : `${formatCents(Math.abs(o.net), o.currency)} ${o.net > 0 ? "owed to you" : "you owe"} across ${o.n} ${o.n === 1 ? "Dazzle" : "Dazzles"} in ${o.currency}`}
             </ZText>
           ))}
         </View>
@@ -120,18 +120,18 @@ export default function HomeScreen() {
         </View>
       </HeroCard>
       <View style={styles.titleRow}>
-        <ZText variant="title2" accessibilityRole="header">Your dazzles</ZText>
+        <ZText variant="title2" accessibilityRole="header">Your Dazzles</ZText>
         <SegmentedControl options={[{ key: "open", label: "Open" }, { key: "past", label: "Past" }]} value={tab} onChange={setTab} style={styles.segment} />
       </View>
     </View>
   );
 
   const empty = loading ? null : query.trim() ? (
-    <Empty mood="worried" size={64} title="No dazzles match" body="Try a dazzle title or someone's name." />
+    <Empty mood="worried" size={64} title="No Dazzles match" body="Try a Dazzle title or someone's name." />
   ) : tab === "open" ? (
-    <Empty mood={zebraMoodFor({ place: "empty", kind: "no-dazzles" }) ?? "hi"} title="Start your first dazzle" body="Invite the crew, log what you paid, and earn your stripes together." />
+    <Empty mood={zebraMoodFor({ place: "empty", kind: "no-dazzles" }) ?? "hi"} title="Start your first Dazzle" body="Invite the crew, log what you paid, and earn your stripes together." />
   ) : (
-    <Empty mood={zebraMoodFor({ place: "empty", kind: "no-past" }) ?? "sleepy"} title="Nothing filed away yet" body="Settled dazzles, and ones that go quiet, land here." />
+    <Empty mood={zebraMoodFor({ place: "empty", kind: "no-past" }) ?? "sleepy"} title="Nothing filed away yet" body="Settled Dazzles, and ones that go quiet, land here." />
   );
 
   return (
@@ -141,7 +141,7 @@ export default function HomeScreen() {
         wordmark
         right={
           <>
-            <IconButton name={searching ? "close" : "search"} label={searching ? "Close search" : "Search dazzles"} onPress={toggleSearch} accessibilityState={{ expanded: searching }} />
+            <IconButton name={searching ? "close" : "search"} label={searching ? "Close search" : "Search Dazzles"} onPress={toggleSearch} accessibilityState={{ expanded: searching }} />
             <IconButton name="person" label="Profile" onPress={() => router.push("/(app)/settings")} />
           </>
         }
@@ -150,7 +150,7 @@ export default function HomeScreen() {
         <View style={styles.search}>
           <Input
             left={<Icon name="search" size={18} color={color.textMuted} />}
-            placeholder="Search dazzles or people"
+            placeholder="Search Dazzles or people"
             value={query}
             onChangeText={setQuery}
             autoFocus
@@ -158,7 +158,7 @@ export default function HomeScreen() {
             autoCorrect={false}
             clearButtonMode="while-editing"
             returnKeyType="search"
-            accessibilityLabel="Search dazzles by title or member name"
+            accessibilityLabel="Search Dazzles by title or member name"
           />
         </View>
       ) : null}
@@ -175,7 +175,7 @@ export default function HomeScreen() {
         keyboardDismissMode="on-drag"
       />
       <View onLayout={(e) => setFooterH(e.nativeEvent.layout.height + layout.bottomCtaPadding + insets.bottom)} style={[styles.footer, { bottom: layout.bottomCtaPadding + insets.bottom }]}>
-        <Button label="Start a dazzle" icon="plus" style={styles.start} onPress={() => router.push("/(app)/trip/new")} />
+        <Button label="Start a Dazzle" icon="plus" style={styles.start} onPress={() => router.push("/(app)/trip/new")} />
         <IconButton name="link" label="Join with a link" size={size.ctaHeight} onPress={joinWithLink} />
       </View>
     </View>
@@ -203,7 +203,7 @@ function DazzleCard({ trip, me, onPress }: { trip: TripRow; me: string; onPress:
   const { done } = countDone(trip.members);
   const notDone = trip.members.length - done;
   const cardMood = zebraMoodFor({ place: "home-card", youOwe });
-  const caption = `${shortRange(trip.start_date, trip.end_date)} · ${trip.members.length} in the dazzle`;
+  const caption = `${shortRange(trip.start_date, trip.end_date)} · ${trip.members.length} in the Dazzle`;
   const status = settled ? "settled" : trip.net_cents > 0 ? `owed ${formatCents(trip.net_cents, trip.base_currency)}` : trip.net_cents < 0 ? `you owe ${formatCents(-trip.net_cents, trip.base_currency)}` : "even";
   const stillAdding = settled ? "Settled" : trip.status === "archived" ? "Archived" : notDone === 0 ? "Everyone's done" : cardMood ? "still adding" : `${notDone} still adding`;
   return (

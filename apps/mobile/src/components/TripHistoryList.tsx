@@ -17,7 +17,7 @@ export function TripHistoryList({ trips, loading }: { trips: TripSummary[]; load
     return (
       <View style={styles.empty} accessibilityRole="summary">
         <Zebra variant="bust" mood="sleepy" size={96} animate={{ blink: true }} accessibilityLabel="Zebra, sleepy" />
-        <ZText variant="headline">No dazzles yet</ZText>
+        <ZText variant="headline">No Dazzles yet</ZText>
         <ZText variant="body" color={color.textMuted} style={styles.center}>Dazzles you join or start show up here, open or settled.</ZText>
       </View>
     );

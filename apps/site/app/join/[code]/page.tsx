@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { code } = await params;
   const inv = await getInvitePreview(code);
   const url = `${siteUrl}/join/${encodeURIComponent(code)}`;
-  const title = inv.state === "invalid" ? "This invite link isn't working" : `${inv.inviter ?? "A friend"} invited you to ${inv.trip?.name ?? "a dazzle"} on Zebrasplit`;
+  const title = inv.state === "invalid" ? "This invite link isn't working" : `${inv.inviter ?? "A friend"} invited you to ${inv.trip?.name ?? "a Dazzle"} on Zebrasplit`;
   return {
     title: { absolute: title },
     description: site.joinDescription,
@@ -74,7 +74,7 @@ export default async function JoinPage({ params }: Params) {
           <>
             <div className={s.head}>
               <Zebra variant="bust" mood="sleepy" size={128} decorative />
-              <h1 className={s.title}>This dazzle is all settled.</h1>
+              <h1 className={s.title}>This Dazzle is all settled.</h1>
               <div className={s.meta}>{inv.trip.name} · everyone&apos;s paid up.</div>
             </div>
             <div className={s.spacer} />

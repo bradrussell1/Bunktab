@@ -114,7 +114,7 @@ export default function ReceiptReadScreen() {
         onDelete={async (it) => { await deleteReceiptItem(it); flow.reload(); }}
       />
       <ActionSheet open={retry} onClose={() => setRetry(false)} title="Try another photo" actions={[{ label: "Take a photo", onPress: () => anotherPhoto("camera") }, { label: "Choose from photos", onPress: () => anotherPhoto("library") }, { label: "Read this photo again", onPress: () => requeueReceipt(receiptId!).catch((e) => show({ message: e.message })) }]} />
-      {people.length === 0 && !reading && !failed && receiptId !== DEMO_ID ? <View style={styles.note}><ZText variant="small" color={color.textMuted}>Loading the dazzle…</ZText></View> : null}
+      {people.length === 0 && !reading && !failed && receiptId !== DEMO_ID ? <View style={styles.note}><ZText variant="small" color={color.textMuted}>Loading the Dazzle…</ZText></View> : null}
     </FlowScreen>
   );
 }

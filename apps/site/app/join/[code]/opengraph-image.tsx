@@ -1,7 +1,7 @@
 import { defaultOg, inviteOg, OG_SIZE } from "@/lib/og";
 import { getInvitePreview } from "@/lib/invite";
 
-export const alt = "You're invited to a dazzle on Zebrasplit";
+export const alt = "You're invited to a Dazzle on Zebrasplit";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
