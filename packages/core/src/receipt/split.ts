@@ -9,8 +9,8 @@
  */
 import { ZERO, add, asRat, cmp, div, floorRat, fromNumber, isPos, isZero, mul, rat, sub, sumRat, toNumber, type Rat } from "./rational";
 
-import type { Cents } from "../money";
-export type { Cents };
+/** Integer cents, same meaning as the core money module; declared here so this folder has no imports outside itself (it is copied verbatim into the Edge Functions). */
+type Cents = number;
 export type PersonId = string;
 
 export type ItemKind = "food" | "drink" | "alcohol" | "other";

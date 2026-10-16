@@ -86,6 +86,13 @@ describe("El Faro Cantina (golden)", () => {
     expect(p.perPerson.jt!.pctOfFood.toFixed(1)).toBe("13.9");
     expect(p.perPerson.you!.totalCents).toBe(0);
   });
+  it("reordering the people changes nothing when the account holder has food", () => {
+    const claims = splitRestEvenly(effectiveItems(receipt), { guac: { jt: 1 }, pac: { jt: 1 } }, ["you", "pp", "mc"]);
+    const a = splitByItem(receipt, claims, tip20, people, "you");
+    const b = splitByItem(receipt, claims, tip20, ["jt", "mc", "you", "pp"], "you");
+    if (!("shares" in a) || !("shares" in b)) throw new Error("expected shares");
+    expect(byId(b.shares)).toEqual(byId(a.shares));
+  });
   it("split-the-rest takes three taps or fewer and defaults to whoever has nothing yet", () => {
     const start: Claims = { guac: { jt: 1 }, pac: { jt: 1 } };
     expect(defaultRestSelection(effectiveItems(receipt), start, people)).toEqual(["you", "pp", "mc"]);
@@ -265,7 +272,9 @@ const arbReceipt = fc.integer({ min: 1, max: 12 }).chain((n) =>
     if (discount) {
       const tied = discount.itemIndex != null ? list[discount.itemIndex]! : null;
       // keep every line non-negative after an item-tied discount
-      charges.push({ kind: "discount", amountCents: -(tied ? Math.min(discount.amountCents, tied.lineTotalCents) : discount.amountCents), itemId: tied ? tied.id : null });
+      // keep every line and the bill itself non-negative (a discount can't exceed what it discounts)
+      const itemsSum = list.reduce((s, it) => s + it.lineTotalCents, 0);
+      charges.push({ kind: "discount", amountCents: -(tied ? Math.min(discount.amountCents, tied.lineTotalCents) : Math.min(discount.amountCents, itemsSum)), itemId: tied ? tied.id : null });
     }
     const receipt: SplitReceipt = { items: list, charges };
     return { receipt, tip: tip as { mode: "percent" | "custom" | "none"; percent?: number; customCents?: number } };
@@ -315,18 +324,17 @@ describe("properties (≥ 1,000 random receipts)", () => {
         if (!claimed.has(s.personId) && anyFood) { expect(s.foodCents).toBe(0); expect(s.taxCents).toBe(0); expect(s.tipCents).toBe(0); expect(s.feesCents).toBe(0); }
         if (s.discountCents === 0) expect(s.totalCents).toBeGreaterThanOrEqual(0);
       }
-      // reorder people: identical per-person shares when the holder has food; otherwise the multiset is the same
+      // Reordering people only moves leftover cents, and only by the holder rule: each allocation
+      // (food, every tax/fee/discount line, tip) hands its leftover to the holder when they carry
+      // weight in it, else to the first participant who does - so a holder with no alcohol still
+      // sees the liquor-tax leftover move. Net zero, bounded by (n−1) cents per allocation.
       const shuffled = [...people].sort((a, b) => ((seed % 7) * a.charCodeAt(1) - b.charCodeAt(1)) || a.localeCompare(b));
       const r2 = splitByItem(receipt, claims, tip, shuffled, holder);
       if (!("shares" in r2)) return false;
-      if ((food.get(holder) ?? 0) > 0) for (const s of r2.shares) expect(s.totalCents).toBe(r.shares.find((x) => x.personId === s.personId)!.totalCents);
-      else {
-        // the leftover cents move from the old first participant to the new one, and nothing else changes
-        // (each allocation - food, every tax/fee/discount line, tip - may hand its own leftover to a different "first" person)
-        const moved = r2.shares.filter((s) => s.totalCents !== r.shares.find((x) => x.personId === s.personId)!.totalCents);
-        expect(sum(moved.map((s) => s.totalCents - r.shares.find((x) => x.personId === s.personId)!.totalCents))).toBe(0);
-        for (const s of moved) expect(Math.abs(s.totalCents - r.shares.find((x) => x.personId === s.personId)!.totalCents)).toBeLessThanOrEqual((2 + receipt.charges.length) * Math.max(1, people.length - 1)); // ≤ (n−1) leftover cents per allocation: food, each charge, tip
-      }
+      const diffs = r2.shares.map((s) => s.totalCents - r.shares.find((x) => x.personId === s.personId)!.totalCents);
+      expect(sum(diffs)).toBe(0);
+      for (const d of diffs) expect(Math.abs(d)).toBeLessThanOrEqual((2 + receipt.charges.length) * Math.max(1, people.length - 1));
+      void food;
       return true;
     }), { numRuns: 400 });
   });
