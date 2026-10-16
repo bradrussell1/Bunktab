@@ -24,7 +24,7 @@ import { WhoSleptWhere } from "@/components/WhoSleptWhere";
 import { ActionSheet, Avatar, Button, Icon, Input, KEYBOARD_BAR_HEIGHT, KeyboardDoneBar, Press, Receipt, RowCard, SegmentedControl, TextLink, Toggle, ZText, useKeyboardVisible } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { fetchRate, formatFetchedAt } from "@/lib/fx";
-import { pickReceipt, readReceipt, signReceipt, uploadReceipt, type ReceiptRead } from "@/lib/receipts";
+import { captureReceipt, signReceipt } from "@/lib/receipts";
 import { isNetworkError, supabase } from "@/lib/supabase";
 import { activeMembers, useTrip, type Expense } from "@/lib/trips";
 import { currencyLabel } from "@/lib/currencyLabels";
@@ -55,7 +55,7 @@ const SPLITS: { key: SplitType; label: string }[] = [
 type Sheet = "receipt" | "currency" | "category" | "subcategory" | "delete" | null;
 
 export default function ExpenseScreen() {
-  const { id, expense: expenseId, ...devParams } = useLocalSearchParams<{ id: string; expense?: string; category?: string; sub?: string; receipt?: string; nights?: string }>();
+  const { id, expense: expenseId, receipt_path: receiptParam, ...devParams } = useLocalSearchParams<{ id: string; expense?: string; category?: string; sub?: string; receipt?: string; nights?: string; receipt_path?: string; receipt_id?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
@@ -85,8 +85,8 @@ export default function ExpenseScreen() {
   const [receiptUrl, setReceiptUrl] = useState<string | null>(null);
   const [receiptBusy, setReceiptBusy] = useState(false);
   const [receiptNote, setReceiptNote] = useState<string | null>(null);
-  // the last successful read-out, shown as the thermal Receipt card. DEV: ?receipt=demo previews it (no upload)
-  const [read, setRead] = useState<ReceiptRead | null>(__DEV__ && devParams.receipt === "demo" ? { total_cents: 16400, currency: null, confidence: "high" } : null);
+  // a photo attached from the receipt flow's "Enter the total" (manual entry keeps the photo)
+  const read = null;
   const [fxNote, setFxNote] = useState<string | null>(null);
   const [commentCount, setCommentCount] = useState<number | null>(null);
   const [sheet, setSheet] = useState<Sheet>(null);
@@ -108,14 +108,16 @@ export default function ExpenseScreen() {
       setCurrency(existing.currency); setFx(String(existing.fx_rate)); setDescription(existing.description);
       setCategory(existing.category); setSubcategory(existing.subcategory);
       setInvolved(existing.expense_shares.map((s) => s.user_id));
-      setSplit(existing.split_type === "nights" || existing.split_type === "shares" ? "equal" : existing.split_type);
+      setSplit(existing.split_type === "nights" || existing.split_type === "shares" || existing.split_type === "itemized" ? "equal" : existing.split_type);
       setLodging(existing.split_type === "nights");
       if (existing.split_type === "exact") setExact(Object.fromEntries(existing.expense_shares.map((s) => [s.user_id, String(s.share_cents / 100)])));
       if (existing.receipt_url) setReceiptPath(existing.receipt_url);
+      else if (receiptParam) setReceiptPath(receiptParam);
       if (existing.nights) { setNights(String(existing.nights)); setPresence(Object.fromEntries(existing.expense_shares.map((s) => [s.user_id, s.night_presence ?? fullPresence([s.user_id], existing.nights!)[s.user_id]!]))); }
     } else {
       setCurrency(data.trip.base_currency);
       setInvolved(ids);
+      if (receiptParam) { setReceiptPath(receiptParam); setReceiptNote("Photo saved. Enter the total by hand"); }
       const n = Math.max(1, nightsBetween(data.trip.start_date, data.trip.end_date));
       setNights(String(n)); setPresence(fullPresence(ids, n));
     }
@@ -125,7 +127,7 @@ export default function ExpenseScreen() {
   // focus the amount once the sheet has settled: an autoFocus fires before the keyboard's
   // Done bar (InputAccessoryView) is registered, and iOS then shows the pad without it
   useEffect(() => {
-    if (!seeded || existing || read) return;
+    if (!seeded || existing || read || receiptParam) return;
     const t = setTimeout(() => amountRef.current?.focus(), 350);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -191,36 +193,19 @@ export default function ExpenseScreen() {
     setPresence((p) => Object.fromEntries(involved.map((uid) => [uid, Array.from({ length: n }, (_, i) => p[uid]?.[i] ?? true)])));
   }
 
+  /** Snap a receipt: the photo is read line by line and the split happens on the receipt screens; the sheet closes. */
   async function attachReceipt(source: "camera" | "library") {
     if (!data) return;
-    setError(null);
-    const uri = await pickReceipt(source);
-    if (!uri) return;
-    setReceiptBusy(true); setReceiptNote(null);
+    setError(null); setReceiptBusy(true); setReceiptNote(null);
     try {
-      const path = await uploadReceipt(data.trip.id, uri);
-      setReceiptPath(path);
-      const r = await readReceipt(path);
-      if (r?.total_cents && r.total_cents > 0 && r.confidence !== "low") {
-        setRead(r);
-        if (!amount.trim()) {
-          setAmount((r.total_cents / 100).toFixed(2));
-          if (r.currency && (COMMON_CURRENCIES as readonly string[]).includes(r.currency)) setCurrency(r.currency);
-          setReceiptNote("Read from the receipt, check it");
-        } else setReceiptNote("Receipt attached");
-      } else {
-        setRead(null);
-        setReceiptNote(amount.trim() ? "Receipt attached" : "Couldn't read a total, enter it by hand");
-      }
+      const r = await captureReceipt(data.trip.id, source);
+      if (!r) return;
+      if (r.queued) { setReceiptNote("No connection. The photo will upload when you're back online."); return; }
+      router.replace({ pathname: "/(app)/trip/[id]/receipt/[receiptId]", params: { id: data.trip.id, receiptId: r.receiptId } });
     } catch (e) { setError(e instanceof Error ? e.message : "Couldn't upload the receipt."); }
-    setReceiptBusy(false);
+    finally { setReceiptBusy(false); }
   }
-  function useReadTotal() {
-    if (!read?.total_cents) return;
-    setAmount((read.total_cents / 100).toFixed(2));
-    if (read.currency && (COMMON_CURRENCIES as readonly string[]).includes(read.currency)) setCurrency(read.currency);
-  }
-  function removeReceipt() { setReceiptPath(null); setReceiptNote(null); setRead(null); }
+  function removeReceipt() { setReceiptPath(null); setReceiptNote(null); }
 
   const preview = useMemo(() => {
     try {
@@ -323,20 +308,11 @@ export default function ExpenseScreen() {
               ) : null}
 
               {/* receipt */}
-              {read?.total_cents ? (
-                <View style={styles.receiptBlock}>
-                  <Receipt merchant="Receipt" lines={[]} totalCents={read.total_cents} />
-                  <View style={styles.receiptActions}>
-                    <Button kind="ink" height={size.pillButton} label={`Use ${formatCents(read.total_cents, read.currency ?? currency)}`} onPress={useReadTotal} />
-                    <TextLink label="Edit" onPress={() => amountRef.current?.focus()} />
-                    <TextLink label="Remove" muted onPress={removeReceipt} />
-                  </View>
-                </View>
-              ) : receiptPath || receiptBusy ? (
+              {receiptPath || receiptBusy ? (
                 <RowCard
                   tile={receiptUrl ? <Image source={{ uri: receiptUrl }} style={styles.thumb} accessibilityIgnoresInvertColors /> : <Icon name="camera" />}
-                  title={receiptBusy ? "Reading the receipt…" : "Receipt attached"}
-                  caption={receiptBusy ? "Uploading and reading the total" : receiptNote ?? "Saved with the expense as proof"}
+                  title={receiptBusy ? "Uploading the receipt…" : "Receipt attached"}
+                  caption={receiptBusy ? "Then every line is read on the next screen" : receiptNote ?? "Saved with the expense as proof"}
                   right={!receiptBusy ? <TextLink label="Remove" muted onPress={removeReceipt} /> : null}
                 />
               ) : (

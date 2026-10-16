@@ -46,7 +46,7 @@ export function ExpenseForm({ tripId, expenseId, me }: { tripId: string; expense
       setCategory(existing.category); setSubcategory(existing.subcategory);
       setPayers(Object.fromEntries(existing.expense_payers.map((p) => [p.user_id, String(p.amount_cents / 100)])));
       setInvolved(existing.expense_shares.map((s) => s.user_id));
-      setSplit(existing.split_type === "nights" ? "equal" : existing.split_type); setLodging(existing.split_type === "nights");
+      setSplit(existing.split_type === "nights" || existing.split_type === "itemized" ? "equal" : existing.split_type); setLodging(existing.split_type === "nights");
       if (existing.split_type === "exact") setExact(Object.fromEntries(existing.expense_shares.map((s) => [s.user_id, String(s.share_cents / 100)])));
       if (existing.nights) { setNights(String(existing.nights)); setPresence(Object.fromEntries(existing.expense_shares.map((s) => [s.user_id, s.night_presence ?? fullPresence([s.user_id], existing.nights!)[s.user_id]!]))); }
     } else {

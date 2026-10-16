@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ActionSheet, AmountPill, Avatar, Button, Card, CountUp, Icon, IconButton, InsetPanel, HeroCard, MemberPill, Money, Press, Rise, RowCard, ScreenBackground, SegmentedControl, Toggle, TopBar, Zebra, ZText, useToast, type SheetAction, ErrorPanel, ScreenSkeleton } from "@/ui";
 import { useAuth } from "@/lib/auth";
 import { uploadPrivateImage, useSignedUrl } from "@/lib/media";
+import { captureReceipt } from "@/lib/receipts";
 import { pickImage } from "@/lib/storage";
 import { isNetworkError, supabase } from "@/lib/supabase";
 import { biggestExpense, categoryIcon, frontedMost, topCategory } from "@/lib/tripExtras";
@@ -46,6 +47,16 @@ export default function TripScreen() {
   const [busy, setBusy] = useState(false);
   const [coverBusy, setCoverBusy] = useState(false);
   const [footerH, setFooterH] = useState(160);
+  const [snap, setSnap] = useState(false);
+  async function snapReceipt(source: "camera" | "library") {
+    if (!data) return;
+    try {
+      const r = await captureReceipt(data.trip.id, source);
+      if (!r) return;
+      if (r.queued) { show({ message: "No connection. The photo will upload when you're back online." }); return; }
+      router.push({ pathname: "/(app)/trip/[id]/receipt/[receiptId]", params: { id: data.trip.id, receiptId: r.receiptId } });
+    } catch (e) { show({ message: e instanceof Error ? e.message : "Couldn't upload the photo." }); }
+  }
   // DEV-only `?scrollTo=tabs` scrolls the tab strip to the top (screenshots)
   const scrollRef = useRef<ScrollView>(null);
   const tabsY = useRef(0);
@@ -236,7 +247,9 @@ export default function TripScreen() {
             {data.expenses.length === 0 ? <ZText variant="body" color={color.textMuted} style={styles.note}>No expenses yet. Add the first one.</ZText> : null}
             {data.expenses.map((e) => (
               <View key={e.id} style={settledUp ? styles.faded : null}>
-                <ExpenseRow e={e} me={me} data={data} settled={settledUp} onOpen={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/expense?expense=${e.id}`)} onHistory={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/history?expense=${e.id}`)} />
+                <ExpenseRow e={e} me={me} data={data} settled={settledUp}
+                  onOpen={e.receipt_id ? () => router.push({ pathname: "/(app)/trip/[id]/receipt/[receiptId]/summary", params: { id: trip.id, receiptId: e.receipt_id!, expense: e.id } }) : readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/expense?expense=${e.id}`)}
+                  onHistory={readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/history?expense=${e.id}`)} />
               </View>
             ))}
           </View>
@@ -298,6 +311,7 @@ export default function TripScreen() {
         <View onLayout={(e) => setFooterH(e.nativeEvent.layout.height)} style={[styles.footer, { paddingBottom: insets.bottom + space[16] }]}>
           <View style={styles.footerButtons}>
             <Button label="Add expense" height={size.buttonHeight} style={styles.footerButton} onPress={() => router.push(`/(app)/trip/${trip.id}/expense`)} />
+            <IconButton name="camera" label="Snap a receipt" onPress={() => setSnap(true)} size={size.buttonHeight} />
             {unlocked
               ? <Button kind="ink" label="Close out" height={size.buttonHeight} style={styles.footerButton} onPress={() => router.push(`/(app)/trip/${trip.id}/closeout`)} />
               : <Button kind="locked" label={`Close out · ${toGo} to go`} height={size.buttonHeight} style={[styles.footerButton, styles.footerWide]} accessibilityLabel={`Close out, locked, ${toGo} still adding`} />}
@@ -318,6 +332,10 @@ export default function TripScreen() {
         </View>
       ) : null}
 
+      <ActionSheet open={snap} onClose={() => setSnap(false)} title="Snap a receipt" actions={[
+        { label: "Take a photo", onPress: () => snapReceipt("camera") },
+        { label: "Choose from photos", onPress: () => snapReceipt("library") },
+      ]} />
       <ActionSheet open={menu} onClose={() => setMenu(false)} title={trip.title} actions={menuActions} />
       <ActionSheet open={!!confirm} onClose={() => setConfirm(null)} title={confirm?.title} actions={confirm ? [{ label: confirm.label, destructive: true, onPress: confirm.run }] : []} />
     </View>

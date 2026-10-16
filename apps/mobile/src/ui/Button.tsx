@@ -20,12 +20,13 @@ export type ButtonProps = Omit<PressProps, "children" | "scaleTo"> & {
   right?: ReactNode;
 };
 
-const fill: Record<Kind, string> = { primary: palette.volt, ink: palette.ink, secondary: palette.white, locked: palette.sand, nudge: palette.pink };
-const ink: Record<Kind, string> = { primary: color.textOnVolt, ink: color.textOnInk, secondary: color.text, locked: color.disabledText, nudge: color.textOnPink };
+const fill: Record<Kind, string> = { primary: palette.volt, ink: palette.ink, secondary: palette.white, locked: color.lockedBg, nudge: palette.pink };
+const ink: Record<Kind, string> = { primary: color.textOnVolt, ink: color.textOnInk, secondary: color.text, locked: color.lockedText, nudge: color.textOnPink };
 
 /**
  * Button.Primary (volt, one per screen), Button.Ink, Button.Secondary, Button.Locked
- * (sand, muted label, always says why), Button.Nudge (pink, 32 tall, 13/800).
+ * (lockedBg with a 1.5 lockedBorder and lockedText - the old sand-on-cream was nearly
+ * invisible at the bottom of the gradient; it always says why), Button.Nudge (pink, 32 tall, 13/800).
  */
 export function Button({ label, kind = "primary", icon, height, loading, onWhite, style, right, disabled, accessibilityLabel, ...rest }: ButtonProps) {
   const h = height ?? (kind === "nudge" ? size.pillSmall : size.ctaHeight);
@@ -41,7 +42,7 @@ export function Button({ label, kind = "primary", icon, height, loading, onWhite
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ disabled: !!disabled || locked, busy: !!loading }}
-      style={[styles.base, { height: h, borderRadius: radius.pill, backgroundColor: fill[kind], paddingHorizontal: small ? 14 : 22 }, onWhite && kind === "secondary" ? styles.hairline : null, shadowStyle, style]}
+      style={[styles.base, { height: h, borderRadius: radius.pill, backgroundColor: fill[kind], paddingHorizontal: small ? 14 : 22 }, onWhite && kind === "secondary" ? styles.hairline : null, locked ? styles.locked : null, shadowStyle, style]}
     >
       {loading ? (
         <ActivityIndicator color={ink[kind]} />
@@ -68,6 +69,7 @@ const styles = StyleSheet.create({
   base: { alignItems: "center", justifyContent: "center", alignSelf: "stretch" },
   row: { flexDirection: "row", alignItems: "center", gap: 8 },
   hairline: { borderWidth: 1.5, borderColor: color.outline },
+  locked: { borderWidth: 1.5, borderColor: color.lockedBorder },
   icon: { backgroundColor: palette.white, alignItems: "center", justifyContent: "center" },
 });
 
