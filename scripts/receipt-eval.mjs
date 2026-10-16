@@ -4,6 +4,7 @@
 //
 //   ANTHROPIC_API_KEY=… node scripts/receipt-eval.mjs            # local: the pipeline in-process
 //   node scripts/receipt-eval.mjs --remote                          # through the deployed function, as a test account
+//   add --only=skewed-cafe,two-photo to rerun a subset (merged into eval.json)
 //     needs SUPABASE_URL, SUPABASE_ANON_KEY, TEST_PHONE (+1555…), TEST_OTP (123456), TEST_TRIP_ID
 //
 // Output: a table per fixture and a summary; --json writes design/receipt/fixtures/receipts/eval.json.
@@ -17,7 +18,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dir = path.join(root, "design/receipt/fixtures/receipts");
 const schema = JSON.parse(fs.readFileSync(path.join(root, "supabase/functions/receipt-parse/schema.json"), "utf8"));
 const remote = process.argv.includes("--remote");
-const cases = fs.readdirSync(dir).filter((f) => f.endsWith(".expected.json")).map((f) => f.replace(/\.expected\.json$/, "")).sort();
+const onlyArg = process.argv.find((a) => a.startsWith("--only="));
+const only = onlyArg ? new Set(onlyArg.slice(7).split(",")) : null;   // --only=a,b reruns a subset and merges into eval.json
+const cases = fs.readdirSync(dir).filter((f) => f.endsWith(".expected.json")).map((f) => f.replace(/\.expected\.json$/, "")).sort().filter((n) => !only || only.has(n));
 
 function imagesFor(name) {
   const two = [1, 2].map((i) => path.join(dir, `${name}-${i}.png`));
@@ -44,11 +47,20 @@ async function readLocal(name) {
   return { status: r.outcome === "unreadable" ? "failed:unreadable" : `failed:${r.error}`, reconciled: false, items: [], total: null, subtotal: null, attempts: r.attempts };
 }
 
-async function readRemote(name) {
+// One sign-in for the whole run: Supabase rate-limits OTP requests per phone (one a minute).
+let remoteSession = null;
+async function remoteClient() {
+  if (remoteSession) return remoteSession;
   const { createClient } = await import("@supabase/supabase-js");
   const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, { auth: { persistSession: false } });
   const { error: e1 } = await sb.auth.signInWithOtp({ phone: process.env.TEST_PHONE }); if (e1) throw e1;
   const { data: auth, error: e2 } = await sb.auth.verifyOtp({ phone: process.env.TEST_PHONE, token: process.env.TEST_OTP, type: "sms" }); if (e2) throw e2;
+  remoteSession = { sb, auth };
+  return remoteSession;
+}
+
+async function readRemote(name) {
+  const { sb, auth } = await remoteClient();
   const files = imagesFor(name);
   const img = await loadImage(files);
   const bytes = Buffer.from(img.base64, "base64");
@@ -76,7 +88,7 @@ for (const name of cases) {
   const exp = JSON.parse(fs.readFileSync(path.join(dir, `${name}.expected.json`), "utf8"));
   const t0 = Date.now();
   let got;
-  try { got = await (remote ? readRemote(name) : readLocal(name)); } catch (e) { got = { status: `error:${e.message}`, reconciled: false, items: [], total: null, subtotal: null, attempts: [] }; }
+  try { got = await (remote ? readRemote(name) : readLocal(name)); } catch (e) { got = { status: `error:${e.message}${e.cause ? " (" + (e.cause.code ?? e.cause.message) + ")" : ""}`, reconciled: false, items: [], total: null, subtotal: null, attempts: [] }; }
   const expItems = exp.items.filter((i) => !i.is_void);
   const lineHits = expItems.filter((ei) => got.items.some((gi) => gi.lineTotalCents === ei.line_total_cents && gi.quantity === ei.quantity)).length;
   const r = {
@@ -87,6 +99,12 @@ for (const name of cases) {
   };
   results.push(r);
   console.log(`${name.padEnd(18)} ${String(r.status).padEnd(14)} reconciled=${r.reconciled ? "yes" : "no "} total=${r.totalExact ? "exact" : "off  "} lines ${lineHits}/${expItems.length} (read ${got.items.length}) ${r.ms}ms ${r.attempts.map((a) => a.model).join("→")}`);
+}
+if (only && fs.existsSync(path.join(dir, "eval.json"))) {
+  // Merge a partial rerun over the last full run so eval.json always describes every fixture.
+  const prev = JSON.parse(fs.readFileSync(path.join(dir, "eval.json"), "utf8")).results ?? [];
+  for (const r of prev) if (!results.some((x) => x.name === r.name)) results.push(r);
+  results.sort((a, b) => a.name.localeCompare(b.name));
 }
 const readable = results.filter((r) => r.expectedReadable);
 const summary = {

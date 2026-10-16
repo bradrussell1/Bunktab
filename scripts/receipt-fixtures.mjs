@@ -8,6 +8,7 @@
 // playwright-core isn't a repo dependency; point NODE_PATH at any install (the design
 // screenshots use the same local Chrome).
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
@@ -111,7 +112,9 @@ function receiptHtml(c) {
   for (const f of c.footer) lines.push(`<div style="text-align:center;margin-top:${f === c.footer[0] ? 10 : 0}px">${f}</div>`);
   const paper = `<div id="paper" style="background:#fbfaf6;width:${width}px;padding:22px 16px 30px;font-family:${font};font-size:${size}px;line-height:1.45;color:#1b1b1b;box-shadow:0 2px 12px rgba(0,0,0,.35)">${lines.join("")}</div>`;
   const filter = s.fade ? "filter:contrast(.55) brightness(1.18) blur(.3px);" : "";
-  const skew = s.skew ? "transform:perspective(900px) rotateZ(-4deg) rotateX(6deg);" : "transform:rotate(1.2deg);";
+  // No CSS transform: headless Chrome rotated the paper but rasterised the glyphs upright, which
+  // put prices a line away from their names. The tilt is applied to the finished bitmap instead.
+  const skew = "";
   return `<body style="margin:0;background:#6d655c;display:flex;align-items:flex-start;justify-content:center;padding:40px 0"><div style="${filter}${skew}">${paper}</div></body>`;
 }
 
@@ -123,11 +126,28 @@ const expected = (c) => ({
   printed_total_cents: c.readable ? c.total : null, tip_printed_cents: c.tipPrinted, tax_included_in_prices: c.taxIncluded, pages: c.pages,
 });
 
+// Rigid rotation (plus a small shear for the "skewed" case) of the whole bitmap, background filled.
+function tilt(file, degrees, shear) {
+  execFileSync("python3", ["-c", `
+import sys
+from PIL import Image
+f, deg, sh = sys.argv[1], float(sys.argv[2]), float(sys.argv[3])
+im = Image.open(f).convert("RGB")
+bg = im.getpixel((2, 2))
+im = im.rotate(deg, resample=Image.BICUBIC, expand=False, fillcolor=bg)
+if sh:
+    w, h = im.size
+    im = im.transform((w, h), Image.AFFINE, (1, 0, 0, sh, 1, -sh * w / 2), resample=Image.BICUBIC, fillcolor=bg)
+im.save(f)
+`, file, String(degrees), String(shear)]);
+}
+
 const browser = await chromium.launch({ executablePath: CHROME, headless: true });
 const page = await browser.newPage({ viewport: { width: 700, height: 900 }, deviceScaleFactor: 2 });
 for (const c of CASES) {
   await page.setContent(receiptHtml(c));
   await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(150);
   if (c.pages === 2) {
     const box = await page.locator("#paper").boundingBox();
     const half = Math.ceil(box.height / 2) + 30;
@@ -136,8 +156,15 @@ for (const c of CASES) {
     await page.screenshot({ path: path.join(out, `${c.name}-2.png`), clip: { x: 0, y: box.y + half - 60, width: 700, height: box.height - half + 120 } });
     await page.setViewportSize({ width: 700, height: 900 });
   } else {
+    // Size the viewport to the paper and let the compositor settle: a screenshot taken straight
+    // after setContent at 2x occasionally came back tiled/cropped in headless Chrome.
     const box = await page.locator("#paper").boundingBox().catch(() => null);
-    await page.screenshot({ path: path.join(out, `${c.name}.png`), fullPage: !!box && box.y + box.height > 900 });
+    const height = Math.max(900, Math.ceil((box ? box.y + box.height : 900) + 80));
+    await page.setViewportSize({ width: 700, height });
+    await page.waitForTimeout(250);
+    await page.screenshot({ path: path.join(out, `${c.name}.png`), animations: "disabled" });
+    await page.setViewportSize({ width: 700, height: 900 });
+    tilt(path.join(out, `${c.name}.png`), c.style.skew ? -4 : 1.2, c.style.skew ? 0.03 : 0);
   }
   fs.writeFileSync(path.join(out, `${c.name}.expected.json`), JSON.stringify(expected(c), null, 2) + "\n");
   console.log("wrote", c.name, c.readable ? `total ${money(c.total)}` : "(not a receipt)");

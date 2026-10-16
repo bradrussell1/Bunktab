@@ -14,5 +14,6 @@ Rules:
 10. Never return card numbers, cardholder names, loyalty or member IDs, phone numbers or addresses of people. Merchant name only.
 11. If this is not a receipt, or it is too blurry, cropped or faded to read the line items, set readable false and leave items empty. Do not guess amounts. Lower the confidence of any line you cannot read with certainty and say what is unclear in notes.
 12. If the receipt continues past the edge of the photo, say so in notes.
+13. A long receipt may arrive as two or more photos stacked into one image, and the photos usually overlap. A printed line that appears in the overlap is still one line: list it once, in order, and never count it twice.
 
 Return only the JSON object the schema describes.
