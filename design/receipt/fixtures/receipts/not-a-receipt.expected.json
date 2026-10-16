@@ -1,0 +1,15 @@
+{
+  "readable": false,
+  "merchant": null,
+  "date": "2026-10-11",
+  "currency": "USD",
+  "items": [],
+  "subtotal_cents": 0,
+  "tax_lines": [],
+  "fees": [],
+  "discounts": [],
+  "printed_total_cents": null,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": false,
+  "pages": 1
+}

@@ -1,0 +1,260 @@
+{
+  "readable": true,
+  "merchant": "Pinecrest Market",
+  "date": "2026-10-08",
+  "currency": "USD",
+  "items": [
+    {
+      "name": "Bananas",
+      "quantity": 1,
+      "line_total_cents": 129,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Avocado",
+      "quantity": 1,
+      "line_total_cents": 249,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Tortilla chips",
+      "quantity": 1,
+      "line_total_cents": 399,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Salsa verde",
+      "quantity": 1,
+      "line_total_cents": 449,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Limes 6ct",
+      "quantity": 1,
+      "line_total_cents": 199,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Ground beef",
+      "quantity": 1,
+      "line_total_cents": 1298,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Chicken thighs",
+      "quantity": 1,
+      "line_total_cents": 987,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Eggs dozen",
+      "quantity": 1,
+      "line_total_cents": 549,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Oat milk",
+      "quantity": 1,
+      "line_total_cents": 499,
+      "kind": "drink",
+      "is_void": false
+    },
+    {
+      "name": "Coffee beans",
+      "quantity": 1,
+      "line_total_cents": 1299,
+      "kind": "drink",
+      "is_void": false
+    },
+    {
+      "name": "Paper towels",
+      "quantity": 1,
+      "line_total_cents": 899,
+      "kind": "other",
+      "is_void": false
+    },
+    {
+      "name": "Sunscreen",
+      "quantity": 1,
+      "line_total_cents": 1199,
+      "kind": "other",
+      "is_void": false
+    },
+    {
+      "name": "Ice 10lb",
+      "quantity": 1,
+      "line_total_cents": 399,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Seltzer 12pk",
+      "quantity": 1,
+      "line_total_cents": 699,
+      "kind": "drink",
+      "is_void": false
+    },
+    {
+      "name": "Burger buns",
+      "quantity": 1,
+      "line_total_cents": 349,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Cheddar block",
+      "quantity": 1,
+      "line_total_cents": 599,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Lettuce",
+      "quantity": 1,
+      "line_total_cents": 249,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Tomatoes",
+      "quantity": 1,
+      "line_total_cents": 379,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Onions",
+      "quantity": 1,
+      "line_total_cents": 189,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Cilantro",
+      "quantity": 1,
+      "line_total_cents": 99,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Jalapenos",
+      "quantity": 1,
+      "line_total_cents": 129,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Rice 2lb",
+      "quantity": 1,
+      "line_total_cents": 449,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Black beans",
+      "quantity": 1,
+      "line_total_cents": 139,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Olive oil",
+      "quantity": 1,
+      "line_total_cents": 999,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Charcoal",
+      "quantity": 1,
+      "line_total_cents": 1499,
+      "kind": "other",
+      "is_void": false
+    },
+    {
+      "name": "Lighter fluid",
+      "quantity": 1,
+      "line_total_cents": 599,
+      "kind": "other",
+      "is_void": false
+    },
+    {
+      "name": "Marshmallows",
+      "quantity": 1,
+      "line_total_cents": 349,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Graham crackers",
+      "quantity": 1,
+      "line_total_cents": 429,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Chocolate bars",
+      "quantity": 1,
+      "line_total_cents": 599,
+      "kind": "food",
+      "is_void": false
+    },
+    {
+      "name": "Trash bags",
+      "quantity": 1,
+      "line_total_cents": 1099,
+      "kind": "other",
+      "is_void": false
+    },
+    {
+      "name": "Dish soap",
+      "quantity": 1,
+      "line_total_cents": 399,
+      "kind": "other",
+      "is_void": false
+    },
+    {
+      "name": "Sponges",
+      "quantity": 1,
+      "line_total_cents": 299,
+      "kind": "other",
+      "is_void": false
+    },
+    {
+      "name": "Bottled water",
+      "quantity": 1,
+      "line_total_cents": 599,
+      "kind": "drink",
+      "is_void": false
+    },
+    {
+      "name": "Orange juice",
+      "quantity": 1,
+      "line_total_cents": 549,
+      "kind": "drink",
+      "is_void": false
+    }
+  ],
+  "subtotal_cents": 19253,
+  "tax_lines": [
+    {
+      "label": "TAX",
+      "amount_cents": 612,
+      "applies_to": "unknown"
+    }
+  ],
+  "fees": [],
+  "discounts": [],
+  "printed_total_cents": 19865,
+  "tip_printed_cents": null,
+  "tax_included_in_prices": false,
+  "pages": 1
+}

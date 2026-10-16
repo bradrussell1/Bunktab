@@ -50,7 +50,9 @@ export type Normalized = {
 };
 
 export class ExtractionError extends Error {
-  constructor(message: string, public readonly code: "UNREADABLE" | "BAD_AMOUNT" | "NO_ITEMS") { super(message); this.name = "ExtractionError"; }
+  readonly code: "UNREADABLE" | "BAD_AMOUNT" | "NO_ITEMS";
+  // no parameter properties: this file also runs under Node's strip-only TypeScript loader
+  constructor(message: string, code: "UNREADABLE" | "BAD_AMOUNT" | "NO_ITEMS") { super(message); this.name = "ExtractionError"; this.code = code; }
 }
 
 /** Decimal strings → cents, voids dropped from the arithmetic, discounts normalised negative. */
