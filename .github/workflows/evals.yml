@@ -1,0 +1,25 @@
+# Receipt extraction evals against the real model. Costly, so: PRs labelled `evals`,
+# nightly on main, or by hand. Needs ANTHROPIC_API_KEY as a repository secret scoped to
+# an evals-only Anthropic workspace with its own spend limit.
+name: Receipt evals
+on:
+  pull_request:
+    types: [labeled, synchronize]
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+jobs:
+  evals:
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'evals')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: node scripts/receipt-eval.mjs --json
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_EVALS_API_KEY }}
+      - uses: actions/upload-artifact@v4
+        with: { name: receipt-eval, path: design/receipt/fixtures/receipts/eval.json }
