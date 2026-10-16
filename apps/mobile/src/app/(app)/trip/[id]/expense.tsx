@@ -256,7 +256,7 @@ export default function ExpenseScreen() {
   const canDelete = !!existing && (existing.created_by === me || isOwner); // user: only the owner or the person who created it
   async function remove() {
     const { error: e } = await supabase.rpc("delete_expense", { p_id: existing!.id });
-    if (e) { setError(isNetworkError(e.message) ? "Connection lost. Check your signal and try again." : /owner|created|allowed|42501/i.test(e.message) ? "Only the dazzle owner or the person who added this expense can delete it." : e.message); return; }
+    if (e) { setError(isNetworkError(e.message) ? "Connection lost. Check your signal and try again." : /owner|created|allowed|42501/i.test(e.message) ? "Only the Dazzle owner or the person who added this expense can delete it." : e.message); return; }
     close();
   }
 
@@ -280,8 +280,8 @@ export default function ExpenseScreen() {
         </View>
         {!id ? (
           <View style={styles.noTrip}>
-            <ZText variant="body" color={color.textMuted} style={styles.noTripText}>Open a dazzle first, then add the expense from there.</ZText>
-            <Button kind="secondary" onWhite height={size.pillButton} label="Back to your dazzles" onPress={close} style={styles.noTripButton} />
+            <ZText variant="body" color={color.textMuted} style={styles.noTripText}>Open a Dazzle first, then add the expense from there.</ZText>
+            <Button kind="secondary" onWhite height={size.pillButton} label="Back to your Dazzles" onPress={close} style={styles.noTripButton} />
           </View>
         ) : !data || !seeded ? <View style={styles.flex} /> : (
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? undefined : "height"} style={styles.flex}>
@@ -434,7 +434,7 @@ export default function ExpenseScreen() {
 /** save_expense / Postgres wording → ours; the raw transport text never reaches the screen. */
 function friendlySaveError(m: string): string {
   if (isNetworkError(m)) return "Connection lost. Check your signal and try again.";
-  if (/42501|not a member/i.test(m)) return "You're not on this dazzle any more.";
+  if (/42501|not a member/i.test(m)) return "You're not on this Dazzle any more.";
   if (/sum|shares|payers/i.test(m)) return "The split doesn't add up to the total. Check the amounts.";
   return m;
 }

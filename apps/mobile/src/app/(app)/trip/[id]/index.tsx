@@ -86,7 +86,7 @@ export default function TripScreen() {
       <View style={styles.screen}>
         <ScreenBackground />
         <TopBar onBack={() => router.back()} />
-        {error ? <ErrorPanel message={error} onRetry={reload} style={styles.errorPanel} /> : <ScreenSkeleton rows={4} label="Loading the dazzle" />}
+        {error ? <ErrorPanel message={error} onRetry={reload} style={styles.errorPanel} /> : <ScreenSkeleton rows={4} label="Loading the Dazzle" />}
       </View>
     );
   }
@@ -124,7 +124,7 @@ export default function TripScreen() {
   }
   function deleteTrip() {
     setConfirm({
-      title: "Delete this dazzle? It has no expenses. Members lose access and this can't be undone.",
+      title: "Delete this Dazzle? It has no expenses. Members lose access and this can't be undone.",
       label: "Delete",
       run: async () => { const { error: e } = await supabase.from("trips").delete().eq("id", trip.id); if (e) show({ message: `Couldn't delete: ${e.message}` }); else router.replace("/(app)/home"); },
     });
@@ -149,7 +149,7 @@ export default function TripScreen() {
   ];
   if (closed) menuActions.push({ label: "View recap", onPress: () => router.push(`/(app)/trip/${trip.id}/recap`) });
   if (isOwner && !unlocked && !closed) menuActions.push({ label: "Close out anyway", destructive: true, onPress: closeOutAnyway });
-  if (isOwner && !closed && data.expenses.length === 0) menuActions.push({ label: "Delete dazzle", destructive: true, onPress: deleteTrip });
+  if (isOwner && !closed && data.expenses.length === 0) menuActions.push({ label: "Delete Dazzle", destructive: true, onPress: deleteTrip });
 
   const openStripes = readonly ? undefined : () => router.push(`/(app)/trip/${trip.id}/closeout`);
   // Nudge (creator only): the same screen with a small Nudge CTA beside each person still adding
@@ -175,7 +175,7 @@ export default function TripScreen() {
             <ZText variant="title1" accessibilityRole="header" style={styles.flex}>{trip.title}</ZText>
           </View>
           <ZText variant="caption" color={color.textMuted}>
-            {formatDateRange(trip.start_date, trip.end_date)} · {nights} {nights === 1 ? "night" : "nights"} · {figures.members.length} in the dazzle{closed ? ` · ${trip.status}` : ""}
+            {formatDateRange(trip.start_date, trip.end_date)} · {nights} {nights === 1 ? "night" : "nights"} · {figures.members.length} in the Dazzle{closed ? ` · ${trip.status}` : ""}
           </ZText>
         </View>
 
@@ -346,7 +346,7 @@ export default function TripScreen() {
 /** Postgres / fetch wording → ours (the dazzle page's own actions). */
 function friendlyError(m: string): string {
   if (isNetworkError(m)) return "Connection lost. Check your signal and try again.";
-  if (/42501|only the (trip|dazzle) (owner|creator)/i.test(m)) return "Only the dazzle creator can do that.";
+  if (/42501|only the (trip|Dazzle) (owner|creator)/i.test(m)) return "Only the Dazzle creator can do that.";
   return m;
 }
 

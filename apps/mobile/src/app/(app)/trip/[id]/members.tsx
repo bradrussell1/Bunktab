@@ -68,7 +68,7 @@ export default function MemberScreen() {
         </Card>
 
         <Card style={styles.list}>
-          <ZText variant="overline" color={color.textMuted} style={styles.cardLabel}>On this dazzle</ZText>
+          <ZText variant="overline" color={color.textMuted} style={styles.cardLabel}>On this Dazzle</ZText>
           <Row label="Paid" value={formatCents(paid, cur)} />
           <Row label="Share" value={formatCents(share, cur)} rule />
           <Row label="Net" value={net === 0 ? "Even" : net > 0 ? `Owed ${formatCents(net, cur)}` : `Owes ${formatCents(-net, cur)}`} rule right={net !== 0 ? <AmountPill cents={net} /> : null} hideValue={net !== 0} />
@@ -76,8 +76,8 @@ export default function MemberScreen() {
         </Card>
 
         {removable ? (
-          <Press onPress={() => setConfirm(true)} disabled={busy} scaleTo={0.98} accessibilityRole="button" accessibilityLabel="Remove from dazzle" style={styles.remove}>
-            <ZText variant="label" color={color.destructive} style={styles.removeText}>{busy ? "Removing…" : "Remove from dazzle"}</ZText>
+          <Press onPress={() => setConfirm(true)} disabled={busy} scaleTo={0.98} accessibilityRole="button" accessibilityLabel="Remove from Dazzle" style={styles.remove}>
+            <ZText variant="label" color={color.destructive} style={styles.removeText}>{busy ? "Removing…" : "Remove from Dazzle"}</ZText>
           </Press>
         ) : viewerIsOwner && !isMe && m.role !== "owner" && !m.removed_at ? (
           <ZText variant="caption" color={color.textMuted} style={styles.note}>

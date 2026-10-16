@@ -33,9 +33,9 @@ import { activeMembers, memberName, useTrip } from "@/lib/trips";
 function friendly(m: string): string {
   const s = m.toLowerCase();
   if (s.includes("still locked")) return "Close out is locked until everyone has tapped Done.";
-  if (s.includes("not a member")) return "You're not on this dazzle any more.";
+  if (s.includes("not a member")) return "You're not on this Dazzle any more.";
   if (isNetworkError(m) || s.includes("network")) return "Connection lost. Check your signal and try again.";
-  if (s.includes("42501") || s.includes("only the")) return "Only the dazzle creator can do that.";
+  if (s.includes("42501") || s.includes("only the")) return "Only the Dazzle creator can do that.";
   return m;
 }
 
@@ -187,7 +187,7 @@ export default function CloseoutScreen() {
           <>
             {settlements.length === 0 ? (
               <Rise delay={250} style={styles.gutter}>
-                <Card><ZText variant="headline">Everyone is even.</ZText><ZText variant="caption" color={color.textSecondary}>Nothing to settle on this dazzle.</ZText></Card>
+                <Card><ZText variant="headline">Everyone is even.</ZText><ZText variant="caption" color={color.textSecondary}>Nothing to settle on this Dazzle.</ZText></Card>
               </Rise>
             ) : null}
 
@@ -265,7 +265,7 @@ export default function CloseoutScreen() {
                   <ZText variant="bodyStrong" style={styles.flex}>Settled up</ZText>
                   <Toggle value={settledUp} onChange={toggleSettledUp} disabled={settling} label="Settled up" />
                 </View>
-                <ZText variant="caption" color={color.textSecondary}>Turn this on once you&apos;ve paid and been paid for this dazzle. It marks your payments paid and quiets the expenses.</ZText>
+                <ZText variant="caption" color={color.textSecondary}>Turn this on once you&apos;ve paid and been paid for this Dazzle. It marks your payments paid and quiets the expenses.</ZText>
                 <ZText variant="caption" color={color.textMuted}>Venmo does the paying. Zebrasplit only prepares each payment and can&apos;t see whether it went through, so mark each one paid yourself. Recipients can tap Got it to confirm, but they don&apos;t have to.</ZText>
               </Card>
             </Rise>

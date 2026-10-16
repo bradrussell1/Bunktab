@@ -79,7 +79,7 @@ function Sheet() {
         </Section>
 
         <Section title="Buttons">
-          <Button label="Start a dazzle" icon="plus" onPress={() => show({ message: "Invites sent", bust: <Zebra variant="bust" mood="wink" size={28} decorative /> })} />
+          <Button label="Start a Dazzle" icon="plus" onPress={() => show({ message: "Invites sent", bust: <Zebra variant="bust" mood="wink" size={28} decorative /> })} />
           <Button label="Close out" kind="ink" onPress={() => {}} />
           <Button label="Snap a receipt" kind="ink" icon="camera" onPress={() => {}} />
           <Button label="Try again" kind="secondary" onPress={() => {}} />
@@ -100,14 +100,14 @@ function Sheet() {
 
         <Section title="Cards">
           <HeroCard>
-            <ZText variant="caption" color={color.textMuted}>Across 3 dazzles</ZText>
+            <ZText variant="caption" color={color.textMuted}>Across 3 Dazzles</ZText>
             <CountUp cents={219310} play={play.count} />
             <AmountPill cents={219310} large style={{ marginTop: 8 }} />
             <View style={styles.heroZebra}><Zebra variant="bust" mood="happy" size={112} animate={{ bob: true }} decorative /></View>
           </HeroCard>
           <Card onPress={() => {}}>
             <ZText variant="headline">Cabo crew: Casa Azul</ZText>
-            <ZText variant="caption" color={color.textMuted}>Oct 9 – 14 · 6 in the dazzle</ZText>
+            <ZText variant="caption" color={color.textMuted}>Oct 9 – 14 · 6 in the Dazzle</ZText>
             <InsetPanel style={{ marginTop: 10 }}><StripeMeter members={6} done={3} /></InsetPanel>
           </Card>
           <RowCard tile={<Icon name="moon" />} title="Casa Azul villa" caption="You paid · split by nights stayed" right={<><Money cents={300000} /><AmountPill cents={-50000} /></>} onPress={() => {}} />
@@ -156,7 +156,7 @@ function Sheet() {
             <Button label="Volt toast" kind="secondary" height={40} onPress={() => show({ message: "Synced", tone: "volt", duration: 2000 })} />
             <Button label="Toast + action" kind="secondary" height={40} onPress={() => show({ message: "Expense deleted", action: { label: "Undo", onPress: () => {} } })} />
           </Row>
-          <ErrorPanel message="Couldn't load the dazzle. Check your connection." onRetry={() => {}} />
+          <ErrorPanel message="Couldn't load the Dazzle. Check your connection." onRetry={() => {}} />
           <HeroSkeleton />
           <RowSkeleton />
           <RowSkeleton />
@@ -207,7 +207,7 @@ function Sheet() {
         <View style={{ height: space[12] }} />
         <Button label="Add expense" onPress={() => setSheet(false)} />
       </BottomSheet>
-      <ActionSheet open={actions} onClose={() => setActions(false)} title="Cabo crew" actions={[{ label: "Edit dazzle", onPress: () => {} }, { label: "Members", onPress: () => {} }, { label: "Close out anyway", onPress: () => {}, destructive: true }]} />
+      <ActionSheet open={actions} onClose={() => setActions(false)} title="Cabo crew" actions={[{ label: "Edit Dazzle", onPress: () => {} }, { label: "Members", onPress: () => {} }, { label: "Close out anyway", onPress: () => {}, destructive: true }]} />
     </View>
   );
 }
