@@ -18,8 +18,8 @@ export const legal: Record<LegalKey, string | null> = {
   mailingAddress: null,
   effectiveDate: null,
   lastUpdatedDate: null,
-  supportEmail: null,
-  privacyEmail: null,
+  supportEmail: "support@zebrasplit.com",
+  privacyEmail: "privacy@zebrasplit.com",
   arbitrationProvider: null,
   deletionDays: null,
 };
