@@ -14,9 +14,10 @@
 //   → { expense_id, shares }
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders, json } from "../_shared/cors.ts";
+import { withSentry } from "../_shared/sentry.ts";
 import { receiptTotals, splitByItem, splitEven, splitExact, type Claims, type Share, type SplitReceipt, type TipChoice } from "../_shared/receipt/index.ts";
 
-Deno.serve(async (req) => {
+Deno.serve(withSentry("receipt-save", async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method" }, 405);
   const auth = req.headers.get("Authorization") ?? "";
@@ -83,4 +84,4 @@ Deno.serve(async (req) => {
   const { data: expenseId, error } = await asUser.rpc("save_receipt_expense", { p: payload });
   if (error) return json({ error: error.message }, /42501/.test(error.message) ? 403 : 422);
   return json({ expense_id: expenseId, shares: mine, grand_cents: totals.grandCents });
-});
+}));

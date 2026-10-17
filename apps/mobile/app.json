@@ -5,12 +5,15 @@
     "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": ["zebrasplit", "bunktab", "checkm8"],
+    "scheme": [
+      "zebrasplit",
+      "bunktab",
+      "checkm8"
+    ],
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.bunktab.app",
       "supportsTablet": false,
-      "icon": "./assets/expo.icon",
       "infoPlist": {
         "NSContactsUsageDescription": "Zebrasplit reads your contacts on this device so you can pick who to invite. Only the numbers you choose are sent.",
         "NSCameraUsageDescription": "Zebrasplit uses the camera to photograph receipts.",
@@ -28,7 +31,7 @@
     "android": {
       "package": "com.bunktab.app",
       "adaptiveIcon": {
-        "backgroundColor": "#F5F5F7",
+        "backgroundColor": "#E2FF2B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -36,9 +39,7 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.READ_CONTACTS",
-        "android.permission.CAMERA",
-        "android.permission.WRITE_CONTACTS",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.CAMERA"
       ],
       "intentFilters": [
         {
@@ -49,6 +50,10 @@
             }
           ]
         }
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.WRITE_CONTACTS"
       ]
     },
     "web": {
@@ -60,9 +65,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F5F5F7",
+          "backgroundColor": "#E2FF2B",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 160
         }
       ],
       "expo-secure-store",
@@ -88,7 +93,7 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "backgroundColor": "#F5F5F7",
+    "backgroundColor": "#E2FF2B",
     "owner": "brad.russell1",
     "runtimeVersion": {
       "policy": "appVersion"

@@ -5,10 +5,11 @@
 // Expo reports as DeviceNotRegistered.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { internalOk, json } from "../_shared/cors.ts";
+import { withSentry } from "../_shared/sentry.ts";
 
 const EXPO = "https://exp.host/--/api/v2/push/send";
 
-Deno.serve(async (req) => {
+Deno.serve(withSentry("push", async (req) => {
   if (req.method !== "POST") return json({ error: "method" }, 405);
   if (!internalOk(req)) return json({ error: "unauthorized" }, 401);
   const { log_id, user_id, title, body, data } = await req.json().catch(() => ({}));
@@ -39,4 +40,4 @@ Deno.serve(async (req) => {
   if (dead.length) await admin.from("devices").delete().eq("user_id", user_id).in("expo_push_token", dead);
   if (log_id) await admin.from("notification_log").update({ payload: { title, body, data, delivery: { devices: devices.length, tickets } } }).eq("id", log_id);
   return json({ sent: devices.length - dead.length, dropped: dead.length });
-});
+}));
