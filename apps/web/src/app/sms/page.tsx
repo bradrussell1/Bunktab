@@ -37,7 +37,7 @@ export default function Sms() {
       <p className="t-body">Message and data rates may apply. Carriers are not liable for delayed or undelivered messages.</p>
 
       <h2 className="t-title2">Contact</h2>
-      <p className="t-body">Zebrasplit · Bradley Russell, sole proprietor · 1801 Broadway, San Francisco, CA 94109 · <a href="mailto:support@zebrasplit.com">support@zebrasplit.com</a> · <a href="https://www.zebrasplit.com">www.zebrasplit.com</a></p>
+      <p className="t-body">Zebrasplit · Bradley Russell, sole proprietor · <a href="mailto:support@zebrasplit.com">support@zebrasplit.com</a> · <a href="https://www.zebrasplit.com">www.zebrasplit.com</a></p>
       <p className="t-caption t-muted" style={{ paddingTop: "var(--zs-space-16)" }}><Link href="/privacy">Privacy policy</Link> · <Link href="/terms">Terms of service</Link></p>
     </main>
   );

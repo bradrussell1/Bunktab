@@ -11,13 +11,12 @@ export const site = {
   joinDescription: "Join the Dazzle to add expenses and settle up.",
 } as const;
 
-export type LegalKey = "companyLegalName" | "mailingAddress" | "effectiveDate" | "lastUpdatedDate" | "supportEmail" | "privacyEmail" | "arbitrationProvider" | "deletionDays" | "governingState" | "venueCounty";
+export type LegalKey = "companyLegalName" | "effectiveDate" | "lastUpdatedDate" | "supportEmail" | "privacyEmail" | "arbitrationProvider" | "deletionDays" | "governingState" | "venueCounty";
 
 export const legal: Record<LegalKey, string | null> = {
   // Launching as a sole proprietor (owner's decision, 2026-10-16). Every value below is published
   // on the Privacy and Terms pages; unsetPlaceholders() warns at build time if one goes back to null.
   companyLegalName: "Bradley Russell, doing business as Zebrasplit",
-  mailingAddress: "1801 Broadway, San Francisco, CA 94109",
   effectiveDate: "October 16, 2026",
   lastUpdatedDate: "October 16, 2026",
   supportEmail: "support@zebrasplit.com",
@@ -31,7 +30,6 @@ export const legal: Record<LegalKey, string | null> = {
 
 export const legalPlaceholders: Record<LegalKey, string> = {
   companyLegalName: "[COMPANY LEGAL NAME]",
-  mailingAddress: "[MAILING ADDRESS]",
   effectiveDate: "[EFFECTIVE DATE]",
   lastUpdatedDate: "[LAST UPDATED DATE]",
   supportEmail: "[SUPPORT EMAIL]",
