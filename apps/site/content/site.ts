@@ -14,10 +14,10 @@ export const site = {
 export type LegalKey = "companyLegalName" | "mailingAddress" | "effectiveDate" | "lastUpdatedDate" | "supportEmail" | "privacyEmail" | "arbitrationProvider" | "deletionDays" | "governingState" | "venueCounty";
 
 export const legal: Record<LegalKey, string | null> = {
-  // Launching as a sole proprietor (owner's decision, 2026-10-16). mailingAddress stays unset until
-  // the owner supplies a PO box or registered-agent address; the build warns while it is bracketed.
+  // Launching as a sole proprietor (owner's decision, 2026-10-16). Every value below is published
+  // on the Privacy and Terms pages; unsetPlaceholders() warns at build time if one goes back to null.
   companyLegalName: "Bradley Russell, doing business as Zebrasplit",
-  mailingAddress: null,
+  mailingAddress: "1801 Broadway, San Francisco, CA 94109",
   effectiveDate: "October 16, 2026",
   lastUpdatedDate: "October 16, 2026",
   supportEmail: "support@zebrasplit.com",
