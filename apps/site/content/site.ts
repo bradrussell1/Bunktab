@@ -16,7 +16,7 @@ export type LegalKey = "companyLegalName" | "effectiveDate" | "lastUpdatedDate" 
 export const legal: Record<LegalKey, string | null> = {
   // Launching as a sole proprietor (owner's decision, 2026-10-16). Every value below is published
   // on the Privacy and Terms pages; unsetPlaceholders() warns at build time if one goes back to null.
-  companyLegalName: "Bradley Russell, doing business as Zebrasplit",
+  companyLegalName: "Zebrasplit",
   effectiveDate: "October 16, 2026",
   lastUpdatedDate: "October 16, 2026",
   supportEmail: "support@zebrasplit.com",
